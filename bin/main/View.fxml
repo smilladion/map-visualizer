@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<?import bfst20.tegneprogram.MapCanvas?>
+<Scene xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="bfst20.tegneprogram.Controller">
+   <root>
+      <AnchorPane prefHeight="400.0" prefWidth="600.0">
+         <children>
+            <MapCanvas fx:id="mapCanvas" height="400.0" width="600.0" onMousePressed="#setMousePressed" onMouseDragged="#setMouseDragged" onMouseReleased="#setMouseReleased" onScroll="#setScrolled"/>
+            <TextField layoutX="14.0" layoutY="14.0" prefHeight="32.0" prefWidth="263.0" text="Her er en sjov tekst hehe" />
+            <Button layoutX="284.0" layoutY="14.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="84.0" text="Knap knap" onAction="#buttonAction"/>
+         </children>
+      </AnchorPane>
+   </root>
+</Scene>
