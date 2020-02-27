@@ -28,7 +28,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'bfst20.tegneprogram.Main'
+    mainClassName = 'bfst20.mapdrawer.Main'
 }
 
 compileJava.options.encoding = 'UTF-8'
