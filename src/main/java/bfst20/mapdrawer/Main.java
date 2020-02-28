@@ -5,5 +5,6 @@ public class Main {
         Launcher.main(args);
         System.out.println("UFFE");
         System.out.println("KIR");
+	System.out.println("DAVID");
     }
 }
