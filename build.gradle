@@ -28,7 +28,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'bfst20.mapdrawer.Main'
+    mainClassName = 'bfst20.mapdrawer.Launcher'
 }
 
 compileJava.options.encoding = 'UTF-8'
