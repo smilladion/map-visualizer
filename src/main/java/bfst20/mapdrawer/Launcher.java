@@ -15,11 +15,6 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Google Map'nt");
-        TextArea label = new TextArea("Hello World!");
-        StackPane root = new StackPane();
-        Scene primaryScene = new Scene(root, 1000, 800);
-        primaryStage.setScene(primaryScene);
-        primaryStage.show();
+        View view = new View(primaryStage);
     }
 }
