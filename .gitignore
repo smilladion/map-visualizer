@@ -530,6 +530,9 @@ tags
 
 ### Gradle ###
 .gradle
+.gradle/6.1.1/*
+.gradle/buildOutputCleanup/*
+.gradle/checksums/*
 build/
 
 # Ignore Gradle GUI config
