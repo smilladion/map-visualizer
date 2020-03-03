@@ -9,7 +9,7 @@ public class View {
 
     public View(Stage primaryStage) {
         primaryStage.setTitle("Google Map'nt");
-        Canvas canvas = new Canvas(640, 480);
+        Canvas canvas = new Canvas(1920, 1080);
         StackPane root = new StackPane(canvas);
         Scene primaryScene = new Scene(root);
         primaryStage.setScene(primaryScene);
