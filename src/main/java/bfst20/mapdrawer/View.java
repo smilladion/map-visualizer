@@ -31,11 +31,13 @@ public class View {
     private Controller controller;
     private Model model;
     private TextArea addressArea = new TextArea();
-    private List streetNames = getStreetNameList();
+    private List<String> streetNames;
     private Button editButton = new Button("Edit");
     private String lastSearched;
 
     public View(Stage primaryStage) throws IOException {
+
+        createStreetNameList();
 
         model = new Model();
         controller = new Controller(model);
@@ -49,10 +51,15 @@ public class View {
 
         editButton.setOnAction(e -> {
             edit();
-            System.out.println("hej");
         });
 
+
+
         searchBar.setOnAction(e -> {
+            if (streetNames.contains(searchBar.getText())) {
+                Button b = new Button(searchBar.getText());
+                root.getChildren().add(b);
+            }
             updateLastSearchedText();
             addressUpdate();
         });
@@ -76,6 +83,7 @@ public class View {
     }
 
     private void addressUpdate() {
+        addressArea.clear();
         var raw = searchBar.getText();
         var parsed = Address.parse(raw);
         searchBar.clear();
@@ -96,24 +104,22 @@ public class View {
         lastSearched = searchBar.getText();
     }
 
-    public List<String> getStreetNameList() throws IOException {
+    public void createStreetNameList() throws IOException {
 
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("streetnames.txt");
         BufferedReader br = new BufferedReader(new InputStreamReader(in, "ISO-8859-1")); //ISO-8859-1 gør at man kan læse specielle tegn, f.eks. ä.
 
-        List<String> streetNamesList = new LinkedList<>();
+        streetNames = new LinkedList<String>();
 
         String streetNameString;
 
         while ((streetNameString = (br.readLine())) != null) {
-            streetNamesList.add(streetNameString);
+            streetNames.add(streetNameString);
         }
-        return streetNamesList;
     }
 
     public void edit() {
         searchBar.setText(lastSearched);
-        System.out.println("hejsa");
     }
 
 }
