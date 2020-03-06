@@ -5,14 +5,13 @@ import java.util.regex.Pattern;
 public class Address {
     public final String street, house, floor, side, postcode, city;
 
-    private Address(
-            String _street, String _house, String _floor, String _side, String _postcode, String _city) {
-        street = _street;
-        house = _house;
-        floor = _floor;
-        side = _side;
-        postcode = _postcode;
-        city = _city;
+    private Address(String street, String house, String floor, String side, String postcode, String city) {
+        this.street = street;
+        this.house = house;
+        this.floor = floor;
+        this.side = side;
+        this.postcode = postcode;
+        this.city = city;
     }
 
     public String toString() {
@@ -23,57 +22,31 @@ public class Address {
     static Pattern pattern = Pattern.compile(regex);
 
     public static Address parse(String input) {
+        // Erstatter "sal" med ingenting
+        input = input.replace(" sal ", "");
+
+        // Erstatter specielle karakterer med mellemrum [.,]
+        input = input.replace(',', ' ');
+        input = input.replace('.', ' ');
+
+        // Erstatter flere mellemrum med ét mellemrum
+        input = input.replaceAll("\\s{2,}", " ");
+
+        // Fjerner mellemrum i starten/slutningen af et string
+        input = input.trim();
+
         var matcher = pattern.matcher(input);
         if (matcher.matches()) {
-            return new Builder()
-                    .street(matcher.group("street"))
-                    .house(matcher.group("house"))
-                    .floor(matcher.group("floor"))
-                    .side(matcher.group("side"))
-                    .postcode(matcher.group("postcode"))
-                    .city(matcher.group("city"))
-                    .build();
+            return new Address(
+                    matcher.group("street"),
+                    matcher.group("house"),
+                    matcher.group("floor"),
+                    matcher.group("side"),
+                    matcher.group("postcode"),
+                    matcher.group("city")
+            );
         } else {
             throw new IllegalArgumentException("Cannot parse: " + input);
         }
     }
-
-    public static class Builder {
-        private String street, house, floor, side, postcode, city;
-
-        public Builder street(String _street) {
-            street = _street;
-            return this;
-        }
-
-        public Builder house(String _house) {
-            house = _house;
-            return this;
-        }
-
-        public Builder floor(String _floor) {
-            floor = _floor;
-            return this;
-        }
-
-        public Builder side(String _side) {
-            side = _side;
-            return this;
-        }
-
-        public Builder postcode(String _postcode) {
-            postcode = _postcode;
-            return this;
-        }
-
-        public Builder city(String _city) {
-            city = _city;
-            return this;
-        }
-
-        public Address build() {
-            return new Address(street, house, floor, side, postcode, city);
-        }
-    }
 }
-
