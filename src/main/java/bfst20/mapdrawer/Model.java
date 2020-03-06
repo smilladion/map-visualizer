@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,18 +39,24 @@ public class Model {
 
 
     private void loadOSM(File file) throws FileNotFoundException, XMLStreamException, FactoryConfigurationError {
-        var reader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file));
+        var xmlStreamReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file));
         Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
         SortedArrayList<OSMNode> SortedOSMNode = new SortedArrayList<>();
         SortedArrayList<OSMWay> SortedOSMWay = new SortedArrayList<>();
+
+        OSMWay currentWay = null;
+        //Type type = Type.UNKNOWN;
+
+        while(xmlStreamReader.hasNext()){
+            xmlStreamReader.next();
+
+        }
+
     }
 }
 
         //Skriv alt hernede til enkelte metoder
-
-
-
 
 /*
             OSMRelation currentRelation = null;

@@ -9,7 +9,7 @@ public class SortedArrayList<T extends LongSupplier> {
     private boolean isSorted;
 
     public SortedArrayList(){
-        SAList = new ArrayList<T>();
+        SAList = new ArrayList<>();
         isSorted = false;
     }
 
@@ -19,7 +19,7 @@ public class SortedArrayList<T extends LongSupplier> {
 
     public T get(long id){
         if(!isSorted){
-            //SAList = sort(Comparator.comparing(T::getAsLong));
+            SAList.sort(Comparator.comparing(T::getAsLong));
             isSorted = true;
         }
         return binarySearch(id);
