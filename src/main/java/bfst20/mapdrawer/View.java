@@ -29,6 +29,7 @@ public class View {
     private List<String> streetNames;
     private Button editButton = new Button("Edit");
     private String lastSearched;
+    private Label isValidAdress;
 
     public View(Stage primaryStage) throws IOException {
 
@@ -37,12 +38,14 @@ public class View {
 
         model = new Model();
         controller = new Controller(model);
+        isValidAdress = new Label("");
 
         primaryStage.setTitle("Google Map'nt");
         searchBar = new TextField("Search here...");
         lastSearchedLabel = new Label("Last searched: ");
 
         HBox hbox = new HBox(searchBar, lastSearchedLabel, editButton);
+        VBox vbox = new VBox(hbox);
 
         // Når man trykker på edit knappen, ændres search feltet til det man sidst har søgt på.
         editButton.setOnAction(e -> {
@@ -51,7 +54,11 @@ public class View {
 
         // Når man trykker ENTER efter en søgning.
         searchBar.setOnAction(e -> {
-            if (streetNames.contains(searchBar.getText())) {
+            isValidAdress.setText("");
+            String[] s = searchBar.getText().split(" ");
+            if (streetNames.contains(s[0])) {
+                isValidAdress.setText("The address is valid");
+                vbox.getChildren().add(isValidAdress);
             }
             updateLastSearchedText();
             addressUpdate();
@@ -64,7 +71,7 @@ public class View {
 
         canvas = new Canvas(640, 480);
         root = new StackPane(canvas);
-        root.getChildren().add(hbox);
+        root.getChildren().add(vbox);
         Scene primaryScene = new Scene(root);
         primaryStage.setScene(primaryScene);
         primaryStage.show();

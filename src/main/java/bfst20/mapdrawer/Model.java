@@ -4,6 +4,9 @@ import javafx.scene.image.Image;
 
 public class Model {
 
+    public Model() {
+
+    }
 
     //returnerer maps logoet
     public Image getIcon(){
