@@ -32,6 +32,7 @@ public class View {
 
     public View(Stage primaryStage) throws IOException {
 
+        // Opretter en linked list af alle adresser i streetnames.txt dokumentet. De er i sorteret rækkefølge (med tal først)
         createStreetNameList();
 
         model = new Model();
@@ -43,20 +44,23 @@ public class View {
 
         HBox hbox = new HBox(searchBar, lastSearchedLabel, editButton);
 
+        // Når man trykker på edit knappen, ændres search feltet til det man sidst har søgt på.
         editButton.setOnAction(e -> {
             edit();
         });
 
+        // Når man trykker ENTER efter en søgning.
         searchBar.setOnAction(e -> {
             if (streetNames.contains(searchBar.getText())) {
-                Button b = new Button(searchBar.getText());
-                root.getChildren().add(b);
             }
             updateLastSearchedText();
             addressUpdate();
         });
 
         hbox.setSpacing(10);
+
+        // sætter det sorte maps logo i hjørnet.
+        primaryStage.getIcons().add(model.getIcon());
 
         canvas = new Canvas(640, 480);
         root = new StackPane(canvas);
@@ -72,7 +76,6 @@ public class View {
         var parsed = Address.parse(raw);
         searchBar.clear();
         addressArea.appendText(parsed + "\n\n");
-
     }
 
     public Label getLabel() {
