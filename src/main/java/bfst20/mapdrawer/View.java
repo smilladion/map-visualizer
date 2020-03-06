@@ -22,11 +22,6 @@ public class View {
     private Canvas canvas;
     private StackPane root;
     private Label lastSearchedLabel;
-    private Label streetLabel = new Label("Street: ");
-    private Label houseNumberLabel = new Label("Number: ");
-    private Label floorLabel = new Label ("Floor: ");
-    private Label zipCodeLabel = new Label("Zip-code: ");
-    private Label cityLabel = new Label("City: ");
     private TextField searchBar;
     private Controller controller;
     private Model model;
@@ -47,13 +42,10 @@ public class View {
         lastSearchedLabel = new Label("Last searched: ");
 
         HBox hbox = new HBox(searchBar, lastSearchedLabel, editButton);
-        VBox vbox = new VBox(hbox, streetLabel, houseNumberLabel, floorLabel, zipCodeLabel, cityLabel, addressArea);
 
         editButton.setOnAction(e -> {
             edit();
         });
-
-
 
         searchBar.setOnAction(e -> {
             if (streetNames.contains(searchBar.getText())) {
@@ -64,19 +56,11 @@ public class View {
             addressUpdate();
         });
 
-        streetLabel.setVisible(false);
-        houseNumberLabel.setVisible(false);
-        floorLabel.setVisible(false);
-        zipCodeLabel.setVisible(false);
-        cityLabel.setVisible(false);
-
-        vbox.setSpacing(10);
         hbox.setSpacing(10);
 
         canvas = new Canvas(640, 480);
         root = new StackPane(canvas);
-        //root.getChildren().add(hbox);
-        root.getChildren().add(vbox);
+        root.getChildren().add(hbox);
         Scene primaryScene = new Scene(root);
         primaryStage.setScene(primaryScene);
         primaryStage.show();
