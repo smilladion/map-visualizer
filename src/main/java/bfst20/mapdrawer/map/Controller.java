@@ -15,5 +15,3 @@ public class Controller {
         view.getLabel().setText(view.getSearchBar().getText());
     }
 }
-
-

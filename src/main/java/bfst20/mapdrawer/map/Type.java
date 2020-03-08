@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 public enum Type {
+
     UNKNOWN,
     BUILDING,
     HIGHWAY,

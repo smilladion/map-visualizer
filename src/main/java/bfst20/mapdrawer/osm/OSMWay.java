@@ -12,7 +12,7 @@ public class OSMWay implements LongSupplier {
     private final long id;
     private final List<OSMNode> nodes;
 
-    public OSMWay(long id, List<OSMNode> nodes) {
+    OSMWay(long id, List<OSMNode> nodes) {
         this.id = id;
         this.nodes = nodes;
     }
@@ -84,5 +84,9 @@ public class OSMWay implements LongSupplier {
 
     public OSMNode last() {
         return nodes.get(nodes.size() - 1);
+    }
+
+    public List<OSMNode> getNodes() {
+        return nodes;
     }
 }

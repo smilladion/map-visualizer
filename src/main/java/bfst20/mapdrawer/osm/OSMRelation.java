@@ -8,7 +8,7 @@ public class OSMRelation implements LongSupplier {
     private final long id;
     private final List<OSMWay> ways;
 
-    public OSMRelation(long id, List<OSMWay> ways) {
+    OSMRelation(long id, List<OSMWay> ways) {
         this.id = id;
         this.ways = ways;
     }
@@ -16,5 +16,9 @@ public class OSMRelation implements LongSupplier {
     @Override
     public long getAsLong() {
         return id;
+    }
+
+    public List<OSMWay> getWays() {
+        return ways;
     }
 }

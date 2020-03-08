@@ -95,10 +95,9 @@ public class View {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("streetnames.txt");
         BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1)); //ISO-8859-1 gør at man kan læse specielle tegn, f.eks. ä.
 
-        streetNames = new LinkedList<String>();
+        streetNames = new LinkedList<>();
 
         String streetNameString;
-
         while ((streetNameString = (br.readLine())) != null) {
             streetNames.add(streetNameString);
         }
