@@ -1,5 +1,7 @@
-package bfst20.mapdrawer;
+package bfst20.mapdrawer.map;
 
+import bfst20.mapdrawer.address.Address;
+import bfst20.mapdrawer.osm.OSMMap;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
@@ -10,8 +12,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
 
 public class View {
 
@@ -20,7 +27,7 @@ public class View {
     private Label lastSearchedLabel;
     private TextField searchBar;
     private Controller controller;
-    private Model model;
+    private OSMMap model;
     private TextArea addressArea = new TextArea();
     private List<String> streetNames;
     private Button editButton = new Button("Edit");
@@ -30,7 +37,7 @@ public class View {
 
         createStreetNameList();
 
-        model = new Model();
+        // model = new Model();
         controller = new Controller(model);
 
         primaryStage.setTitle("Google Map'nt");
@@ -65,10 +72,9 @@ public class View {
     private void addressUpdate() {
         addressArea.clear();
         var raw = searchBar.getText();
-        var parsed = Address.parse(raw);
+        var parsed = Address.fromString(raw);
         searchBar.clear();
         addressArea.appendText(parsed + "\n\n");
-
     }
 
     public Label getLabel() {
@@ -87,7 +93,7 @@ public class View {
     public void createStreetNameList() throws IOException {
 
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("streetnames.txt");
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, "ISO-8859-1")); //ISO-8859-1 gør at man kan læse specielle tegn, f.eks. ä.
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1)); //ISO-8859-1 gør at man kan læse specielle tegn, f.eks. ä.
 
         streetNames = new LinkedList<String>();
 
@@ -101,5 +107,4 @@ public class View {
     public void edit() {
         searchBar.setText(lastSearched);
     }
-
 }

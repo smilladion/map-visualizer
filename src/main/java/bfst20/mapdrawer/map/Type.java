@@ -1,4 +1,4 @@
-package bfst20.mapdrawer;
+package bfst20.mapdrawer.map;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -11,8 +11,8 @@ public enum Type {
     WATER,
     GREEN;
 
-    public static Paint getColor(Type type){
-        switch(type){
+    public static Paint getColor(Type type) {
+        switch (type) {
             case WATER:
                 return Color.BLUE;
             case GREEN:
