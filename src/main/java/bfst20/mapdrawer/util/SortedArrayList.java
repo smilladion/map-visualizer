@@ -1,11 +1,13 @@
-package bfst20.mapdrawer;
+package bfst20.mapdrawer.util;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.function.LongSupplier;
 
 public class SortedArrayList<T extends LongSupplier> {
-    private ArrayList<T> SAList;
+
+    private final ArrayList<T> SAList;
+
     private boolean isSorted;
 
     public SortedArrayList() {
@@ -41,8 +43,8 @@ public class SortedArrayList<T extends LongSupplier> {
             } else {
                 return middleIndex;
             }
-
         }
+
         return null;
     }
 }
