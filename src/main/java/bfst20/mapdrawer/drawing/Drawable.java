@@ -1,7 +1,8 @@
-package bfst20.mapdrawer;
+package bfst20.mapdrawer.drawing;
 
 import javafx.scene.canvas.GraphicsContext;
 
 public interface Drawable {
+
     void draw(GraphicsContext gc);
 }
