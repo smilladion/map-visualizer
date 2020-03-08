@@ -2,6 +2,7 @@ package bfst20.mapdrawer.osm;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.LongSupplier;
 
 public class OSMWay implements LongSupplier {
@@ -9,14 +10,16 @@ public class OSMWay implements LongSupplier {
     private static final long NO_ID = Long.MIN_VALUE;
 
     private final long id;
-    private final ArrayList<OSMNode> nodes = new ArrayList<>();
+    private final List<OSMNode> nodes;
 
-    public OSMWay(long id) {
+    public OSMWay(long id, List<OSMNode> nodes) {
         this.id = id;
+        this.nodes = nodes;
     }
 
-    public OSMWay() {
+    private OSMWay() {
         this.id = NO_ID;
+        this.nodes = new ArrayList<>();
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
