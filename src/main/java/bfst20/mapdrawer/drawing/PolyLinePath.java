@@ -13,6 +13,10 @@ public class PolyLinePath implements Drawable {
     // Effectively an abstraction of list of LinePaths
     PolyLinePath(OSMRelation relation) {
         for (OSMWay way : relation.getWays()) {
+            if (way.getNodes().isEmpty()) {
+                continue;
+            }
+
             paths.add(new LinePath(way));
         }
     }

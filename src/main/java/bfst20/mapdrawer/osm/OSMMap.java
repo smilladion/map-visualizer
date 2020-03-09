@@ -19,6 +19,10 @@ public class OSMMap {
     private final float maxLat;
     private final float maxLon;
 
+    private final List<OSMNode> nodes = new ArrayList<>();
+    private final List<OSMWay> ways = new ArrayList<>();
+    private final List<OSMRelation> relations = new ArrayList<>();
+
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
         this.minLon = minLon;
@@ -94,6 +98,13 @@ public class OSMMap {
             }
         }
 
+        // Map can be null if osm file is invalid (or no bounds found)
+        if (map != null) {
+            map.nodes.addAll(idToNode.values());
+            map.ways.addAll(idToWay.values());
+            map.relations.addAll(idToRelation.values());
+        }
+
         return map;
     }
 
@@ -156,7 +167,7 @@ public class OSMMap {
                 // For each tag within the relation, if it is a <member> tag then check the type is correct
                 if (xmlReader.getLocalName().equals("member") && xmlReader.getAttributeValue(null, "type").equals("way")) {
                     // If we have found a way member type, fetch the OSMWay object from the fast lookup and add to ways list
-                    ways.add(idToWay.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
+                    ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")), OSMWay.DUMMY_WAY));
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("relation")) {
                 // Once we have reached the end of the relation, break and return the OSM relation
@@ -165,6 +176,34 @@ public class OSMMap {
         }
 
         return new OSMRelation(id, ways);
+    }
+
+    public float getMinLat() {
+        return minLat;
+    }
+
+    public float getMinLon() {
+        return minLon;
+    }
+
+    public float getMaxLat() {
+        return maxLat;
+    }
+
+    public float getMaxLon() {
+        return maxLon;
+    }
+
+    public List<OSMNode> getNodes() {
+        return nodes;
+    }
+
+    public List<OSMWay> getWays() {
+        return ways;
+    }
+
+    public List<OSMRelation> getRelations() {
+        return relations;
     }
 
     private static final class InvalidMapException extends Exception {}

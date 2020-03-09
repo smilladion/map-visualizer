@@ -7,6 +7,9 @@ import java.util.function.LongSupplier;
 
 public class OSMWay implements LongSupplier {
 
+    // A dummy way is used to avoid error when a relation references an unknown way
+    // This allows files to be loaded which would normally fail under stricter parsing
+    public static final OSMWay DUMMY_WAY = new OSMWay();
     private static final long NO_ID = Long.MIN_VALUE;
 
     private final long id;
