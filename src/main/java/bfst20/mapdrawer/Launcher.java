@@ -1,6 +1,6 @@
 package bfst20.mapdrawer;
 
-import bfst20.mapdrawer.map.View;
+import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -15,9 +15,9 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Temporarily load the "samsoe.osm" for testing
-        OSMMap.fromFile(new File("src/main/resources/samsoe.osm"));
-
-        new View(primaryStage);
+        new MapView(
+            OSMMap.fromFile(new File("src/main/resources/samsoe.osm")),
+            primaryStage
+        );
     }
 }
