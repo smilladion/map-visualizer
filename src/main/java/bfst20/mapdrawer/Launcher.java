@@ -15,9 +15,9 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Temporarily load the "samsoe.osm" for testing
-        OSMMap.fromFile(new File("src/main/resources/samsoe.osm"));
-
-        new View(primaryStage);
+        new View(
+            OSMMap.fromFile(new File("src/main/resources/samsoe.osm")),
+            primaryStage
+        );
     }
 }
