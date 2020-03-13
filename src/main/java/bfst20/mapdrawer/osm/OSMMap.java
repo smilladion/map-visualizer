@@ -206,5 +206,6 @@ public class OSMMap {
         return relations;
     }
 
+    // Can move this to its own file if needed
     private static final class InvalidMapException extends Exception {}
 }
