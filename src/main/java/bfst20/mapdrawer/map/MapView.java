@@ -15,6 +15,10 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -33,7 +37,7 @@ public class MapView {
     private final GraphicsContext context;
     private final Affine transform = new Affine();
 
-    private final StackPane root;
+    private final StackPane rootPane;
     private final MapController controller;
 
     private final TextField searchField = new TextField();
@@ -50,7 +54,8 @@ public class MapView {
         canvas = new Canvas(1280, 720);
         context = canvas.getGraphicsContext2D();
 
-        root = new StackPane(canvas);
+        rootPane = new StackPane(canvas);
+
         controller = new MapController(model, this);
 
         searchField.setPromptText("Street name");
@@ -60,19 +65,24 @@ public class MapView {
 
         searchField.setOnAction(controller.getSearchAction());
 
+        canvas.setOnMouseDragged(controller.getPanAction());
+        canvas.setOnScroll(controller.getScrollAction());
+
         HBox searchLabels = new HBox(new Label("Last search: "), userSearchLabel);
 
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
+        searchLabels.setPickOnBounds(false);
 
         HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
 
         searchRow.setSpacing(20.0);
-        searchRow.setAlignment(Pos.BASELINE_CENTER);
+        searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(15.0));
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
-        root.getChildren().add(searchRow);
+        rootPane.getChildren().add(searchRow);
 
-        window.setScene(new Scene(root));
+        window.setScene(new Scene(rootPane));
         window.show();
 
         // Remove focus from search field on startup
@@ -87,6 +97,8 @@ public class MapView {
         pan(400.0, 0.0);
 
         paintMap();
+
+        canvas.requestFocus();
     }
 
     String getSearchText() {
@@ -112,7 +124,7 @@ public class MapView {
 
     void resetSearchField() {
         searchField.clear();
-        root.requestFocus();
+        rootPane.requestFocus();
     }
 
     private void populateDrawables(OSMMap model) {
@@ -137,12 +149,12 @@ public class MapView {
         }
     }
 
-    private void pan(double dx, double dy) {
+    void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    private void zoom(double factor, double x, double y) {
+    void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         paintMap();
     }
