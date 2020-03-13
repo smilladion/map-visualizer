@@ -6,11 +6,11 @@ import javafx.scene.paint.Paint;
 public enum PathColor {
 
     UNKNOWN(Color.WHITE),
-    BUILDING(Color.BROWN),
+    BUILDING(Color.SADDLEBROWN),
     HIGHWAY(Color.YELLOW),
     COASTLINE(Color.GREY),
     WATER(Color.BLUE),
-    GREEN(Color.GREEN),
+    FOREST(Color.LIGHTGREEN),
     NONE(Color.BLACK);
 
     private final Paint color;
