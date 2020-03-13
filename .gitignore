@@ -1,6 +1,7 @@
 # Created by https://www.gitignore.io/api/git,vim,java,latex,emacs,bluej,gradle,notepadpp,sublimetext,intellij+all,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=git,vim,java,latex,emacs,bluej,gradle,notepadpp,sublimetext,intellij+all,visualstudiocode
 
+bin/
 .DS_Store
 
 ### bluej ###
@@ -530,7 +531,9 @@ tags
 ### Gradle ###
 .gradle
 .gradle/6.1.1/*
+.gradle/6.1.1/
 .gradle/buildOutputCleanup/*
+.gradle/buildOutputCleanup/
 .gradle/checksums/*
 build/
 
