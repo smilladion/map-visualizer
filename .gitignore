@@ -1,7 +1,12 @@
 # Created by https://www.gitignore.io/api/git,vim,java,latex,emacs,bluej,gradle,notepadpp,sublimetext,intellij+all,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=git,vim,java,latex,emacs,bluej,gradle,notepadpp,sublimetext,intellij+all,visualstudiocode
 
+bin
 bin/
+bin/*
+bin/main
+bin/main/
+bin/main/*
 .DS_Store
 
 ### bluej ###
