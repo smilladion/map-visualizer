@@ -15,10 +15,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -54,7 +50,7 @@ public class MapView {
         canvas = new Canvas(1280, 720);
         context = canvas.getGraphicsContext2D();
 
-        rootPane = new StackPane(canvas);
+        rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
 
         controller = new MapController(model, this);
 
@@ -65,16 +61,15 @@ public class MapView {
 
         searchField.setOnAction(controller.getSearchAction());
 
+        canvas.setOnMouseClicked(controller.getPanClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
         HBox searchLabels = new HBox(new Label("Last search: "), userSearchLabel);
-
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
         HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
-
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(15.0));

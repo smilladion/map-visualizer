@@ -28,6 +28,7 @@ public class MapController {
     private final EventHandler<ActionEvent> searchAction;
 
     private final EventHandler<MouseEvent> panAction;
+    private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
     private Point2D lastMouse;
@@ -53,8 +54,18 @@ public class MapController {
             view.resetSearchField();
         };
 
+        // Resets the value of lastMouse before the next pan/drag occurs
+        panClickAction = e -> {
+            if (!e.isPrimaryButtonDown()) {
+                lastMouse = null;
+            }
+        };
+
         panAction = e -> {
-            view.pan(e.getX() - lastMouse.getX(), e.getY() - lastMouse.getY());
+            if (lastMouse != null) {
+                view.pan(e.getX() - lastMouse.getX(), e.getY() - lastMouse.getY());
+            }
+
             lastMouse = new Point2D(e.getX(), e.getY());
         };
 
@@ -92,6 +103,10 @@ public class MapController {
 
     public EventHandler<MouseEvent> getPanAction() {
         return panAction;
+    }
+
+    public EventHandler<MouseEvent> getPanClickAction() {
+        return panClickAction;
     }
 
     public EventHandler<ScrollEvent> getScrollAction() {
