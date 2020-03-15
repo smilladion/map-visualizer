@@ -49,27 +49,11 @@ public class Launcher extends Application {
             FileInputStream in = new FileInputStream(zipFilePath);
             ZipInputStream zipInputStream = new ZipInputStream(in);
             ZipEntry zippedFile = zipInputStream.getNextEntry();
-            
-            /* while(zippedFile != null){
-                String fileName = zippedFile.getName();
-                File newFile = new File(destDir + File.separator + fileName);
-                System.out.println("Unzipping to "+newFile.getAbsolutePath());
-                FileOutputStream out = new FileOutputStream(newFile);
-                int herp;
-                while ((herp = zipInputStream.read(buffer)) > 0)
-                    out.write(buffer, 0, herp);
-                
-                out.close();
-                // Close this ZipEntry
-                zipInputStream.closeEntry();
-                zippedFile = zipInputStream.getNextEntry();
-            } */
-
             String fileName = zippedFile.getName();
             newFile = new File(destDir + File.separator + fileName);
             //System.out.println("Unzipping to "+newFile.getAbsolutePath());
             FileOutputStream out = new FileOutputStream(newFile);
-            int herp;                
+            int herp;
             while ((herp = zipInputStream.read(buffer)) > 0)
                 out.write(buffer, 0, herp);            
             out.close();
