@@ -47,22 +47,21 @@ public class Launcher extends Application {
         byte[] buffer = new byte[1024];
         try {
             FileInputStream in = new FileInputStream(zipFilePath);
-            ZipInputStream zipInputStream = new ZipInputStream(in);
-            ZipEntry zippedFile = zipInputStream.getNextEntry();
+            ZipInputStream zipIn = new ZipInputStream(in);
+            ZipEntry zippedFile = zipIn.getNextEntry();
             String fileName = zippedFile.getName();
             newFile = new File(destDir + File.separator + fileName);
-            //System.out.println("Unzipping to "+newFile.getAbsolutePath());
             FileOutputStream out = new FileOutputStream(newFile);
             int herp;
-            while ((herp = zipInputStream.read(buffer)) > 0)
+            while ((herp = zipIn.read(buffer)) > 0)
                 out.write(buffer, 0, herp);            
             out.close();
             // Close this ZipEntry
-            zipInputStream.closeEntry();
-            zippedFile = zipInputStream.getNextEntry();
+            zipIn.closeEntry();
+            zippedFile = zipIn.getNextEntry();
             // Close last ZipEntry
-            zipInputStream.closeEntry();
-            zipInputStream.close();
+            zipIn.closeEntry();
+            zipIn.close();
             in.close();
         } catch (IOException e) {
             e.printStackTrace();
