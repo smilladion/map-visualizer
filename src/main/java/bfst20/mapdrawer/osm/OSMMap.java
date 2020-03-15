@@ -1,19 +1,24 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.map.PathColor;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.awt.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import bfst20.mapdrawer.map.PathColor;
 
 public class OSMMap {
 
@@ -114,6 +119,35 @@ public class OSMMap {
         }
 
         return map;
+    }
+
+    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException{
+        File newFile = null;
+        // Buffer for read and write data to file
+        byte[] buffer = new byte[1024];
+        try {
+            FileInputStream in = new FileInputStream(zipFilePath);
+            ZipInputStream zipIn = new ZipInputStream(in);
+            ZipEntry zippedFile = zipIn.getNextEntry();
+            String fileName = zippedFile.getName();
+            newFile = new File(destDir + File.separator + fileName);
+            FileOutputStream out = new FileOutputStream(newFile);
+            int herp;
+            while ((herp = zipIn.read(buffer)) > 0)
+                out.write(buffer, 0, herp);            
+            out.close();
+            // Close this ZipEntry
+            zipIn.closeEntry();
+            zippedFile = zipIn.getNextEntry();
+            // Close last ZipEntry
+            zipIn.closeEntry();
+            zipIn.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(newFile == null) throw new FileNotFoundException();
+        return newFile;
     }
 
     /**
