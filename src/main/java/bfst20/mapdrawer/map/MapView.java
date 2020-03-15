@@ -77,8 +77,20 @@ public class MapView {
 
         rootPane.getChildren().add(searchRow);
 
-        window.setScene(new Scene(rootPane));
+        Scene scene = new Scene(rootPane);
+
+        window.setScene(scene);
         window.show();
+
+        // Code below makes the canvas resizable when the window changes (responsive design)
+        canvas.widthProperty().bind(scene.widthProperty());
+        canvas.heightProperty().bind(scene.heightProperty());
+        canvas.widthProperty().addListener((a,b,c) -> {
+            paintMap();
+        });
+        canvas.heightProperty().addListener((a,b,c) -> {
+            paintMap();
+        });
 
         // Remove focus from search field on startup
         resetSearchField();
@@ -86,10 +98,6 @@ public class MapView {
 
         populateDrawables(model);
         resetPanZoom();
-
-        // Test zoom and pan, remove later
-        zoom(0.6, 0.0, 0.0);
-        pan(400.0, 0.0);
 
         paintMap();
 
