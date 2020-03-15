@@ -1,5 +1,9 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.map.PathColor;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,15 +18,18 @@ public class OSMWay implements LongSupplier {
 
     private final long id;
     private final List<OSMNode> nodes;
+    private final Paint color;
 
-    OSMWay(long id, List<OSMNode> nodes) {
+    OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
+        this.color = color;
     }
 
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
+        color = PathColor.UNKNOWN.getColor();
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -91,5 +98,9 @@ public class OSMWay implements LongSupplier {
 
     public List<OSMNode> getNodes() {
         return nodes;
+    }
+
+    public Paint getColor() {
+        return color;
     }
 }

@@ -77,8 +77,20 @@ public class MapView {
 
         rootPane.getChildren().add(searchRow);
 
-        window.setScene(new Scene(rootPane));
+        Scene scene = new Scene(rootPane);
+
+        window.setScene(scene);
         window.show();
+
+        // Code below makes the canvas resizable when the window changes (responsive design)
+        canvas.widthProperty().bind(scene.widthProperty());
+        canvas.heightProperty().bind(scene.heightProperty());
+        canvas.widthProperty().addListener((a,b,c) -> {
+            paintMap();
+        });
+        canvas.heightProperty().addListener((a,b,c) -> {
+            paintMap();
+        });
 
         // Remove focus from search field on startup
         resetSearchField();
@@ -86,10 +98,6 @@ public class MapView {
 
         populateDrawables(model);
         resetPanZoom();
-
-        // Test zoom and pan, remove later
-        zoom(0.6, 0.0, 0.0);
-        pan(400.0, 0.0);
 
         paintMap();
 
@@ -126,21 +134,27 @@ public class MapView {
         drawables.clear();
 
         for (OSMWay way : model.getWays()) {
-            // If a way has no nodes, do not draw
             if (way.getNodes().isEmpty()) {
+                // If a way has no nodes, do not draw
                 continue;
+            } else if (way.getColor() == PathColor.NONE.getColor()) {
+                // If the way has no color, draw a line instead of a polygon
+                drawables.add(new LinePath(way));
+            } else {
+                drawables.add(new Polygon(way, way.getColor()));
             }
-
-            drawables.add(new LinePath(way));
         }
 
         for (OSMRelation relation : model.getRelations()) {
-            // If a relation has no ways, do not draw
             if (relation.getWays().isEmpty()) {
+                // If a relation has no ways, do not draw
                 continue;
+            } else if (relation.getColor() == PathColor.NONE.getColor()) {
+                // If a relation has no color, do not draw
+                continue;
+            } else {
+                drawables.add(new Polygon(relation, relation.getColor()));
             }
-
-            drawables.add(new Polygon(relation, PathColor.BUILDING.getColor()));
         }
     }
 
