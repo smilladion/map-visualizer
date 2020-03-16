@@ -92,7 +92,6 @@ public class MapController {
             } catch (Exception exc){
                 System.out.println("burp");
             }
-            
         };
     }
 

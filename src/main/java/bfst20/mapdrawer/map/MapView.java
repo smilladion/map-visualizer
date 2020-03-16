@@ -46,7 +46,7 @@ public class MapView {
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
-    private final static List<Drawable> drawables = new ArrayList<>();
+    private static List<Drawable> drawables = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -61,6 +61,7 @@ public class MapView {
         controller = new MapController(model, this);
 
         VBox menuBox = new VBox(menuBar);
+        menuBox.setPickOnBounds(false);
         menuBar.getMenus().add(loadMenu);
         MenuItem loadZip = new MenuItem("Load .zip file");
         loadZip.setOnAction(controller.getLoadZipAction());
@@ -124,6 +125,7 @@ public class MapView {
     public static void updateMap(OSMMap map) {
         model = map;
         populateDrawables(model);
+        resetPanZoom();
         paintMap();
     }
 
@@ -181,17 +183,17 @@ public class MapView {
         }
     }
 
-    void pan(double dx, double dy) {
+    static void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    void zoom(double factor, double x, double y) {
+    static void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         paintMap();
     }
 
-    private void resetPanZoom() {
+    private static void resetPanZoom() {
         pan(-model.getMinLon(), -model.getMinLat());
         zoom(canvas.getWidth() / (model.getMaxLat() - model.getMinLat()), 0, 0);
         paintMap();
