@@ -1,5 +1,8 @@
 package bfst20.mapdrawer.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -14,16 +17,17 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MapView {
 
@@ -36,6 +40,8 @@ public class MapView {
     private final StackPane rootPane;
     private final MapController controller;
 
+    private final MenuBar menuBar = new MenuBar();
+    private final Menu loadMenu = new Menu("Load");
     private final TextField searchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
@@ -53,6 +59,15 @@ public class MapView {
         rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
 
         controller = new MapController(model, this);
+
+        VBox menuBox = new VBox(menuBar);
+        menuBar.getMenus().add(loadMenu);
+        MenuItem loadZip = new MenuItem("Load .zip file");
+        loadZip.setOnAction(controller.getLoadZipAction());
+        MenuItem somethingElse = new MenuItem("Something else");
+        loadMenu.getItems().addAll(loadZip, somethingElse);
+
+        rootPane.getChildren().add(menuBox);
 
         searchField.setPromptText("Street name");
 
@@ -72,7 +87,7 @@ public class MapView {
         HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
-        searchRow.setPadding(new Insets(15.0));
+        searchRow.setPadding(new Insets(35.0));
         searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);

@@ -27,6 +27,8 @@ public class MapController {
     private final EventHandler<ActionEvent> editAction;
     private final EventHandler<ActionEvent> searchAction;
 
+    private final EventHandler<ActionEvent> loadZipAction;
+
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
@@ -73,6 +75,10 @@ public class MapController {
             double factor = Math.pow(1.001, e.getDeltaY());
             view.zoom(factor, e.getX(), e.getY());
         };
+
+        loadZipAction = e -> {
+            System.out.println("herp");
+        };
     }
 
     // Can be moved to a separate model if needed (right now, it's only used in the controller)
@@ -111,5 +117,9 @@ public class MapController {
 
     public EventHandler<ScrollEvent> getScrollAction() {
         return scrollAction;
+    }
+
+    public EventHandler<ActionEvent> getLoadZipAction() {
+        return loadZipAction;
     }
 }
