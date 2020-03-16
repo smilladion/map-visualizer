@@ -30,17 +30,17 @@ public class Address {
     }
 
     public static Address fromString(String input) {
-        // Erstatter "sal" med ingenting
+        // Replaces "sal" with nothing
         input = input.replace(" sal ", "");
 
-        // Erstatter specielle karakterer med mellemrum [.,]
+        // Replaces special characters with spaces [.,]
         input = input.replace(',', ' ');
         input = input.replace('.', ' ');
 
-        // Erstatter flere mellemrum med ét mellemrum
+        // Replaces several space characters with one space
         input = input.replaceAll("\\s{2,}", " ");
 
-        // Fjerner mellemrum i starten/slutningen af et string
+        // Removes spaces in front of or after a string
         input = input.trim();
 
         var matcher = ADDRESS_REGEX.matcher(input);

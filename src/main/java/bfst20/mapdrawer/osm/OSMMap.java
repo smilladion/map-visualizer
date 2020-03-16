@@ -1,16 +1,24 @@
 package bfst20.mapdrawer.osm;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import bfst20.mapdrawer.map.PathColor;
 
 public class OSMMap {
 
@@ -18,6 +26,11 @@ public class OSMMap {
     private final float minLon;
     private final float maxLat;
     private final float maxLon;
+
+    // Flags for way type (set by tag elements in readWay and readRelation)
+    static boolean building = false;
+    static boolean forest = false;
+    static boolean coastline = false;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
@@ -72,7 +85,7 @@ public class OSMMap {
                         float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
-                        // Store this OSM node into a map for fast lookups (used in readWay)
+                        // Store this OSM node into a map for fast lookups (used in readWay method)
                         idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
 
                         break;
@@ -108,6 +121,35 @@ public class OSMMap {
         return map;
     }
 
+    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException{
+        File newFile = null;
+        // Buffer for read and write data to file
+        byte[] buffer = new byte[1024];
+        try {
+            FileInputStream in = new FileInputStream(zipFilePath);
+            ZipInputStream zipIn = new ZipInputStream(in);
+            ZipEntry zippedFile = zipIn.getNextEntry();
+            String fileName = zippedFile.getName();
+            newFile = new File(destDir + File.separator + fileName);
+            FileOutputStream out = new FileOutputStream(newFile);
+            int herp;
+            while ((herp = zipIn.read(buffer)) > 0)
+                out.write(buffer, 0, herp);            
+            out.close();
+            // Close this ZipEntry
+            zipIn.closeEntry();
+            zippedFile = zipIn.getNextEntry();
+            // Close last ZipEntry
+            zipIn.closeEntry();
+            zipIn.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(newFile == null) throw new FileNotFoundException();
+        return newFile;
+    }
+
     /**
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
@@ -115,10 +157,9 @@ public class OSMMap {
     private static OSMWay readWay(XMLStreamReader xmlReader, Map<Long, OSMNode> idToNode, long id) throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
-        // Flags for way type (set by tag elements below)
-        boolean building = false;
-        boolean forest = false;
-        boolean coastline = false;
+        building = false;
+        forest = false;
+        coastline = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -150,7 +191,17 @@ public class OSMMap {
             }
         }
 
-        return new OSMWay(id, nodes);
+        // TODO: Make this system better (so you don't need a huge if or switch statement below)
+        // TODO: Fix coastlines (will also fix the island's inside color, has to do with Troels' "islands" arraylist in his own code)
+        if (building) {
+            return new OSMWay(id, nodes, PathColor.BUILDING.getColor());
+        } else if (forest) {
+            return new OSMWay(id, nodes, PathColor.FOREST.getColor());
+        } else if (coastline) {
+            return new OSMWay(id, nodes, PathColor.COASTLINE.getColor());
+        } else {
+            return new OSMWay(id, nodes, PathColor.NONE.getColor());
+        }
     }
 
     /**
@@ -160,14 +211,36 @@ public class OSMMap {
     private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
+        building = false;
+        forest = false;
+
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
 
             if (nextType == XMLStreamReader.START_ELEMENT) {
-                // For each tag within the relation, if it is a <member> tag then check the type is correct
-                if (xmlReader.getLocalName().equals("member") && xmlReader.getAttributeValue(null, "type").equals("way")) {
-                    // If we have found a way member type, fetch the OSMWay object from the fast lookup and add to ways list
-                    ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")), OSMWay.DUMMY_WAY));
+
+                switch (xmlReader.getLocalName()) {
+                    case "member":
+                        if (xmlReader.getAttributeValue(null, "type").equals("way")) {
+                            // If we have found a way member type, fetch the OSMWay object from the fast lookup and add to ways list
+                            ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")), OSMWay.DUMMY_WAY));
+                        }
+
+                        break;
+                    case "tag":
+                        // Found a property tag, read and set the correct boolean for this tag
+                        String key = xmlReader.getAttributeValue(null, "k");
+                        String value = xmlReader.getAttributeValue(null, "v");
+
+                        if (key.equals("building")) {
+                            building = true;
+                        } else if (key.equals("landuse") && value.equals("forest")) {
+                            forest = true;
+                        } else if (key.equals("natural") && value.equals("coastline")) {
+                            coastline = true;
+                        }
+
+                        break;
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("relation")) {
                 // Once we have reached the end of the relation, break and return the OSM relation
@@ -175,7 +248,16 @@ public class OSMMap {
             }
         }
 
-        return new OSMRelation(id, ways);
+        // TODO: Make this system better (so you don't need a huge if or switch statement below)
+        if (building) {
+            return new OSMRelation(id, ways, PathColor.BUILDING.getColor());
+        } else if (forest) {
+            return new OSMRelation(id, ways, PathColor.FOREST.getColor());
+        } else if (coastline) {
+            return new OSMRelation(id, ways, PathColor.COASTLINE.getColor());
+        } else {
+            return new OSMRelation(id, ways, PathColor.NONE.getColor());
+        }
     }
 
     public float getMinLat() {
@@ -206,5 +288,6 @@ public class OSMMap {
         return relations;
     }
 
+    // Can move this to its own file if needed
     private static final class InvalidMapException extends Exception {}
 }
