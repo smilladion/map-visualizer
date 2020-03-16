@@ -31,11 +31,11 @@ import javafx.stage.Stage;
 
 public class MapView {
 
-    private final OSMMap model;
+    private static OSMMap model;
 
-    private final Canvas canvas;
-    private final GraphicsContext context;
-    private final Affine transform = new Affine();
+    private static Canvas canvas;
+    private static GraphicsContext context;
+    private final static Affine transform = new Affine();
 
     private final StackPane rootPane;
     private final MapController controller;
@@ -46,7 +46,7 @@ public class MapView {
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
-    private final List<Drawable> drawables = new ArrayList<>();
+    private final static List<Drawable> drawables = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -88,7 +88,8 @@ public class MapView {
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
+                                          // areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -97,13 +98,14 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive design)
+        // Code below makes the canvas resizable when the window changes (responsive
+        // design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
-        canvas.widthProperty().addListener((a,b,c) -> {
+        canvas.widthProperty().addListener((a, b, c) -> {
             paintMap();
         });
-        canvas.heightProperty().addListener((a,b,c) -> {
+        canvas.heightProperty().addListener((a, b, c) -> {
             paintMap();
         });
 
@@ -117,6 +119,12 @@ public class MapView {
         paintMap();
 
         canvas.requestFocus();
+    }
+
+    public static void updateMap(OSMMap map) {
+        model = map;
+        populateDrawables(model);
+        paintMap();
     }
 
     String getSearchText() {
@@ -145,7 +153,7 @@ public class MapView {
         rootPane.requestFocus();
     }
 
-    private void populateDrawables(OSMMap model) {
+    public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
         for (OSMWay way : model.getWays()) {
@@ -197,7 +205,7 @@ public class MapView {
         }
     }
 
-    private void paintMap() {
+    public static void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 

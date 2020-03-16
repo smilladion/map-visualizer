@@ -1,13 +1,8 @@
 package bfst20.mapdrawer.map;
 
-import bfst20.mapdrawer.osm.OSMMap;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Point2D;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,13 +10,26 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.xml.stream.XMLStreamException;
+
+import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMMap.InvalidMapException;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.stage.FileChooser;
+
 public class MapController {
 
     private final OSMMap model;
     private final MapView view;
 
     // HashSet provides O(1) time for lookups, but not as fast iteration
-    // Street names are part of the model, but will only be set and accessed via controller
+    // Street names are part of the model, but will only be set and accessed via
+    // controller
     private final Set<String> streetNames = new HashSet<>();
 
     private final EventHandler<ActionEvent> editAction;
@@ -77,7 +85,14 @@ public class MapController {
         };
 
         loadZipAction = e -> {
-            System.out.println("herp");
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
+            try{
+                MapView.updateMap(OSMMap.fromFile(file));
+            } catch (Exception exc){
+                System.out.println("burp");
+            }
+            
         };
     }
 

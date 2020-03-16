@@ -289,5 +289,5 @@ public class OSMMap {
     }
 
     // Can move this to its own file if needed
-    private static final class InvalidMapException extends Exception {}
+    public static final class InvalidMapException extends Exception {}
 }
