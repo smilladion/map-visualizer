@@ -18,6 +18,8 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.map.PathColor;
 
 public class OSMMap {
@@ -35,6 +37,10 @@ public class OSMMap {
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
+
+    private final List<Drawable> islands = new ArrayList<>();
+
+    private static Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -116,6 +122,12 @@ public class OSMMap {
             map.nodes.addAll(idToNode.values());
             map.ways.addAll(idToWay.values());
             map.relations.addAll(idToRelation.values());
+
+            for (var entry : nodeToCoastline.entrySet()) {
+                if (entry.getKey() == entry.getValue().last()) {
+                    map.islands.add(new LinePath(entry.getValue()));
+                }
+            }
         }
 
         return map;
@@ -197,7 +209,23 @@ public class OSMMap {
         } else if (forest) {
             return new OSMWay(id, nodes, PathColor.FOREST.getColor());
         } else if (coastline) {
-            return new OSMWay(id, nodes, PathColor.COASTLINE.getColor());
+            OSMWay currentWay = new OSMWay(id, nodes, PathColor.COASTLINE.getColor());
+
+            var before = nodeToCoastline.remove(currentWay.first());
+            if (before != null) {
+                nodeToCoastline.remove(before.first());
+                nodeToCoastline.remove(before.last());
+            }
+            var after = nodeToCoastline.remove(currentWay.last());
+            if (after != null) {
+                nodeToCoastline.remove(after.first());
+                nodeToCoastline.remove(after.last());
+            }
+            currentWay = OSMWay.fromWays(OSMWay.fromWays(before, currentWay), after);
+            nodeToCoastline.put(currentWay.first(), currentWay);
+            nodeToCoastline.put(currentWay.last(), currentWay);
+
+            return currentWay;
         } else {
             return new OSMWay(id, nodes, PathColor.NONE.getColor());
         }
@@ -285,6 +313,10 @@ public class OSMMap {
 
     public List<OSMRelation> getRelations() {
         return relations;
+    }
+
+    public List<Drawable> getIslands() {
+        return islands;
     }
 
     // Can move this to its own file if needed

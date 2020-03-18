@@ -220,6 +220,11 @@ public class MapView {
         // Paint using light yellow
         context.setFill(Color.LIGHTYELLOW);
 
+        for (Drawable island : model.getIslands()) {
+            island.draw(context);
+            context.fill();
+        }
+
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
