@@ -124,8 +124,8 @@ public class MapView {
 
     public static void updateMap(OSMMap map) {
         MapView.model = map;
-        MapView.populateDrawables(model);
-        MapView.paintMap();
+        populateDrawables(model);
+        paintMap();
     }
 
     String getSearchText() {
@@ -165,7 +165,7 @@ public class MapView {
                 // If the way has no color, draw a line instead of a polygon
                 drawables.add(new LinePath(way));
             } else {
-                drawables.add(new Polygon(way, way.getColor()));
+                //drawables.add(new Polygon(way, way.getColor()));
             }
         }
 
