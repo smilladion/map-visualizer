@@ -123,7 +123,9 @@ public class MapView {
     }
 
     public static void updateMap(OSMMap map) {
-        
+        MapView.model = map;
+        MapView.populateDrawables(model);
+        MapView.paintMap();
     }
 
     String getSearchText() {
