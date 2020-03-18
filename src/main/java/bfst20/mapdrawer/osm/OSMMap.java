@@ -129,8 +129,7 @@ public class OSMMap {
             FileInputStream in = new FileInputStream(zipFilePath);
             ZipInputStream zipIn = new ZipInputStream(in);
             ZipEntry zippedFile = zipIn.getNextEntry();
-            String fileName = zippedFile.getName();
-            newFile = new File(destDir + File.separator + fileName);
+            newFile = new File(destDir + File.separator + "unzippedMap.osm");
             FileOutputStream out = new FileOutputStream(newFile);
             int herp;
             while ((herp = zipIn.read(buffer)) > 0)

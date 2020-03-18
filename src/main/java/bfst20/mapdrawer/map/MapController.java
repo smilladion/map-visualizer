@@ -89,7 +89,7 @@ public class MapController {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
             try{
-                MapView.updateMap(OSMMap.fromFile(file)); // Should refresh MapView with new OSMMap from .osm file
+                MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
             } catch (Exception exc){
                 System.out.println(" ");
             }
