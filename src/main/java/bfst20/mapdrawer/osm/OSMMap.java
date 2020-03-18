@@ -128,7 +128,7 @@ public class OSMMap {
         try {
             FileInputStream in = new FileInputStream(zipFilePath);
             ZipInputStream zipIn = new ZipInputStream(in);
-            ZipEntry zippedFile = zipIn.getNextEntry();
+            ZipEntry zippedFile = zipIn.getNextEntry(); // Removing this variable crashes the program
             newFile = new File(destDir + File.separator + "unzippedMap.osm");
             FileOutputStream out = new FileOutputStream(newFile);
             int herp;
