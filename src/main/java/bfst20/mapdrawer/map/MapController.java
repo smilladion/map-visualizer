@@ -84,7 +84,6 @@ public class MapController {
             view.zoom(factor, e.getX(), e.getY());
         };
 
-        //TODO: make workings
         loadZipAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
