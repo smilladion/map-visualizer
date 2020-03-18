@@ -84,13 +84,14 @@ public class MapController {
             view.zoom(factor, e.getX(), e.getY());
         };
 
+        //TODO: make workings
         loadZipAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
             try{
-                MapView.updateMap(OSMMap.fromFile(file));
+                MapView.updateMap(OSMMap.fromFile(file)); // Should refresh MapView with new OSMMap from .osm file
             } catch (Exception exc){
-                System.out.println("burp");
+                System.out.println(" ");
             }
         };
     }
