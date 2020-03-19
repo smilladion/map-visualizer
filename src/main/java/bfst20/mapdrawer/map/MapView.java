@@ -162,7 +162,7 @@ public class MapView {
             if (way.getNodes().isEmpty()) {
                 // If a way has no nodes, do not draw
                 continue;
-            }  else if (way.getColor() == PathColor.BUILDING.getColor() || way.getColor() == PathColor.FOREST.getColor()) {
+            }  else if (isColorable(way)) {
                 // If a way has the color specified, make a polygon
                 drawables.add(new Polygon(way, way.getColor()));
             } else {
@@ -236,5 +236,18 @@ public class MapView {
         for (Drawable drawable : drawables) {
             drawable.draw(context);
         }
+
+    }
+    public static boolean isColorable(OSMWay way) {
+
+        if (way.getColor() == PathColor.BUILDING.getColor()) {
+            return true;
+        }
+        if (way.getColor() == PathColor.FOREST.getColor()) {
+            return true;
+        }
+            return false;
     }
 }
+
+

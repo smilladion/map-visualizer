@@ -287,6 +287,7 @@ public class OSMMap {
         }
     }
 
+
     public float getMinLat() {
         return minLat;
     }
