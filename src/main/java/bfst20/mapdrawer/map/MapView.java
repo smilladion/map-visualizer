@@ -157,15 +157,17 @@ public class MapView {
     public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
+        // TODO: Need to find a system for coloring objects, or we are gonna end up with huge else-if statements here (and also several places in OSMMap)
         for (OSMWay way : model.getWays()) {
             if (way.getNodes().isEmpty()) {
                 // If a way has no nodes, do not draw
                 continue;
-            } else if (way.getColor() == PathColor.NONE.getColor()) {
-                // If the way has no color, draw a line instead of a polygon
-                drawables.add(new LinePath(way));
+            }  else if (way.getColor() == PathColor.BUILDING.getColor() || way.getColor() == PathColor.FOREST.getColor()) {
+                // If a way has the color specified, make a polygon
+                drawables.add(new Polygon(way, way.getColor()));
             } else {
-                //drawables.add(new Polygon(way, way.getColor()));
+                // If it has no color or otherwise shouldn't be filled with color, draw a line
+                drawables.add(new LinePath(way));
             }
         }
 
@@ -220,14 +222,15 @@ public class MapView {
         // Paint using light yellow
         context.setFill(Color.LIGHTYELLOW);
 
+        // Line width proportionate to pan/zoom
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+        context.setFillRule(FillRule.EVEN_ODD);
+
+        // Draw islands
         for (Drawable island : model.getIslands()) {
             island.draw(context);
             context.fill();
         }
-
-        // Line width proportionate to pan/zoom
-        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-        context.setFillRule(FillRule.EVEN_ODD);
 
         // Draw the map's drawables
         for (Drawable drawable : drawables) {
