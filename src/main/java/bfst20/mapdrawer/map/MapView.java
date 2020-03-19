@@ -65,8 +65,9 @@ public class MapView {
         menuBar.getMenus().add(loadMenu);
         MenuItem loadZip = new MenuItem("Load .zip-file");
         loadZip.setOnAction(controller.getLoadZipAction());
-        MenuItem somethingElse = new MenuItem("Something else");
-        loadMenu.getItems().addAll(loadZip, somethingElse);
+        MenuItem loadOSM = new MenuItem("Load .osm-file");
+        loadOSM.setOnAction(controller.getLoadOSMAction());
+        loadMenu.getItems().addAll(loadZip, loadOSM);
 
         rootPane.getChildren().add(menuBox);
 
