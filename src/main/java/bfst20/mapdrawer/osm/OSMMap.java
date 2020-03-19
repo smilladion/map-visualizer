@@ -133,34 +133,6 @@ public class OSMMap {
         return map;
     }
 
-    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException{
-        File newFile = null;
-        // Buffer for read and write data to file
-        byte[] buffer = new byte[1024];
-        try {
-            FileInputStream in = new FileInputStream(zipFilePath);
-            ZipInputStream zipIn = new ZipInputStream(in);
-            ZipEntry zippedFile = zipIn.getNextEntry(); // Removing this variable crashes the program
-            newFile = new File(destDir + File.separator + "unzippedMap.osm");
-            FileOutputStream out = new FileOutputStream(newFile);
-            int herp;
-            while ((herp = zipIn.read(buffer)) > 0)
-                out.write(buffer, 0, herp);            
-            out.close();
-            // Close this ZipEntry
-            zipIn.closeEntry();
-            zippedFile = zipIn.getNextEntry();
-            // Close last ZipEntry
-            zipIn.closeEntry();
-            zipIn.close();
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if(newFile == null) throw new FileNotFoundException();
-        return newFile;
-    }
-
     /**
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
@@ -285,6 +257,34 @@ public class OSMMap {
         } else {
             return new OSMRelation(id, ways, PathColor.NONE.getColor());
         }
+    }
+
+    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException{
+        File newFile = null;
+        // Buffer for read and write data to file
+        byte[] buffer = new byte[1024];
+        try {
+            FileInputStream in = new FileInputStream(zipFilePath);
+            ZipInputStream zipIn = new ZipInputStream(in);
+            ZipEntry zippedFile = zipIn.getNextEntry(); // Removing this variable crashes the program
+            newFile = new File(destDir + File.separator + "unzippedMap.osm");
+            FileOutputStream out = new FileOutputStream(newFile);
+            int herp;
+            while ((herp = zipIn.read(buffer)) > 0)
+                out.write(buffer, 0, herp);            
+            out.close();
+            // Close this ZipEntry
+            zipIn.closeEntry();
+            zippedFile = zipIn.getNextEntry();
+            // Close last ZipEntry
+            zipIn.closeEntry();
+            zipIn.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(newFile == null) throw new FileNotFoundException();
+        return newFile;
     }
 
     public float getMinLat() {
