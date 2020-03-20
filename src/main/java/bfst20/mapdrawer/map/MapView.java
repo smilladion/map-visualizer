@@ -247,7 +247,12 @@ public class MapView {
         if (way.getColor() == PathColor.FOREST.getColor()) {
             return true;
         }
-            return false;
+        if (way.getColor() == PathColor.WATER.getColor()) {
+            return true;
+        }
+        if (way.getColor() == PathColor.BEACH.getColor())
+            return true;
+        return false;
     }
 }
 

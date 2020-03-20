@@ -33,9 +33,11 @@ public class OSMMap {
     static boolean building = false;
     static boolean forest = false;
     static boolean coastline = false;
+    static boolean water = false;
+    static boolean beach = false;
 
     private final List<OSMNode> nodes = new ArrayList<>();
-    private final List<OSMWay> ways = new ArrayList<>();
+    private final static List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
 
     private final List<Drawable> islands = new ArrayList<>();
@@ -77,12 +79,10 @@ public class OSMMap {
                         }
 
                         // Create a new map and flips and fixes the spherical orientation
-                        map = new OSMMap(
-                            -Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
-                            0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
-                            -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
-                            0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon"))
-                        );
+                        map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
+                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
@@ -137,12 +137,15 @@ public class OSMMap {
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
      */
-    private static OSMWay readWay(XMLStreamReader xmlReader, Map<Long, OSMNode> idToNode, long id) throws XMLStreamException {
+    private static OSMWay readWay(XMLStreamReader xmlReader, Map<Long, OSMNode> idToNode, long id)
+            throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
         building = false;
         forest = false;
         coastline = false;
+        water = false;
+        beach = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -150,7 +153,8 @@ public class OSMMap {
             if (nextType == XMLStreamReader.START_ELEMENT) {
                 switch (xmlReader.getLocalName()) {
                     case "nd":
-                        // Found a nd tag within this way, fetch the OSMNode object and add it to the way
+                        // Found a nd tag within this way, fetch the OSMNode object and add it to the
+                        // way
                         nodes.add(idToNode.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
                         break;
                     case "tag":
@@ -158,13 +162,7 @@ public class OSMMap {
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
 
-                        if (key.equals("building")) {
-                            building = true;
-                        } else if (key.equals("landuse") && value.equals("forest")) {
-                            forest = true;
-                        } else if (key.equals("natural") && value.equals("coastline")) {
-                            coastline = true;
-                        }
+                        setTag(key, value);
 
                         break;
                 }
@@ -174,8 +172,10 @@ public class OSMMap {
             }
         }
 
-        // TODO: Make this system better (so you don't need a huge if or switch statement below)
-        // TODO: Fix coastlines (will also fix the island's inside color, has to do with Troels' "islands" arraylist in his own code)
+        // TODO: Make this system better (so you don't need a huge if or switch
+        // statement below)
+        // TODO: Fix coastlines (will also fix the island's inside color, has to do with
+        // Troels' "islands" arraylist in his own code)
         if (building) {
             return new OSMWay(id, nodes, PathColor.BUILDING.getColor());
         } else if (forest) {
@@ -198,20 +198,28 @@ public class OSMMap {
             nodeToCoastline.put(currentWay.last(), currentWay);
 
             return currentWay;
-        } else {
+        } else if (water) {
+            return new OSMWay(id, nodes, PathColor.WATER.getColor());
+        } else if(beach){
+            return new OSMWay(id, nodes, PathColor.BEACH.getColor());
+        }else {
             return new OSMWay(id, nodes, PathColor.NONE.getColor());
         }
     }
 
     /**
-     * readRelation will continuously read XML tags until the end of the relation is found
-     * This is a better, and less error-prone, design than reading in the main loop
+     * readRelation will continuously read XML tags until the end of the relation is
+     * found This is a better, and less error-prone, design than reading in the main
+     * loop
      */
-    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
+    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id)
+            throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
         building = false;
         forest = false;
+        water = false;
+        beach = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -221,8 +229,10 @@ public class OSMMap {
                 switch (xmlReader.getLocalName()) {
                     case "member":
                         if (xmlReader.getAttributeValue(null, "type").equals("way")) {
-                            // If we have found a way member type, fetch the OSMWay object from the fast lookup and add to ways list
-                            ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")), OSMWay.DUMMY_WAY));
+                            // If we have found a way member type, fetch the OSMWay object from the fast
+                            // lookup and add to ways list
+                            ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")),
+                                    OSMWay.DUMMY_WAY));
                         }
 
                         break;
@@ -231,35 +241,52 @@ public class OSMMap {
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
 
-                        if (key.equals("building")) {
-                            building = true;
-                        } else if (key.equals("landuse") && value.equals("forest")) {
-                            forest = true;
-                        } else if (key.equals("natural") && value.equals("coastline")) {
-                            coastline = true;
-                        }
+                        setTag(key, value);
 
                         break;
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("relation")) {
-                // Once we have reached the end of the relation, break and return the OSM relation
+                // Once we have reached the end of the relation, break and return the OSM
+                // relation
                 break;
             }
         }
 
-        // TODO: Make this system better (so you don't need a huge if or switch statement below)
+        // TODO: Make this system better (so you don't need a huge if or switch
+        // statement below)
         if (building) {
             return new OSMRelation(id, ways, PathColor.BUILDING.getColor());
         } else if (forest) {
             return new OSMRelation(id, ways, PathColor.FOREST.getColor());
         } else if (coastline) {
             return new OSMRelation(id, ways, PathColor.COASTLINE.getColor());
-        } else {
+        } else if (water) {
+            return new OSMRelation(id, ways, PathColor.WATER.getColor());
+        } else if(beach){
+            return new OSMRelation(id, ways, PathColor.BEACH.getColor());
+        }else {
             return new OSMRelation(id, ways, PathColor.NONE.getColor());
         }
     }
 
-    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException{
+    public static void setTag(String key, String value) {
+        if (key.equals("building")) {
+            building = true;
+            
+        } else if (key.equals("landuse")){
+        // &&
+            if (value.equals("forest")) forest = true;
+            
+        } else if (key.equals("natural")){
+        // &&
+            if(value.equals("coastline")) coastline = true;
+            else if(value.equals("water")) water = true;
+            else if(value.equals("beach")) beach = true;
+
+        }
+    }
+
+    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
         File newFile = null;
         // Buffer for read and write data to file
         byte[] buffer = new byte[1024];
@@ -271,7 +298,7 @@ public class OSMMap {
             FileOutputStream out = new FileOutputStream(newFile);
             int herp;
             while ((herp = zipIn.read(buffer)) > 0)
-                out.write(buffer, 0, herp);            
+                out.write(buffer, 0, herp);
             out.close();
             // Close this ZipEntry
             zipIn.closeEntry();
@@ -283,7 +310,8 @@ public class OSMMap {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(newFile == null) throw new FileNotFoundException();
+        if (newFile == null)
+            throw new FileNotFoundException();
         return newFile;
     }
 

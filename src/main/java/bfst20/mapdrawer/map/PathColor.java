@@ -10,6 +10,7 @@ public enum PathColor {
     HIGHWAY(Color.YELLOW),
     COASTLINE(Color.GREY),
     WATER(Color.BLUE),
+    BEACH(Color.YELLOW),
     FOREST(Color.LIGHTGREEN),
     NONE(Color.BLACK);
 
