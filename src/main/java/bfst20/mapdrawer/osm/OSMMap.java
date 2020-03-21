@@ -49,6 +49,11 @@ public class OSMMap {
     static boolean villageGreen = false;
     static boolean park = false;
     static boolean dangerArea = false;
+    static boolean quarry = false;
+    static boolean wood = false;
+    static boolean heath = false;
+    static boolean grassland = false;
+    static boolean scrub = false;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final static List<OSMWay> ways = new ArrayList<>();
@@ -174,6 +179,11 @@ public class OSMMap {
         villageGreen = false;
         park = false;
         dangerArea = false;
+        quarry = false;
+        wood = false;
+        heath = false;
+        grassland = false;
+        scrub = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -258,6 +268,16 @@ public class OSMMap {
             return new OSMWay(id, nodes, PathColor.PARK.getColor());
         } else if(dangerArea){
             return new OSMWay(id, nodes, PathColor.DANGER_AREA.getColor());
+        } else if(quarry){
+            return new OSMWay(id, nodes, PathColor.QUARRY.getColor());
+        } else if(wood){
+            return new OSMWay(id, nodes, PathColor.WOOD.getColor());
+        } else if(heath){
+            return new OSMWay(id, nodes, PathColor.HEATH.getColor());
+        } else if(grassland){
+            return new OSMWay(id, nodes, PathColor.GRASSLAND.getColor());
+        } else if(scrub){
+            return new OSMWay(id, nodes, PathColor.SCRUB.getColor());
         } else {
             return new OSMWay(id, nodes, PathColor.NONE.getColor());
         }
@@ -290,6 +310,11 @@ public class OSMMap {
         villageGreen = false;
         park = false;
         dangerArea = false;
+        quarry = false;
+        wood = false;
+        heath = false;
+        grassland = false;
+        scrub = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -362,6 +387,16 @@ public class OSMMap {
             return new OSMRelation(id, ways, PathColor.PARK.getColor());
         } else if(dangerArea){
             return new OSMRelation(id, ways, PathColor.DANGER_AREA.getColor());
+        } else if(quarry){
+            return new OSMRelation(id, ways, PathColor.QUARRY.getColor());
+        } else if(wood){
+            return new OSMRelation(id, ways, PathColor.WOOD.getColor());
+        } else if(heath){
+            return new OSMRelation(id, ways, PathColor.HEATH.getColor());
+        } else if(grassland){
+            return new OSMRelation(id, ways, PathColor.GRASSLAND.getColor());
+        } else if(scrub){
+            return new OSMRelation(id, ways, PathColor.SCRUB.getColor());
         } else {
             return new OSMRelation(id, ways, PathColor.NONE.getColor());
         }
@@ -386,12 +421,17 @@ public class OSMMap {
             else if(value.equals("grass")) grass = true;
             else if(value.equals("reservoir")) reservoir = true;
             else if(value.equals("villageGreen")) villageGreen = true;
+            else if(value.equals("quarry")) quarry = true;
 
         } else if (key.equals("natural")){
         // &&
             if(value.equals("coastline")) coastline = true;
             else if(value.equals("water")) water = true;
             else if(value.equals("beach")) beach = true;
+            else if(value.equals("wood")) wood = true;
+            else if(value.equals("heath")) heath = true;
+            else if(value.equals("grassland")) grassland = true;
+            else if(value.equals("scrub")) scrub = true;
 
         } else if (key.equals("leisure")){
         // &&

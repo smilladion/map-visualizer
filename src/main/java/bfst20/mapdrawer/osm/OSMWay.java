@@ -160,6 +160,21 @@ public class OSMWay implements LongSupplier {
         if (way.getColor() == PathColor.DANGER_AREA.getColor())
             return true;
 
+        if (way.getColor() == PathColor.QUARRY.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.WOOD.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.HEATH.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.GRASSLAND.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.SCRUB.getColor())
+            return true;
+
         return false;
     }
 }

@@ -26,6 +26,11 @@ public enum PathColor {
     VILLAGE_GREEN(Color.LIGHTGREEN),
     PARK(Color.LIGHTGREEN),
     DANGER_AREA(Color.TOMATO),
+    QUARRY(Color.LIGHTGREY),
+    WOOD(Color.FORESTGREEN),
+    HEATH(Color.WHEAT),
+    GRASSLAND(Color.LAWNGREEN),
+    SCRUB(Color.DARKOLIVEGREEN),
     NONE(Color.BLACK);
 
     private final Paint color;
