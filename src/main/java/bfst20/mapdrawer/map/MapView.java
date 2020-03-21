@@ -252,8 +252,49 @@ public class MapView {
         }
         if (way.getColor() == PathColor.BEACH.getColor())
             return true;
+        
+        if (way.getColor() == PathColor.COMMERCIAL.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.CONSTRUCTION.getColor())
+            return true;
+        
+        if (way.getColor() == PathColor.ALLOTMENTS.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.FARMLAND.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.MEADOW.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.ORCHARD.getColor())
+            return true;
+    
+        if (way.getColor() == PathColor.BASIN.getColor())
+            return true;
+        
+        if (way.getColor() == PathColor.BROWNFIELD.getColor())
+            return true; 
+        
+        if (way.getColor() == PathColor.CEMETERY.getColor())
+            return true;
+        
+        if (way.getColor() == PathColor.GRASS.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.RESERVOIR.getColor())
+            return true;
+        
+        if (way.getColor() == PathColor.VILLAGE_GREEN.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.PARK.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.DANGER_AREA.getColor())
+            return true;
+
         return false;
     }
 }
-
-

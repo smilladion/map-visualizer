@@ -35,6 +35,20 @@ public class OSMMap {
     static boolean coastline = false;
     static boolean water = false;
     static boolean beach = false;
+    static boolean commercial = false;
+    static boolean construction = false;
+    static boolean allotments = false;
+    static boolean farmland = false;
+    static boolean meadow = false;
+    static boolean orchard = false;
+    static boolean basin = false;
+    static boolean brownfield = false;
+    static boolean cemetery = false;
+    static boolean grass = false;
+    static boolean reservoir = false;
+    static boolean villageGreen = false;
+    static boolean park = false;
+    static boolean dangerArea = false;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final static List<OSMWay> ways = new ArrayList<>();
@@ -146,6 +160,20 @@ public class OSMMap {
         coastline = false;
         water = false;
         beach = false;
+        commercial = false;
+        construction = false;
+        allotments = false;
+        farmland = false;
+        meadow = false;
+        orchard = false;
+        basin = false;
+        brownfield = false;
+        cemetery = false;
+        grass = false;
+        reservoir = false;
+        villageGreen = false;
+        park = false;
+        dangerArea = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -202,7 +230,35 @@ public class OSMMap {
             return new OSMWay(id, nodes, PathColor.WATER.getColor());
         } else if(beach){
             return new OSMWay(id, nodes, PathColor.BEACH.getColor());
-        }else {
+        } else if(commercial){
+            return new OSMWay(id, nodes, PathColor.COMMERCIAL.getColor());
+        } else if(construction){
+            return new OSMWay(id, nodes, PathColor.CONSTRUCTION.getColor());
+        } else if(allotments){
+            return new OSMWay(id, nodes, PathColor.ALLOTMENTS.getColor());
+        } else if(farmland){
+            return new OSMWay(id, nodes, PathColor.FARMLAND.getColor());
+        } else if(meadow){
+            return new OSMWay(id, nodes, PathColor.MEADOW.getColor());
+        } else if(orchard){
+            return new OSMWay(id, nodes, PathColor.ORCHARD.getColor());
+        } else if(basin){
+            return new OSMWay(id, nodes, PathColor.BASIN.getColor());
+        } else if(brownfield){
+            return new OSMWay(id, nodes, PathColor.BROWNFIELD.getColor());
+        } else if(cemetery){
+            return new OSMWay(id, nodes, PathColor.CEMETERY.getColor());
+        } else if(grass){
+            return new OSMWay(id, nodes, PathColor.GRASS.getColor());
+        } else if(reservoir){
+            return new OSMWay(id, nodes, PathColor.RESERVOIR.getColor());
+        } else if(villageGreen){
+            return new OSMWay(id, nodes, PathColor.VILLAGE_GREEN.getColor());
+        } else if(park){
+            return new OSMWay(id, nodes, PathColor.PARK.getColor());
+        } else if(dangerArea){
+            return new OSMWay(id, nodes, PathColor.DANGER_AREA.getColor());
+        } else {
             return new OSMWay(id, nodes, PathColor.NONE.getColor());
         }
     }
@@ -220,6 +276,20 @@ public class OSMMap {
         forest = false;
         water = false;
         beach = false;
+        commercial = false;
+        construction = false;
+        allotments = false;
+        farmland = false;
+        meadow = false;
+        orchard = false;
+        basin = false;
+        brownfield = false;
+        cemetery = false;
+        grass = false;
+        reservoir = false;
+        villageGreen = false;
+        park = false;
+        dangerArea = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -264,7 +334,35 @@ public class OSMMap {
             return new OSMRelation(id, ways, PathColor.WATER.getColor());
         } else if(beach){
             return new OSMRelation(id, ways, PathColor.BEACH.getColor());
-        }else {
+        } else if(commercial){
+            return new OSMRelation(id, ways, PathColor.COMMERCIAL.getColor());
+        } else if(construction){
+            return new OSMRelation(id, ways, PathColor.CONSTRUCTION.getColor());
+        } else if(allotments){
+            return new OSMRelation(id, ways, PathColor.ALLOTMENTS.getColor());
+        } else if(farmland){
+            return new OSMRelation(id, ways, PathColor.FARMLAND.getColor());
+        } else if(meadow){
+            return new OSMRelation(id, ways, PathColor.MEADOW.getColor());
+        } else if(orchard){
+            return new OSMRelation(id, ways, PathColor.ORCHARD.getColor());
+        } else if(basin){
+            return new OSMRelation(id, ways, PathColor.BASIN.getColor());
+        } else if(brownfield){
+            return new OSMRelation(id, ways, PathColor.BROWNFIELD.getColor());
+        } else if(cemetery){
+            return new OSMRelation(id, ways, PathColor.CEMETERY.getColor());
+        } else if(grass){
+            return new OSMRelation(id, ways, PathColor.GRASS.getColor());
+        } else if(reservoir){
+            return new OSMRelation(id, ways, PathColor.RESERVOIR.getColor());
+        } else if(villageGreen){
+            return new OSMRelation(id, ways, PathColor.VILLAGE_GREEN.getColor());
+        } else if(park){
+            return new OSMRelation(id, ways, PathColor.PARK.getColor());
+        } else if(dangerArea){
+            return new OSMRelation(id, ways, PathColor.DANGER_AREA.getColor());
+        } else {
             return new OSMRelation(id, ways, PathColor.NONE.getColor());
         }
     }
@@ -276,13 +374,33 @@ public class OSMMap {
         } else if (key.equals("landuse")){
         // &&
             if (value.equals("forest")) forest = true;
-            
+            else if(value.equals("commercial")) commercial = true;
+            else if(value.equals("construction")) construction = true;
+            else if(value.equals("allotments")) allotments = true;
+            else if(value.equals("farmland")) farmland = true;
+            else if(value.equals("meadow")) meadow = true;
+            else if(value.equals("orchard")) orchard = true;
+            else if(value.equals("basin")) basin = true;
+            else if(value.equals("brownfield")) brownfield = true;
+            else if(value.equals("cemetery")) cemetery = true;
+            else if(value.equals("grass")) grass = true;
+            else if(value.equals("reservoir")) reservoir = true;
+            else if(value.equals("villageGreen")) villageGreen = true;
+
         } else if (key.equals("natural")){
         // &&
             if(value.equals("coastline")) coastline = true;
             else if(value.equals("water")) water = true;
             else if(value.equals("beach")) beach = true;
 
+        } else if (key.equals("leisure")){
+        // &&
+            if(value.equals("park")) park = true;
+
+        } else if (key.equals("military")){
+        // &&
+            if(value.equals("danger_area")) dangerArea = true;
+            
         }
     }
 
