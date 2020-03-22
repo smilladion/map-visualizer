@@ -1,5 +1,8 @@
 package bfst20.mapdrawer.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -14,33 +17,36 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MapView {
 
-    private final OSMMap model;
+    private static OSMMap model;
 
-    private final Canvas canvas;
-    private final GraphicsContext context;
-    private final Affine transform = new Affine();
+    private static Canvas canvas;
+    private static GraphicsContext context;
+    private final static Affine transform = new Affine();
 
     private final StackPane rootPane;
     private final MapController controller;
 
+    private final MenuBar menuBar = new MenuBar();
+    private final Menu loadMenu = new Menu("Load");
     private final TextField searchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
-    private final List<Drawable> drawables = new ArrayList<>();
+    private static List<Drawable> drawables = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -53,6 +59,17 @@ public class MapView {
         rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
 
         controller = new MapController(model, this);
+
+        VBox menuBox = new VBox(menuBar);
+        menuBox.setPickOnBounds(false);
+        menuBar.getMenus().add(loadMenu);
+        MenuItem loadZip = new MenuItem("Load .zip-file");
+        loadZip.setOnAction(controller.getLoadZipAction());
+        MenuItem loadOSM = new MenuItem("Load .osm-file");
+        loadOSM.setOnAction(controller.getLoadOSMAction());
+        loadMenu.getItems().addAll(loadZip, loadOSM);
+
+        rootPane.getChildren().add(menuBox);
 
         searchField.setPromptText("Street name");
 
@@ -72,8 +89,9 @@ public class MapView {
         HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
-        searchRow.setPadding(new Insets(15.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
+        searchRow.setPadding(new Insets(35.0));
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
+                                          // areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -82,13 +100,14 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive design)
+        // Code below makes the canvas resizable when the window changes (responsive
+        // design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
-        canvas.widthProperty().addListener((a,b,c) -> {
+        canvas.widthProperty().addListener((a, b, c) -> {
             paintMap();
         });
-        canvas.heightProperty().addListener((a,b,c) -> {
+        canvas.heightProperty().addListener((a, b, c) -> {
             paintMap();
         });
 
@@ -102,6 +121,12 @@ public class MapView {
         paintMap();
 
         canvas.requestFocus();
+    }
+
+    public static void updateMap(OSMMap map) {
+        MapView.model = map;
+        populateDrawables(model);
+        paintMap();
     }
 
     String getSearchText() {
@@ -130,18 +155,20 @@ public class MapView {
         rootPane.requestFocus();
     }
 
-    private void populateDrawables(OSMMap model) {
+    public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
+        // TODO: Need to find a system for coloring objects, or we are gonna end up with huge else-if statements here (and also several places in OSMMap)
         for (OSMWay way : model.getWays()) {
             if (way.getNodes().isEmpty()) {
                 // If a way has no nodes, do not draw
                 continue;
-            } else if (way.getColor() == PathColor.NONE.getColor()) {
-                // If the way has no color, draw a line instead of a polygon
-                drawables.add(new LinePath(way));
-            } else {
+            }  else if (OSMWay.isColorable(way)) {
+                // If a way has the color specified, make a polygon
                 drawables.add(new Polygon(way, way.getColor()));
+            } else {
+                // If it has no color or otherwise shouldn't be filled with color, draw a line
+                drawables.add(new LinePath(way));
             }
         }
 
@@ -158,17 +185,17 @@ public class MapView {
         }
     }
 
-    void pan(double dx, double dy) {
+    static void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    void zoom(double factor, double x, double y) {
+    static void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         paintMap();
     }
 
-    private void resetPanZoom() {
+    private static void resetPanZoom() {
         pan(-model.getMinLon(), -model.getMinLat());
         zoom(canvas.getWidth() / (model.getMaxLat() - model.getMinLat()), 0, 0);
         paintMap();
@@ -182,7 +209,7 @@ public class MapView {
         }
     }
 
-    private void paintMap() {
+    public static void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
@@ -200,9 +227,17 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
 
+        // Draw islands
+        for (Drawable island : model.getIslands()) {
+            island.draw(context);
+            context.fill();
+        }
+
         // Draw the map's drawables
         for (Drawable drawable : drawables) {
             drawable.draw(context);
         }
+
     }
+    
 }

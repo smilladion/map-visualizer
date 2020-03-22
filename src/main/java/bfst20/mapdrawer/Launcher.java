@@ -8,6 +8,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class Launcher extends Application {
+    private static Stage primaryStage;
 
     public static void main(String[] args) {
         launch(args);
@@ -15,7 +16,7 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        File file = new File("src/main/resources/samsoe.osm.zip");
+        File file = new File("src/main/resources/maps/samsoe.osm.zip");
         String filename = file.getName();
         String fileExt = filename.substring(filename.lastIndexOf("."));
         switch(fileExt){
@@ -33,5 +34,9 @@ public class Launcher extends Application {
                 primaryStage);
             break;
         }
+    }
+
+    public static Stage getPrimaryStage(){
+        return primaryStage;
     }
 }

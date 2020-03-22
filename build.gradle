@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    implementation files('libs/algs4.jar')
+
     // Use JUnit Jupiter Engine for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.1'
