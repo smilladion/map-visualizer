@@ -36,6 +36,7 @@ public class MapController {
     private final EventHandler<ActionEvent> searchAction;
 
     private final EventHandler<ActionEvent> loadZipAction;
+    private final EventHandler<ActionEvent> loadOSMAction;
 
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
@@ -90,7 +91,17 @@ public class MapController {
             try{
                 MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
             } catch (Exception exc){
-                System.out.println(" ");
+                exc.printStackTrace();
+            }
+        };
+
+        loadOSMAction = e -> {
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
+            try{
+                MapView.updateMap(OSMMap.fromFile(file));
+            } catch (Exception exc){
+                exc.printStackTrace();
             }
         };
     }
@@ -135,5 +146,9 @@ public class MapController {
 
     public EventHandler<ActionEvent> getLoadZipAction() {
         return loadZipAction;
+    }
+
+    public EventHandler<ActionEvent> getLoadOSMAction() {
+        return loadOSMAction;
     }
 }
