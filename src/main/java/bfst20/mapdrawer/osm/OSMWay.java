@@ -20,7 +20,7 @@ public class OSMWay implements LongSupplier {
     private final List<OSMNode> nodes;
     private final Paint color;
 
-    OSMWay(long id, List<OSMNode> nodes, Paint color) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;

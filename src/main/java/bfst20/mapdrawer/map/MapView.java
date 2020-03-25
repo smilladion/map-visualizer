@@ -1,12 +1,13 @@
 package bfst20.mapdrawer.map;
 
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.LinePath;
-import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.drawing.*;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Insets;
@@ -47,6 +48,7 @@ public class MapView {
     private final Button streetButton = new Button();
 
     private static List<Drawable> drawables = new ArrayList<>();
+    private static List<Drawable> searchedDrawables = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -71,14 +73,15 @@ public class MapView {
 
         rootPane.getChildren().add(menuBox);
 
+
         searchField.setPromptText("Street name");
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
 
         searchField.setOnAction(controller.getSearchAction());
-
         canvas.setOnMouseClicked(controller.getPanClickAction());
+        canvas.setOnMouseClicked(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
@@ -239,5 +242,30 @@ public class MapView {
         }
 
     }
+    public void paintOnMap(String address) {
+
+            for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
+                if (entry.getKey().equals(address)) {
+                    searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
+                }
+            }
+        context.setTransform(new Affine());
+
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
+
+        }
+
+        //paintMap();
+        }
+
+        public StackPane getRootPane() {
+        return rootPane;
+        }
+        public GraphicsContext getContext() {
+        return context;
+        }
+
+
+    }
     
-}

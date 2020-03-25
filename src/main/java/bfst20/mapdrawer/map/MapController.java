@@ -2,7 +2,6 @@ package bfst20.mapdrawer.map;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,14 +9,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.stream.XMLStreamException;
-
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMMap.InvalidMapException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
@@ -41,6 +38,7 @@ public class MapController {
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
+    private final EventHandler<MouseEvent> clickOnMapAction;
 
     private Point2D lastMouse;
 
@@ -57,9 +55,11 @@ public class MapController {
         editAction = e -> view.setSearchText(view.getLastSearch());
 
         searchAction = e -> {
+            String address = view.getSearchText();
             if (streetNames.contains(view.getSearchText())) {
                 view.showStreetButton(view.getSearchText());
             }
+            view.paintOnMap(address);
 
             view.setLastSearch(view.getSearchText());
             view.resetSearchField();
@@ -93,6 +93,13 @@ public class MapController {
             } catch (Exception exc){
                 exc.printStackTrace();
             }
+        };
+
+        clickOnMapAction = e -> {
+            double x1 = e.getX();
+            double y1 = e.getY();
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/mapslogoRed.png"));
+            view.getContext().drawImage(pointImage, x1, y1);
         };
 
         loadOSMAction = e -> {
@@ -151,4 +158,6 @@ public class MapController {
     public EventHandler<ActionEvent> getLoadOSMAction() {
         return loadOSMAction;
     }
+
+    public EventHandler<MouseEvent> clickOnMapAction() { return clickOnMapAction;}
 }
