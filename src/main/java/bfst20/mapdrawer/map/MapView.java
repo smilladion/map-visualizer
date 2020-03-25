@@ -90,8 +90,7 @@ public class MapView {
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
-                                          // areas
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -100,8 +99,7 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive
-        // design)
+        // Code below makes the canvas resizable when the window changes (responsive design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
         canvas.widthProperty().addListener((a, b, c) -> {
@@ -201,14 +199,6 @@ public class MapView {
         paintMap();
     }
 
-    private Point2D convertMouseToMap(double x, double y) {
-        try {
-            return transform.inverseTransform(x, y);
-        } catch (Exception ignored) {
-            return Point2D.ZERO;
-        }
-    }
-
     public static void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
@@ -237,7 +227,5 @@ public class MapView {
         for (Drawable drawable : drawables) {
             drawable.draw(context);
         }
-
     }
-    
 }

@@ -5,8 +5,8 @@ import java.util.function.LongSupplier;
 public class OSMNode implements LongSupplier {
 
     private final long id;
-    private final float lat; // x
-    private final float lon; // y
+    private final float lon; // x
+    private final float lat; // y
 
     OSMNode(long id, float lon, float lat) {
         this.id = id;
@@ -19,11 +19,11 @@ public class OSMNode implements LongSupplier {
         return id;
     }
 
-    public float getLat() {
-        return lat;
-    }
-
     public float getLon() {
         return lon;
+    }
+
+    public float getLat() {
+        return lat;
     }
 }
