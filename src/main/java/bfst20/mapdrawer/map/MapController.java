@@ -55,13 +55,22 @@ public class MapController {
         editAction = e -> view.setSearchText(view.getLastSearch());
 
         searchAction = e -> {
-            String address = view.getSearchText();
-            if (streetNames.contains(view.getSearchText())) {
-                view.showStreetButton(view.getSearchText());
-            }
-            view.paintOnMap(address);
+            System.out.println("Inside search action!");
+            String address = view.getToSearchText();
+            String address1 = view.getFromSearchText();
 
-            view.setLastSearch(view.getSearchText());
+            if (address1 != null) {
+                System.out.println("address 1 is not null!");
+                view.paintOnMap(address, address1);
+            } else if (address1 == null) {
+                System.out.println("address IS null");
+                if (streetNames.contains(view.getToSearchText())) {
+                    view.showStreetButton(view.getToSearchText());
+                }
+                view.paintOnMap(address, null);
+
+            }
+            view.setLastSearch(view.getToSearchText());
             view.resetSearchField();
         };
 
@@ -96,6 +105,7 @@ public class MapController {
         };
 
         clickOnMapAction = e -> {
+            System.out.println("you clicked on the map!");
             double x1 = e.getX();
             double y1 = e.getY();
             Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/mapslogoRed.png"));

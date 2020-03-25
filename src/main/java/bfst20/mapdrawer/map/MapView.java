@@ -29,6 +29,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
+import org.w3c.dom.Text;
 
 public class MapView {
 
@@ -43,7 +44,8 @@ public class MapView {
 
     private final MenuBar menuBar = new MenuBar();
     private final Menu loadMenu = new Menu("Load");
-    private final TextField searchField = new TextField();
+    private final TextField toSearchField = new TextField();
+    private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
@@ -74,14 +76,16 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
 
-        searchField.setPromptText("Street name");
+        toSearchField.setPromptText("Til...");
+        fromSearchField.setPromptText("Fra...");
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
 
-        searchField.setOnAction(controller.getSearchAction());
+        toSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchAction());
         canvas.setOnMouseClicked(controller.getPanClickAction());
-        canvas.setOnMouseClicked(controller.clickOnMapAction());
+        canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
@@ -89,7 +93,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -132,12 +136,12 @@ public class MapView {
         paintMap();
     }
 
-    String getSearchText() {
-        return searchField.getText();
+    String getToSearchText() {
+        return toSearchField.getText();
     }
 
     void setSearchText(String text) {
-        searchField.setText(text);
+        toSearchField.setText(text);
     }
 
     String getLastSearch() {
@@ -154,7 +158,8 @@ public class MapView {
     }
 
     void resetSearchField() {
-        searchField.clear();
+        toSearchField.clear();
+        fromSearchField.clear();
         rootPane.requestFocus();
     }
 
@@ -240,30 +245,62 @@ public class MapView {
         for (Drawable drawable : drawables) {
             drawable.draw(context);
         }
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
+        }
 
     }
-    public void paintOnMap(String address) {
+    public void paintOnMap(String address, String address2) {
+
+        if (address2 == null) {
+
+            List<OSMNode> list = new ArrayList<>();
 
             for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
                 if (entry.getKey().equals(address)) {
+                    list.add(model.getIdtoNodeMap().get(entry.getValue()));
                     searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
             }
-        context.setTransform(new Affine());
+            context.setTransform(new Affine());
 
-        for (Drawable drawable : searchedDrawables) {
-            drawable.draw(context);
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
 
+            }
+        } else if (address2 != null) {
+            List<OSMNode> list1 = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
+                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
+                    System.out.println("equals!");
+                    list1.add(model.getIdtoNodeMap().get(entry.getValue()));
+                }
+            }
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+
+            context.setTransform(new Affine());
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+
+            //paintMap();
         }
-
-        //paintMap();
-        }
+    }
 
         public StackPane getRootPane() {
         return rootPane;
         }
         public GraphicsContext getContext() {
         return context;
+        }
+
+        public String getFromSearchText() {
+        if (fromSearchField.getText().trim().equals("")) {
+                return null;
+        }
+        return fromSearchField.getText();
         }
 
 
