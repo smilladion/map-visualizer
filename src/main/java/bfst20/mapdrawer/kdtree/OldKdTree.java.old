@@ -1,0 +1,92 @@
+package bfst20.mapdrawer.kdtree;
+
+import bfst20.mapdrawer.osm.OSMWay;
+
+import java.util.Comparator;
+import java.util.List;
+
+public class OldKdTree {
+
+    /*
+    public static KdNode insert(KdPoint point, KdNode parent, boolean isX) throws Exception {
+        if (parent == null) {
+            return new KdNode(point);
+        } else if (parent.point.equals(point)) {
+            throw new Exception("Duplicate point added");
+        } else if (point.get(isX) < parent.point.get(isX)) {
+            parent.left = insert(point, parent.left, !isX);
+        } else {
+            parent.right = insert(point, parent.right, !isX);
+        }
+
+        return parent;
+    }
+    */
+
+    public static class KdPoint {
+
+        private final OSMWay way;
+
+        private final float x;
+        private final float y;
+
+        public KdPoint(OSMWay way) {
+            this.way = way;
+
+            this.x = way.getAvgX();
+            this.y = way.getAvgY();
+        }
+
+        public float get(boolean isX) {
+            return isX ? x : y;
+        }
+    }
+
+    public static class KdNode {
+
+        private final KdPoint point;
+
+        private KdNode left;
+        private KdNode right;
+
+        public KdNode(OSMWay way) {
+            this.point = new KdPoint(way);
+        }
+    }
+
+    public static class Builder {
+
+        private static KdNode build(List<OSMWay> nodes, int depth) {
+            if (nodes == null || nodes.isEmpty()) {
+                return null;
+            }
+
+            if (nodes.size() == 1) {
+                return new KdNode(nodes.get(0));
+            } else if (depth % 2 == 0) { // isX
+                nodes.sort(Comparator.comparing(OSMWay::getAvgX));
+            } else { // isY
+                nodes.sort(Comparator.comparing(OSMWay::getAvgY));
+            }
+
+            List<OSMWay> left = nodes.subList(0, nodes.size() / 2);
+            List<OSMWay> right = nodes.subList(nodes.size() / 2, nodes.size());
+
+            KdNode vLeft = build(left, depth + 1);
+            KdNode vRight = build(right, depth + 1);
+
+            OSMWay median = left.get(left.size() - 1);
+
+            KdNode v = new KdNode(median);
+
+            v.left = vLeft;
+            v.right = vRight;
+
+            return v;
+        }
+
+        public static KdNode build(List<OSMWay> nodes) {
+            return build(nodes, 0);
+        }
+    }
+}

@@ -6,7 +6,7 @@ import edu.princeton.cs.algs4.BST;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class TreeBuilder { // TODO Should you remove splitting line node from lists or not?
+public class TreeBuilderOld { // TODO Should you remove splitting line node from lists or not?
     // Keys are coordinates (even depth = x-coordinate, odd depth = y-coordinate) and values are the corresponding node id
     // Tree contains the coordinate for each splitting line that occurs on the canvas
     // TODO Only one list, sort recursively
@@ -14,7 +14,7 @@ public class TreeBuilder { // TODO Should you remove splitting line node from li
     private ArrayList<OSMNode> nodesX; // Nodes sorted by x-coordinate
     private ArrayList<OSMNode> nodesY; // Nodes sorted by y-coordinate
 
-    public TreeBuilder(ArrayList<OSMNode> nodes) throws EmptyKdTreeException { // TODO Only works if all coordinates are distinct, but should ALWAYS work
+    public TreeBuilderOld(ArrayList<OSMNode> nodes) throws EmptyKdTreeException { // TODO Only works if all coordinates are distinct, but should ALWAYS work
         tree = new BST<>();
         nodesX = nodes;
         nodesY = nodes;
