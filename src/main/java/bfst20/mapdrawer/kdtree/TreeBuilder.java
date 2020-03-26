@@ -1,4 +1,4 @@
-package bfst20.mapdrawer.util;
+package bfst20.mapdrawer.kdtree;
 
 import bfst20.mapdrawer.osm.OSMNode;
 import edu.princeton.cs.algs4.BST;
@@ -6,14 +6,15 @@ import edu.princeton.cs.algs4.BST;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class KdTree { // TODO Should you remove splitting line node from lists or not?
+public class TreeBuilder { // TODO Should you remove splitting line node from lists or not?
     // Keys are coordinates (even depth = x-coordinate, odd depth = y-coordinate) and values are the corresponding node id
     // Tree contains the coordinate for each splitting line that occurs on the canvas
-    private BST<Float, Long> tree; // TODO Maybe store osmnodes instead of id's - or just nodes as keys and use variable in compareTo to determine whether its x or y? Or modify BST
+    // TODO Only one list, sort recursively
+    private BST<Float, Long> tree; // TODO Write own kd tree structure
     private ArrayList<OSMNode> nodesX; // Nodes sorted by x-coordinate
     private ArrayList<OSMNode> nodesY; // Nodes sorted by y-coordinate
 
-    public KdTree(ArrayList<OSMNode> nodes) throws EmptyKdTreeException { // TODO Only works if all coordinates are distinct, but should ALWAYS work
+    public TreeBuilder(ArrayList<OSMNode> nodes) throws EmptyKdTreeException { // TODO Only works if all coordinates are distinct, but should ALWAYS work
         tree = new BST<>();
         nodesX = nodes;
         nodesY = nodes;
