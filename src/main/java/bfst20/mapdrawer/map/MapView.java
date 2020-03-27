@@ -78,9 +78,13 @@ public class MapView {
 
         toSearchField.setPromptText("Til...");
         fromSearchField.setPromptText("Fra...");
+        fromSearchField.setVisible(false);
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
+
+        Button clearButton = new Button("Clear");
+        clearButton.setOnAction(controller.getClearAction());
 
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
@@ -93,7 +97,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -252,6 +256,14 @@ public class MapView {
     }
     public void paintOnMap(String address, String address2) {
 
+        context.setTransform(transform);
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+
+        if (address == null && address2 == null) {
+            updateMap(model);
+        }
+
         if (address2 == null) {
 
             List<OSMNode> list = new ArrayList<>();
@@ -262,7 +274,6 @@ public class MapView {
                     searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
             }
-            context.setTransform(new Affine());
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
@@ -273,19 +284,15 @@ public class MapView {
 
             for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
                 if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
-                    System.out.println("equals!");
                     list1.add(model.getIdtoNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
             }
             searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
 
-            context.setTransform(new Affine());
-
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
             }
-
-            //paintMap();
         }
     }
 
@@ -301,6 +308,18 @@ public class MapView {
                 return null;
         }
         return fromSearchField.getText();
+        }
+
+        public TextField getToSearchField() {
+            return toSearchField;
+        }
+
+        public TextField getFromSearchField() {
+            return  fromSearchField;
+        }
+
+        public List<Drawable> getSearchedDrawables() {
+            return searchedDrawables;
         }
 
 

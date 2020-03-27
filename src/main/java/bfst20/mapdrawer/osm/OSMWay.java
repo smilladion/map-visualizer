@@ -106,6 +106,10 @@ public class OSMWay implements LongSupplier {
 
     public static boolean isColorable(OSMWay way) {
 
+        if (way.getColor() == PathColor.SEARCH.getColor()) {
+            return true;
+        }
+
         if (way.getColor() == PathColor.BUILDING.getColor()) {
             return true;
         }

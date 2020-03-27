@@ -39,6 +39,7 @@ public class MapController {
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
+    private final EventHandler<ActionEvent> clearAction;
 
     private Point2D lastMouse;
 
@@ -54,16 +55,22 @@ public class MapController {
 
         editAction = e -> view.setSearchText(view.getLastSearch());
 
+        clearAction = e -> {
+            view.getToSearchField().setPromptText("Til...");
+            view.getFromSearchField().setPromptText("Fra...");
+            view.getSearchedDrawables().clear();
+            view.paintOnMap(null, null);
+
+        };
+
         searchAction = e -> {
-            System.out.println("Inside search action!");
+            view.getFromSearchField().setVisible(true);
             String address = view.getToSearchText();
             String address1 = view.getFromSearchText();
 
             if (address1 != null) {
-                System.out.println("address 1 is not null!");
                 view.paintOnMap(address, address1);
             } else if (address1 == null) {
-                System.out.println("address IS null");
                 if (streetNames.contains(view.getToSearchText())) {
                     view.showStreetButton(view.getToSearchText());
                 }
@@ -71,7 +78,6 @@ public class MapController {
 
             }
             view.setLastSearch(view.getToSearchText());
-            view.resetSearchField();
         };
 
         // Resets the value of lastMouse before the next pan/drag occurs
@@ -108,7 +114,7 @@ public class MapController {
             System.out.println("you clicked on the map!");
             double x1 = e.getX();
             double y1 = e.getY();
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/mapslogoRed.png"));
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/Untitled.png"));
             view.getContext().drawImage(pointImage, x1, y1);
         };
 
@@ -170,4 +176,8 @@ public class MapController {
     }
 
     public EventHandler<MouseEvent> clickOnMapAction() { return clickOnMapAction;}
+
+    public EventHandler<ActionEvent> getClearAction() {
+        return clearAction;
+    }
 }
