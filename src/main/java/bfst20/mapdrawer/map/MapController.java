@@ -42,7 +42,6 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
     private final EventHandler<ActionEvent> clearAction;
-    private final EventHandler<KeyEvent> searchSuggestionAction;
     private int lettersTyped = 0;
 
     private Point2D lastMouse;
@@ -60,6 +59,8 @@ public class MapController {
         editAction = e -> view.setSearchText(view.getLastSearch());
 
         clearAction = e -> {
+            view.getToSearchField().clear();
+            view.getFromSearchField().clear();
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
@@ -67,26 +68,10 @@ public class MapController {
 
         };
 
-        searchSuggestionAction = e-> {
-            lettersTyped++;
-            if (lettersTyped >= 3) {
-                System.out.println("helloo");
-                for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                    if (entry.getKey().contains(view.getToSearchText().toLowerCase())) {
-                        System.out.println("contains!");
-                        view.getSuggestionArea().setVisible(true);
-                        view.getSuggestionArea().setText(entry.getKey());
-                    }
-                }
-            }
-        };
-
         searchAction = e -> {
 
             String address = view.getToSearchText().toLowerCase();
-            System.out.println("ad 1 = " + address);
             String address1 = view.getFromSearchField().getText().toLowerCase();
-            System.out.println("ad 2 = " + address1);
 
             if (address1.trim().equals("")) {
                 address1 = null;
@@ -137,11 +122,10 @@ public class MapController {
         };
 
         clickOnMapAction = e -> {
-            System.out.println("you clicked on the map!");
             double x1 = e.getX();
             double y1 = e.getY();
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/Untitled.png"));
-            view.getContext().drawImage(pointImage, x1, y1);
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
+            view.getContext().drawImage(pointImage, x1, y1, -0.01, -0.01);
         };
 
         loadOSMAction = e -> {
@@ -205,9 +189,5 @@ public class MapController {
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
-    }
-
-    public EventHandler<KeyEvent> getSearchSuggestionAction() {
-        return searchSuggestionAction;
     }
 }

@@ -43,8 +43,6 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
-    private final TextArea suggestionArea = new TextArea();
-
     private static List<Drawable> drawables = new ArrayList<>();
     private static List<Drawable> searchedDrawables = new ArrayList<>();
 
@@ -77,17 +75,12 @@ public class MapView {
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
-        TextArea suggestionArea = new TextArea("Mente du...?");
-        suggestionArea.setVisible(false);
-
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
 
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(controller.getClearAction());
 
-        toSearchField.setOnKeyTyped(controller.getSearchSuggestionAction());
-        fromSearchField.setOnKeyTyped(controller.getSearchSuggestionAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
         canvas.setOnMouseClicked(controller.getPanClickAction());
@@ -99,7 +92,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, suggestionArea, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -262,32 +255,30 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
 
-        if (address == null && address2 == null) {
+        if ((address == null) && (address2 == null)) {
             updateMap(model);
+
         }
+        if ((address2 == null) && (address != null)) {
 
-        if (address2 == null) {
+                List<OSMNode> list = new ArrayList<>();
 
-            List<OSMNode> list = new ArrayList<>();
-
-            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().contains(address)) {
-                    System.out.println("EQULSASF");
-                    list.add(model.getIdtoNodeMap().get(entry.getValue()));
-                    searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
+                for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                    if (entry.getKey().contains(address)) {
+                        list.add(model.getIdtoNodeMap().get(entry.getValue()));
+                        searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
+                    }
                 }
-            }
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
 
             }
-        } else if (address2 != null) {
+        } else if ((address2 != null) && (address != null)) {
             List<OSMNode> list1 = new ArrayList<>();
 
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
-                    System.out.println("equals kk");
                     list1.add(model.getIdtoNodeMap().get(entry.getValue()));
                     searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
@@ -332,11 +323,6 @@ public class MapView {
         public List<Drawable> getSearchedDrawables() {
             return searchedDrawables;
         }
-
-        public TextArea getSuggestionArea() {
-        return suggestionArea;
-        }
-
 
     }
     
