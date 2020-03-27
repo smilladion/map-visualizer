@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import bfst20.mapdrawer.Launcher;
@@ -15,6 +16,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
@@ -40,6 +42,8 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
     private final EventHandler<ActionEvent> clearAction;
+    private final EventHandler<KeyEvent> searchSuggestionAction;
+    private int lettersTyped = 0;
 
     private Point2D lastMouse;
 
@@ -63,10 +67,32 @@ public class MapController {
 
         };
 
+        searchSuggestionAction = e-> {
+            lettersTyped++;
+            if (lettersTyped >= 3) {
+                System.out.println("helloo");
+                for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                    if (entry.getKey().contains(view.getToSearchText().toLowerCase())) {
+                        System.out.println("contains!");
+                        view.getSuggestionArea().setVisible(true);
+                        view.getSuggestionArea().setText(entry.getKey());
+                    }
+                }
+            }
+        };
+
         searchAction = e -> {
+
+            String address = view.getToSearchText().toLowerCase();
+            System.out.println("ad 1 = " + address);
+            String address1 = view.getFromSearchField().getText().toLowerCase();
+            System.out.println("ad 2 = " + address1);
+
+            if (address1.trim().equals("")) {
+                address1 = null;
+            }
+
             view.getFromSearchField().setVisible(true);
-            String address = view.getToSearchText();
-            String address1 = view.getFromSearchText();
 
             if (address1 != null) {
                 view.paintOnMap(address, address1);
@@ -179,5 +205,9 @@ public class MapController {
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
+    }
+
+    public EventHandler<KeyEvent> getSearchSuggestionAction() {
+        return searchSuggestionAction;
     }
 }

@@ -16,12 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -29,7 +24,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
-import org.w3c.dom.Text;
+import org.controlsfx.control.textfield.TextFields;
 
 public class MapView {
 
@@ -48,6 +43,7 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
+    private final TextArea suggestionArea = new TextArea();
 
     private static List<Drawable> drawables = new ArrayList<>();
     private static List<Drawable> searchedDrawables = new ArrayList<>();
@@ -75,10 +71,14 @@ public class MapView {
 
         rootPane.getChildren().add(menuBox);
 
-
         toSearchField.setPromptText("Til...");
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
+
+        TextArea suggestionArea = new TextArea("Mente du...?");
+        suggestionArea.setVisible(false);
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
@@ -86,6 +86,8 @@ public class MapView {
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(controller.getClearAction());
 
+        toSearchField.setOnKeyTyped(controller.getSearchSuggestionAction());
+        fromSearchField.setOnKeyTyped(controller.getSearchSuggestionAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
         canvas.setOnMouseClicked(controller.getPanClickAction());
@@ -97,7 +99,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, suggestionArea, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -268,8 +270,9 @@ public class MapView {
 
             List<OSMNode> list = new ArrayList<>();
 
-            for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
-                if (entry.getKey().equals(address)) {
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().contains(address)) {
+                    System.out.println("EQULSASF");
                     list.add(model.getIdtoNodeMap().get(entry.getValue()));
                     searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
@@ -282,8 +285,9 @@ public class MapView {
         } else if (address2 != null) {
             List<OSMNode> list1 = new ArrayList<>();
 
-            for (Map.Entry<String, Long> entry : model.getAddressToNode().entrySet()) {
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
+                    System.out.println("equals kk");
                     list1.add(model.getIdtoNodeMap().get(entry.getValue()));
                     searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
                 }
@@ -294,6 +298,10 @@ public class MapView {
                 drawable.draw(context);
             }
         }
+    }
+
+    public void showSearchSuggestions(String string) {
+
     }
 
         public StackPane getRootPane() {
@@ -307,7 +315,10 @@ public class MapView {
         if (fromSearchField.getText().trim().equals("")) {
                 return null;
         }
-        return fromSearchField.getText();
+        if (!fromSearchField.isVisible()) {
+            return null;
+        }
+        return fromSearchField.getText().toLowerCase();
         }
 
         public TextField getToSearchField() {
@@ -320,6 +331,10 @@ public class MapView {
 
         public List<Drawable> getSearchedDrawables() {
             return searchedDrawables;
+        }
+
+        public TextArea getSuggestionArea() {
+        return suggestionArea;
         }
 
 

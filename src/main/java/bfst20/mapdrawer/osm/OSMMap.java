@@ -64,6 +64,7 @@ public class OSMMap {
     private static Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
     private static Map<String, Long> addressToId = new HashMap<>();
     private static Map<Long, OSMNode> idToNode = new HashMap<>();
+    private static List<String> addressList = new ArrayList<>();
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -159,6 +160,8 @@ public class OSMMap {
         String address = null;
         String street = null;
         String houseNumber = null;
+        String city = null;
+
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
 
@@ -175,6 +178,9 @@ public class OSMMap {
                         if (key.equals("addr:housenumber")) {
                             houseNumber = value;
                         }
+                        if (key.equals("addr:city")) {
+                            city = value;
+                        }
                 }
 
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
@@ -183,8 +189,9 @@ public class OSMMap {
             }
         }
 
-        address = street + " " + houseNumber;
-        return address;
+        address = street + " " + houseNumber + " " + city;
+        addressList.add(address);
+        return address.toLowerCase();
     }
 
     /**
@@ -544,7 +551,11 @@ public class OSMMap {
         return idToNode;
     }
 
-    public Map<String, Long> getAddressToNode() {
+    public List<String> getAddressList() {
+        return addressList;
+    }
+
+    public Map<String, Long> getAddressToId() {
         return addressToId;
     }
 
