@@ -19,7 +19,7 @@ public class Point implements Drawable {
     @Override
     public void draw(GraphicsContext gc) {
 
-        Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
+        Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
         gc.drawImage(pointImage, x1, y1, -0.01, -0.01);
     }
 }
