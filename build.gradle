@@ -20,6 +20,7 @@ repositories {
 
 dependencies {
     implementation files('libs/algs4.jar')
+    implementation files('libs/controlsfx-11.0.1.jar')
 
     // Use JUnit Jupiter Engine for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'

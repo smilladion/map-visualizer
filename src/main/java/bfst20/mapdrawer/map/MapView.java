@@ -1,16 +1,14 @@
 package bfst20.mapdrawer.map;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -28,25 +26,28 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
+    private final static Affine transform = new Affine();
     private static OSMMap model;
-
     private static Canvas canvas;
     private static GraphicsContext context;
-    private final static Affine transform = new Affine();
-
+    private static List<Drawable> drawables = new ArrayList<>();
+    private static List<Drawable> searchedDrawables = new ArrayList<>();
     private final StackPane rootPane;
     private final MapController controller;
-
     private final MenuBar menuBar = new MenuBar();
     private final Menu loadMenu = new Menu("Load");
-    private final TextField searchField = new TextField();
+    private final TextField toSearchField = new TextField();
+    private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
-
-    private static List<Drawable> drawables = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -71,14 +72,22 @@ public class MapView {
 
         rootPane.getChildren().add(menuBox);
 
-        searchField.setPromptText("Street name");
+        toSearchField.setPromptText("Til...");
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        fromSearchField.setPromptText("Fra...");
+        fromSearchField.setVisible(false);
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
 
-        searchField.setOnAction(controller.getSearchAction());
+        Button clearButton = new Button("Clear");
+        clearButton.setOnAction(controller.getClearAction());
 
+        toSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchAction());
         canvas.setOnMouseClicked(controller.getPanClickAction());
+        canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
@@ -86,12 +95,11 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
-                                          // areas
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -100,8 +108,7 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive
-        // design)
+        // Code below makes the canvas resizable when the window changes (responsive design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
         canvas.widthProperty().addListener((a, b, c) -> {
@@ -129,32 +136,6 @@ public class MapView {
         paintMap();
     }
 
-    String getSearchText() {
-        return searchField.getText();
-    }
-
-    void setSearchText(String text) {
-        searchField.setText(text);
-    }
-
-    String getLastSearch() {
-        return userSearchLabel.getText();
-    }
-
-    void setLastSearch(String text) {
-        userSearchLabel.setText(text);
-    }
-
-    void showStreetButton(String text) {
-        streetButton.setVisible(true);
-        streetButton.setText(text);
-    }
-
-    void resetSearchField() {
-        searchField.clear();
-        rootPane.requestFocus();
-    }
-
     public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
@@ -163,7 +144,7 @@ public class MapView {
             if (way.getNodes().isEmpty()) {
                 // If a way has no nodes, do not draw
                 continue;
-            }  else if (OSMWay.isColorable(way)) {
+            } else if (OSMWay.isColorable(way)) {
                 // If a way has the color specified, make a polygon
                 drawables.add(new Polygon(way, way.getColor()));
             } else {
@@ -201,14 +182,6 @@ public class MapView {
         paintMap();
     }
 
-    private Point2D convertMouseToMap(double x, double y) {
-        try {
-            return transform.inverseTransform(x, y);
-        } catch (Exception ignored) {
-            return Point2D.ZERO;
-        }
-    }
-
     public static void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
@@ -238,6 +211,108 @@ public class MapView {
             drawable.draw(context);
         }
 
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
+        }
     }
-    
+
+    String getToSearchText() {
+        return toSearchField.getText();
+    }
+
+    void setSearchText(String text) {
+        toSearchField.setText(text);
+    }
+
+    String getLastSearch() {
+        return userSearchLabel.getText();
+    }
+
+    void setLastSearch(String text) {
+        userSearchLabel.setText(text);
+    }
+
+    void showStreetButton(String text) {
+        streetButton.setVisible(true);
+        streetButton.setText(text);
+    }
+
+    void resetSearchField() {
+        toSearchField.clear();
+        fromSearchField.clear();
+        rootPane.requestFocus();
+    }
+
+    public void paintOnMap(String address, String address2) {
+
+        context.setTransform(transform);
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        if ((address == null) && (address2 == null)) {
+            updateMap(model);
+        }
+        if ((address2 == null) && (address != null)) {
+
+            List<OSMNode> list = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().contains(address)) {
+                    list.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
+                }
+            }
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        } else if ((address2 != null) && (address != null)) {
+            List<OSMNode> list1 = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
+                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
+                }
+            }
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        }
+    }
+
+    public void showSearchSuggestions(String string) {
+
+    }
+
+    public StackPane getRootPane() {
+        return rootPane;
+    }
+
+    public GraphicsContext getContext() {
+        return context;
+    }
+
+    public String getFromSearchText() {
+        if (fromSearchField.getText().trim().equals("")) {
+            return null;
+        }
+        if (!fromSearchField.isVisible()) {
+            return null;
+        }
+        return fromSearchField.getText().toLowerCase();
+    }
+
+    public TextField getToSearchField() {
+        return toSearchField;
+    }
+
+    public TextField getFromSearchField() {
+        return fromSearchField;
+    }
+
+    public List<Drawable> getSearchedDrawables() {
+        return searchedDrawables;
+    }
 }

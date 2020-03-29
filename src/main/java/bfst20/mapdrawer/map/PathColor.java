@@ -31,6 +31,7 @@ public enum PathColor {
     HEATH(Color.WHEAT),
     GRASSLAND(Color.LAWNGREEN),
     SCRUB(Color.DARKOLIVEGREEN),
+    SEARCH(Color.RED),
     NONE(Color.BLACK);
 
     private final Paint color;
