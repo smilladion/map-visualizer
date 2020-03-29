@@ -19,7 +19,7 @@ public class OSMWay implements LongSupplier {
     private final List<OSMNode> nodes;
     private final Paint color;
 
-    OSMWay(long id, List<OSMNode> nodes, Paint color) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
@@ -83,6 +83,10 @@ public class OSMWay implements LongSupplier {
     }
 
     public static boolean isColorable(OSMWay way) {
+
+        if (way.getColor() == PathColor.SEARCH.getColor()) {
+            return true;
+        }
 
         if (way.getColor() == PathColor.BUILDING.getColor()) {
             return true;

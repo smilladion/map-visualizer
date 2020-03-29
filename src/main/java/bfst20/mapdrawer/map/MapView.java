@@ -2,9 +2,10 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Polygon;
-import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Insets;
@@ -25,9 +26,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
@@ -36,11 +39,13 @@ public class MapView {
     private static Canvas canvas;
     private static GraphicsContext context;
     private static List<Drawable> drawables = new ArrayList<>();
+    private static List<Drawable> searchedDrawables = new ArrayList<>();
     private final StackPane rootPane;
     private final MapController controller;
     private final MenuBar menuBar = new MenuBar();
     private final Menu loadMenu = new Menu("Load");
-    private final TextField searchField = new TextField();
+    private final TextField toSearchField = new TextField();
+    private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
@@ -67,14 +72,22 @@ public class MapView {
 
         rootPane.getChildren().add(menuBox);
 
-        searchField.setPromptText("Street name");
+        toSearchField.setPromptText("Til...");
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        fromSearchField.setPromptText("Fra...");
+        fromSearchField.setVisible(false);
 
         Button editButton = new Button("Edit");
         editButton.setOnAction(controller.getEditAction());
 
-        searchField.setOnAction(controller.getSearchAction());
+        Button clearButton = new Button("Clear");
+        clearButton.setOnAction(controller.getClearAction());
 
+        toSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchAction());
         canvas.setOnMouseClicked(controller.getPanClickAction());
+        canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
@@ -82,7 +95,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(searchField, searchLabels, editButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -197,14 +210,18 @@ public class MapView {
         for (Drawable drawable : drawables) {
             drawable.draw(context);
         }
+
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
+        }
     }
 
-    String getSearchText() {
-        return searchField.getText();
+    String getToSearchText() {
+        return toSearchField.getText();
     }
 
     void setSearchText(String text) {
-        searchField.setText(text);
+        toSearchField.setText(text);
     }
 
     String getLastSearch() {
@@ -221,7 +238,81 @@ public class MapView {
     }
 
     void resetSearchField() {
-        searchField.clear();
+        toSearchField.clear();
+        fromSearchField.clear();
         rootPane.requestFocus();
+    }
+
+    public void paintOnMap(String address, String address2) {
+
+        context.setTransform(transform);
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        if ((address == null) && (address2 == null)) {
+            updateMap(model);
+        }
+        if ((address2 == null) && (address != null)) {
+
+            List<OSMNode> list = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().contains(address)) {
+                    list.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
+                }
+            }
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        } else if ((address2 != null) && (address != null)) {
+            List<OSMNode> list1 = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
+                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
+                }
+            }
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        }
+    }
+
+    public void showSearchSuggestions(String string) {
+
+    }
+
+    public StackPane getRootPane() {
+        return rootPane;
+    }
+
+    public GraphicsContext getContext() {
+        return context;
+    }
+
+    public String getFromSearchText() {
+        if (fromSearchField.getText().trim().equals("")) {
+            return null;
+        }
+        if (!fromSearchField.isVisible()) {
+            return null;
+        }
+        return fromSearchField.getText().toLowerCase();
+    }
+
+    public TextField getToSearchField() {
+        return toSearchField;
+    }
+
+    public TextField getFromSearchField() {
+        return fromSearchField;
+    }
+
+    public List<Drawable> getSearchedDrawables() {
+        return searchedDrawables;
     }
 }

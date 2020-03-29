@@ -4,7 +4,6 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.map.PathColor;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -24,7 +23,6 @@ import java.util.zip.ZipInputStream;
 
 public class OSMMap {
 
-    private final List<OSMWay> ways = new ArrayList<>();
     // Flags for way type (set by tag elements in readWay and readRelation)
     static boolean building = false;
     static boolean forest = false;
@@ -50,14 +48,28 @@ public class OSMMap {
     static boolean heath = false;
     static boolean grassland = false;
     static boolean scrub = false;
+
     private static Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
+
+    private static Map<String, Long> addressToId = new HashMap<>();
+    private static List<String> addressList = new ArrayList<>();
+
+    // Empty lookup maps (quickly find an OSM Node/Way/Relation from an ID)
+    private static Map<Long, OSMNode> idToNode = new HashMap<>();
+    private static Map<Long, OSMWay> idToWay = new HashMap<>();
+    private static Map<Long, OSMRelation> idToRelation = new HashMap<>();
+
     private final float minLat;
     private final float minLon;
     private final float maxLat;
     private final float maxLon;
+
     private final List<OSMNode> nodes = new ArrayList<>();
+    private final List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
+
     private final List<Drawable> islands = new ArrayList<>();
+
     private KdTree kdtree;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
@@ -71,11 +83,6 @@ public class OSMMap {
         XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file));
 
         OSMMap map = null;
-
-        // Empty lookup maps (quickly find an OSM Node/Way/Relation from an ID)
-        Map<Long, OSMNode> idToNode = new HashMap<>();
-        Map<Long, OSMWay> idToWay = new HashMap<>();
-        Map<Long, OSMRelation> idToRelation = new HashMap<>();
 
         // While there are more tags in the XML file to be read
         while (xmlReader.hasNext()) {
@@ -109,6 +116,7 @@ public class OSMMap {
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
                         idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
+                        addressToId.put(readAddress(xmlReader), id);
 
                         break;
                     }
@@ -149,6 +157,44 @@ public class OSMMap {
         map.kdtree = new KdTree(map.ways);
 
         return map;
+    }
+
+    private static String readAddress(XMLStreamReader xmlReader) throws XMLStreamException {
+
+        String address = null;
+        String street = null;
+        String houseNumber = null;
+        String city = null;
+
+        while (xmlReader.hasNext()) {
+            int nextType = xmlReader.next();
+
+            if (nextType == XMLStreamReader.START_ELEMENT) {
+                switch (xmlReader.getLocalName()) {
+                    case "tag":
+                        // Found a property tag, read and set the correct boolean for this tag
+                        String key = xmlReader.getAttributeValue(null, "k");
+                        String value = xmlReader.getAttributeValue(null, "v");
+
+                        if (key.equals("addr:street")) {
+                            street = value;
+                        }
+                        if (key.equals("addr:housenumber")) {
+                            houseNumber = value;
+                        }
+                        if (key.equals("addr:city")) {
+                            city = value;
+                        }
+                }
+            } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
+                // Reached the end of the current way, break and return a new OSMWay object
+                break;
+            }
+        }
+
+        address = street + " " + houseNumber + " " + city;
+        addressList.add(address);
+        return address.toLowerCase();
     }
 
     /**
@@ -490,6 +536,18 @@ public class OSMMap {
 
     public List<Drawable> getIslands() {
         return islands;
+    }
+
+    public Map<Long, OSMNode> getIdToNodeMap() {
+        return idToNode;
+    }
+
+    public List<String> getAddressList() {
+        return addressList;
+    }
+
+    public Map<String, Long> getAddressToId() {
+        return addressToId;
     }
 
     // Can move this to its own file if needed
