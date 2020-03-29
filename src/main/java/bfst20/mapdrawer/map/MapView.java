@@ -49,8 +49,6 @@ public class MapView {
 
         this.model = model;
 
-        new KdTree(model.getWays()); // TODO: For testing purposes
-
         canvas = new Canvas(1280, 720);
         context = canvas.getGraphicsContext2D();
 

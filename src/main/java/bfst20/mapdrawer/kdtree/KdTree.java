@@ -18,9 +18,9 @@ public class KdTree {
     private final KdNode root;
 
     public KdTree(List<OSMWay> nodes) {
-        root = build(nodes.subList(0, 10), 0); // TODO: subList for testing, should just be "nodes" as first argument
+        root = build(nodes, 0);
 
-        draw(root, 0, 2); // TODO: For testing in console
+        //draw(root, 0, 2); // TODO: For testing in console
         System.out.flush(); // Bugfix for when it doesn't system print
     }
 

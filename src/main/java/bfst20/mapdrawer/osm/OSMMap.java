@@ -2,6 +2,7 @@ package bfst20.mapdrawer.osm;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.map.PathColor;
 
 import javax.xml.stream.XMLInputFactory;
@@ -23,7 +24,7 @@ import java.util.zip.ZipInputStream;
 
 public class OSMMap {
 
-    private final static List<OSMWay> ways = new ArrayList<>();
+    private final List<OSMWay> ways = new ArrayList<>();
     // Flags for way type (set by tag elements in readWay and readRelation)
     static boolean building = false;
     static boolean forest = false;
@@ -57,6 +58,7 @@ public class OSMMap {
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
     private final List<Drawable> islands = new ArrayList<>();
+    private KdTree kdtree;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -143,6 +145,8 @@ public class OSMMap {
                 }
             }
         }
+
+        map.kdtree = new KdTree(map.ways);
 
         return map;
     }
