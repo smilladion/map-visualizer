@@ -11,10 +11,13 @@ import java.util.Map;
 import java.util.Set;
 
 import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -42,7 +45,9 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
     private final EventHandler<ActionEvent> clearAction;
-    private int lettersTyped = 0;
+    private final EventHandler<ActionEvent> savePointOfInterestTo;
+    private final EventHandler<ActionEvent> savePointOfInterestFrom;
+    private final EventHandler<MouseEvent> toggleAction;
 
     private Point2D lastMouse;
 
@@ -68,6 +73,54 @@ public class MapController {
 
         };
 
+        // TO-DO: Saves the address from the "til..." search field to my list. Code duplicating with method bellow.
+        savePointOfInterestTo = e-> {
+            String s = view.getToSearchField().getText().toLowerCase();
+            if (s.trim().equals("")) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(null);
+                alert.setContentText("No address was found - please write an address to add it to your saved points");
+                alert.showAndWait();
+            } else {
+                long id = model.getAddressToId().get(s);
+                view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
+            }
+        };
+
+        //TO-DO - saves address from the "fra..." searchfield.
+        savePointOfInterestFrom = e-> {
+            String s = view.getFromSearchField().getText().toLowerCase();
+            if (s.trim().equals("")) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(null);
+                alert.setContentText("No address was found - please write an address to add it to your saved points");
+                alert.showAndWait();
+            } else {
+                long id = model.getAddressToId().get(s);
+                view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
+            }
+        };
+
+        toggleAction = e-> {
+            if (view.getMyPointsToggle().isSelected()) {
+                if (view.getMyPoints().isEmpty()) {
+                    System.out.println("empty...");
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setHeaderText(null);
+                    alert.setContentText("You have no saved addresses");
+                    alert.showAndWait();
+                } else {
+                    for (Drawable drawable : view.getMyPoints()) {
+                        view.getMyPointsTemp().add(drawable);
+                    }
+                    view.paintSavedAddresses();
+                }
+            } else {
+                view.getMyPointsTemp().clear();
+                view.paintOnMap(null, null);
+            }
+        };
+
         searchAction = e -> {
 
             String address = view.getToSearchText().toLowerCase();
@@ -78,6 +131,7 @@ public class MapController {
             }
 
             view.getFromSearchField().setVisible(true);
+            view.getSaveFromSearch().setVisible(true);
 
             if (address1 != null) {
                 view.paintOnMap(address, address1);
@@ -189,5 +243,16 @@ public class MapController {
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
+    }
+
+    public EventHandler<ActionEvent> getSavePointOfInterestTo() {
+        return savePointOfInterestTo;
+    }
+    public EventHandler<ActionEvent> getSavePointOfInterestFrom() {
+        return savePointOfInterestFrom;
+    }
+
+    public EventHandler<MouseEvent> getToggleAction() {
+        return toggleAction;
     }
 }

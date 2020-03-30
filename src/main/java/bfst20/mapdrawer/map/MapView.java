@@ -24,6 +24,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
+import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
 
 public class MapView {
@@ -46,6 +47,10 @@ public class MapView {
     private static List<Drawable> drawables = new ArrayList<>();
     private static List<Drawable> searchedDrawables = new ArrayList<>();
     private static List<Drawable> myPoints = new ArrayList<>();
+    private static List<Drawable> myPointsTemp = new ArrayList(); // temp list of saved drawables that can be cleared when toggle is off.
+    private static ToggleSwitch myPointsToggle; //from the ControlsFX library
+
+    private Button saveFromSearch;
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -82,8 +87,18 @@ public class MapView {
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(controller.getClearAction());
 
+        saveFromSearch = new Button("Save address");
+        Button saveToSearch = new Button("Save address");
+        saveFromSearch.setVisible(false);
+
+        myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
+        myPointsToggle.setText("Show my saved addresses");
+
+        myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
+        saveToSearch.setOnAction(controller.getSavePointOfInterestTo());
+        saveFromSearch.setOnAction(controller.getSavePointOfInterestFrom());
         canvas.setOnMouseClicked(controller.getPanClickAction());
         canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
@@ -93,7 +108,7 @@ public class MapView {
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, saveFromSearch, toSearchField, saveToSearch, searchLabels, editButton, clearButton, streetButton, myPointsToggle);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -292,13 +307,12 @@ public class MapView {
         }
     }
 
-    public void showSearchSuggestions(String string) {
-
+    public void paintSavedAddresses() {
+        for (Drawable drawable : myPointsTemp) {
+            drawable.draw(context);
+        }
     }
 
-        public StackPane getRootPane() {
-        return rootPane;
-        }
         public GraphicsContext getContext() {
         return context;
         }
@@ -323,6 +337,22 @@ public class MapView {
 
         public List<Drawable> getSearchedDrawables() {
             return searchedDrawables;
+        }
+
+        public Button getSaveFromSearch() {
+        return saveFromSearch;
+        }
+
+        public List<Drawable> getMyPoints () {
+            return myPoints;
+        }
+
+        public List<Drawable> getMyPointsTemp() {
+            return myPointsTemp;
+        }
+
+        public ToggleSwitch getMyPointsToggle() {
+        return myPointsToggle;
         }
 
     }
