@@ -20,6 +20,6 @@ public class Point implements Drawable {
     public void draw(GraphicsContext gc) {
 
         Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
-        gc.drawImage(pointImage, x1, y1, -0.01, -0.01);
+        gc.drawImage(pointImage, x1+ (0.01 / 2), y1, -0.01, -0.01);
     }
 }

@@ -45,6 +45,7 @@ public class MapView {
     private final Button streetButton = new Button();
     private static List<Drawable> drawables = new ArrayList<>();
     private static List<Drawable> searchedDrawables = new ArrayList<>();
+    private static List<Drawable> myPoints = new ArrayList<>();
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
