@@ -124,7 +124,7 @@ public class MapController {
         clickOnMapAction = e -> {
             double x1 = e.getX();
             double y1 = e.getY();
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
             view.getContext().drawImage(pointImage, x1, y1, -0.01, -0.01);
         };
 

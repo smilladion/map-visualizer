@@ -21,5 +21,6 @@ public class Point implements Drawable {
 
         Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
         gc.drawImage(pointImage, x1+ (0.01 / 2), y1, -0.01, -0.01);
+
     }
 }
