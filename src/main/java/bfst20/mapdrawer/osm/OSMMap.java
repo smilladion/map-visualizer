@@ -154,7 +154,7 @@ public class OSMMap {
             }
         }
 
-        map.kdtree = new KdTree(map.ways);
+        map.kdtree = new KdTree(map.ways, map);
 
         return map;
     }
@@ -540,6 +540,10 @@ public class OSMMap {
 
     public Map<Long, OSMNode> getIdToNodeMap() {
         return idToNode;
+    }
+
+    public KdTree getKdTree() {
+        return kdtree;
     }
 
     public List<String> getAddressList() {
