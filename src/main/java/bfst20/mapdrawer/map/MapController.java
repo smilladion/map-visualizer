@@ -2,22 +2,21 @@ package bfst20.mapdrawer.map;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-
-import javax.xml.stream.XMLStreamException;
 
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMMap.InvalidMapException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
@@ -28,18 +27,21 @@ public class MapController {
     private final MapView view;
 
     // HashSet provides O(1) time for lookups, but not as fast iteration
-    // Street names are part of the model, but will only be set and accessed via
-    // controller
+    // Street names are part of the model, but will only be set and accessed via controller
     private final Set<String> streetNames = new HashSet<>();
 
     private final EventHandler<ActionEvent> editAction;
     private final EventHandler<ActionEvent> searchAction;
 
     private final EventHandler<ActionEvent> loadZipAction;
+    private final EventHandler<ActionEvent> loadOSMAction;
 
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
+    private final EventHandler<MouseEvent> clickOnMapAction;
+    private final EventHandler<ActionEvent> clearAction;
+    private int lettersTyped = 0;
 
     private Point2D lastMouse;
 
@@ -55,13 +57,37 @@ public class MapController {
 
         editAction = e -> view.setSearchText(view.getLastSearch());
 
+        clearAction = e -> {
+            view.getToSearchField().clear();
+            view.getFromSearchField().clear();
+            view.getToSearchField().setPromptText("Til...");
+            view.getFromSearchField().setPromptText("Fra...");
+            view.getSearchedDrawables().clear();
+            view.paintOnMap(null, null);
+
+        };
+
         searchAction = e -> {
-            if (streetNames.contains(view.getSearchText())) {
-                view.showStreetButton(view.getSearchText());
+
+            String address = view.getToSearchText().toLowerCase();
+            String address1 = view.getFromSearchField().getText().toLowerCase();
+
+            if (address1.trim().equals("")) {
+                address1 = null;
             }
 
-            view.setLastSearch(view.getSearchText());
-            view.resetSearchField();
+            view.getFromSearchField().setVisible(true);
+
+            if (address1 != null) {
+                view.paintOnMap(address, address1);
+            } else if (address1 == null) {
+                if (streetNames.contains(view.getToSearchText())) {
+                    view.showStreetButton(view.getToSearchText());
+                }
+                view.paintOnMap(address, null);
+
+            }
+            view.setLastSearch(view.getToSearchText());
         };
 
         // Resets the value of lastMouse before the next pan/drag occurs
@@ -90,7 +116,24 @@ public class MapController {
             try{
                 MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
             } catch (Exception exc){
-                System.out.println(" ");
+                exc.printStackTrace();
+            }
+        };
+
+        clickOnMapAction = e -> {
+            double x1 = e.getX();
+            double y1 = e.getY();
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
+            view.getContext().drawImage(pointImage, x1, y1, -0.01, -0.01);
+        };
+
+        loadOSMAction = e -> {
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
+            try{
+                MapView.updateMap(OSMMap.fromFile(file));
+            } catch (Exception exc){
+                exc.printStackTrace();
             }
         };
     }
@@ -135,5 +178,15 @@ public class MapController {
 
     public EventHandler<ActionEvent> getLoadZipAction() {
         return loadZipAction;
+    }
+
+    public EventHandler<ActionEvent> getLoadOSMAction() {
+        return loadOSMAction;
+    }
+
+    public EventHandler<MouseEvent> clickOnMapAction() { return clickOnMapAction;}
+
+    public EventHandler<ActionEvent> getClearAction() {
+        return clearAction;
     }
 }

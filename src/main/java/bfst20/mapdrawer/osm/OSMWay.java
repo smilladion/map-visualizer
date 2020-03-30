@@ -1,7 +1,6 @@
 package bfst20.mapdrawer.osm;
 
 import bfst20.mapdrawer.map.PathColor;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ public class OSMWay implements LongSupplier {
     private final List<OSMNode> nodes;
     private final Paint color;
 
-    OSMWay(long id, List<OSMNode> nodes, Paint color) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
@@ -83,6 +82,81 @@ public class OSMWay implements LongSupplier {
         return way;
     }
 
+    public static boolean isColorable(OSMWay way) {
+
+        if (way.getColor() == PathColor.SEARCH.getColor()) {
+            return true;
+        }
+
+        if (way.getColor() == PathColor.BUILDING.getColor()) {
+            return true;
+        }
+        if (way.getColor() == PathColor.FOREST.getColor()) {
+            return true;
+        }
+        if (way.getColor() == PathColor.WATER.getColor()) {
+            return true;
+        }
+        if (way.getColor() == PathColor.BEACH.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.COMMERCIAL.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.CONSTRUCTION.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.ALLOTMENTS.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.FARMLAND.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.MEADOW.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.ORCHARD.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.BASIN.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.BROWNFIELD.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.CEMETERY.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.GRASS.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.RESERVOIR.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.VILLAGE_GREEN.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.PARK.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.DANGER_AREA.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.QUARRY.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.WOOD.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.HEATH.getColor())
+            return true;
+
+        if (way.getColor() == PathColor.GRASSLAND.getColor())
+            return true;
+
+        return way.getColor() == PathColor.SCRUB.getColor();
+    }
+
     @Override
     public long getAsLong() {
         return id;
@@ -102,5 +176,25 @@ public class OSMWay implements LongSupplier {
 
     public Paint getColor() {
         return color;
+    }
+
+    public float getAvgX() {
+        float sumX = 0.0f;
+
+        for (OSMNode node : nodes) {
+            sumX += node.getLon();
+        }
+
+        return sumX / nodes.size();
+    }
+
+    public float getAvgY() {
+        float sumY = 0.0f;
+
+        for (OSMNode node : nodes) {
+            sumY += node.getLat();
+        }
+
+        return sumY / nodes.size();
     }
 }
