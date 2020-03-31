@@ -73,38 +73,22 @@ public class MapController {
 
         };
 
-        // TO-DO: Saves the address from the "til..." search field to my list. Code duplicating with method bellow.
+        // Saves the address from the "til..." search field to my list.
         savePointOfInterestTo = e-> {
             String s = view.getToSearchField().getText().toLowerCase();
-            if (s.trim().equals("")) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(null);
-                alert.setContentText("No address was found - please write an address to add it to your saved points");
-                alert.showAndWait();
-            } else {
-                long id = model.getAddressToId().get(s);
-                view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
-            }
+            savePoint(s);
         };
 
-        //TO-DO - saves address from the "fra..." searchfield.
+        // saves address from the "fra..." searchfield.
         savePointOfInterestFrom = e-> {
             String s = view.getFromSearchField().getText().toLowerCase();
-            if (s.trim().equals("")) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(null);
-                alert.setContentText("No address was found - please write an address to add it to your saved points");
-                alert.showAndWait();
-            } else {
-                long id = model.getAddressToId().get(s);
-                view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
-            }
+            savePoint(s);
+
         };
 
         toggleAction = e-> {
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getMyPoints().isEmpty()) {
-                    System.out.println("empty...");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setHeaderText(null);
                     alert.setContentText("You have no saved addresses");
@@ -191,6 +175,18 @@ public class MapController {
                 exc.printStackTrace();
             }
         };
+    }
+
+    public void savePoint(String s) {
+        if (s.trim().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText(null);
+            alert.setContentText("No address was found - please write an address to add it to your saved points");
+            alert.showAndWait();
+        } else {
+            long id = model.getAddressToId().get(s);
+            view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
+        }
     }
 
     // Can be moved to a separate model if needed (right now, it's only used in the controller)
