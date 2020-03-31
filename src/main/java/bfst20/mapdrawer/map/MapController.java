@@ -86,6 +86,7 @@ public class MapController {
 
         };
 
+        // the toggle button.
         toggleAction = e-> {
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getMyPoints().isEmpty()) {
@@ -120,9 +121,6 @@ public class MapController {
             if (address1 != null) {
                 view.paintOnMap(address, address1);
             } else if (address1 == null) {
-                if (streetNames.contains(view.getToSearchText())) {
-                    view.showStreetButton(view.getToSearchText());
-                }
                 view.paintOnMap(address, null);
 
             }
@@ -159,11 +157,12 @@ public class MapController {
             }
         };
 
+        //TODO - doesn't work. Should probably be something else other than just clicking - maybe a double click?
         clickOnMapAction = e -> {
             double x1 = e.getX();
             double y1 = e.getY();
             Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
-            view.getContext().drawImage(pointImage, x1, y1, -0.01, -0.01);
+            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
         };
 
         loadOSMAction = e -> {

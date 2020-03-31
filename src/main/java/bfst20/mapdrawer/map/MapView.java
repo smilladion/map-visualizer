@@ -81,18 +81,18 @@ public class MapView {
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
-        Button editButton = new Button("Edit");
+        Button editButton = new Button("Redigér");
         editButton.setOnAction(controller.getEditAction());
 
-        Button clearButton = new Button("Clear");
+        Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
-        saveFromSearch = new Button("Save address");
-        Button saveToSearch = new Button("Save address");
+        saveFromSearch = new Button("Gem adresse");
+        Button saveToSearch = new Button("Gem adresse");
         saveFromSearch.setVisible(false);
 
         myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
-        myPointsToggle.setText("Show my saved addresses");
+        myPointsToggle.setText("Vis mine gemte adresser");
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
@@ -104,7 +104,7 @@ public class MapView {
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
-        HBox searchLabels = new HBox(new Label("Last search: "), userSearchLabel);
+        HBox searchLabels = new HBox(new Label("Sidste søgning: "), userSearchLabel);
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
@@ -165,11 +165,6 @@ public class MapView {
 
     void setLastSearch(String text) {
         userSearchLabel.setText(text);
-    }
-
-    void showStreetButton(String text) {
-        streetButton.setVisible(true);
-        streetButton.setText(text);
     }
 
     void resetSearchField() {
