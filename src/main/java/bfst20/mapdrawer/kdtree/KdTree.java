@@ -23,7 +23,7 @@ public class KdTree { // TODO Only works for distinct points right now (supposed
 
     public KdTree(List<OSMWay> nodes, OSMMap model) {
         rootBounds = new Rect(model.getMinLon(), model.getMinLat(), model.getMaxLon(), model.getMaxLat());
-        root = build(nodes,0, rootBounds);
+        root = build(nodes, 0, rootBounds);
 
         //draw(root, 0, 2); // TODO: For testing in console
         System.out.flush(); // Bugfix for when it doesn't system print
@@ -77,10 +77,34 @@ public class KdTree { // TODO Only works for distinct points right now (supposed
             if (range.containsPoint(node.point)) { // Is this point in the range?
                 results.add(node.way); // Add to results (confirmed in range)
             }
-        } else if (node.left != null && range.intersects(node.left.area)) { // If the range and node's area intersect...
-            results.addAll(search(node.left, minx, miny, maxx, maxy)); // Run method again and add its results to the current result list
-        } else if (node.right != null && range.intersects(node.right.area)) {
-            results.addAll(search(node.right, minx, miny, maxx, maxy));
+        }
+        if (node.left != null && range.intersects(node.left.area)) { // If the range and node's area intersect
+            if (range.containsRect(node.left.area)) { // If the node's area is fully contained within range
+                results.addAll(getKdNodesFrom(node.left)); // Add it and all of its children
+            } else {
+                results.addAll(search(node.left, minx, miny, maxx, maxy)); // Run method again and add its results to the current result list
+            }
+        }
+        if (node.right != null && range.intersects(node.right.area)) {
+            if (range.containsRect(node.right.area)) {
+                results.addAll(getKdNodesFrom(node.right));
+            } else {
+                results.addAll(search(node.right, minx, miny, maxx, maxy));
+            }
+        }
+
+        return results;
+    }
+
+    public Collection<OSMWay> getKdNodesFrom(KdNode root) {
+        List<OSMWay> results = new ArrayList<>();
+        results.add(root.way);
+
+        if (root.left != null) {
+            results.addAll(getKdNodesFrom(root.left));
+        }
+        if (root.right != null) {
+            results.addAll(getKdNodesFrom(root.right));
         }
 
         return results;
@@ -118,6 +142,10 @@ public class KdTree { // TODO Only works for distinct points right now (supposed
         for (int i = 0; i < indentation; i++) {
             System.out.print("-");
         }
+    }
+
+    public KdNode getRoot() {
+        return root;
     }
 
     private static class KdPoint {
@@ -175,6 +203,7 @@ public class KdTree { // TODO Only works for distinct points right now (supposed
     }
 
     private static class Rect {
+
         private final double xmin;
         private final double ymin;
         private final double xmax;
@@ -192,10 +221,10 @@ public class KdTree { // TODO Only works for distinct points right now (supposed
             return xmax >= rect.xmin && ymax >= rect.ymin && rect.xmax >= xmin && rect.ymax >= ymin;
         }
 
-        /* Returns true only if one rectangle is fully contained within another
+        // Returns true only if one rectangle is fully contained within another
         public boolean containsRect(Rect rect) {
             return rect.xmin >= xmin && rect.xmax <= xmax && rect.ymin >= ymin && rect.ymax <= ymax;
-        }*/
+        }
 
         public boolean containsPoint(KdPoint p) {
             return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax;

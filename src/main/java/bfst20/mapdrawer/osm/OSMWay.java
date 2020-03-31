@@ -197,4 +197,8 @@ public class OSMWay implements LongSupplier {
 
         return sumY / nodes.size();
     }
+
+    public void print() { // TODO TEST
+        System.out.println(id + "   " + getAvgX() + ", " + getAvgY());
+    }
 }
