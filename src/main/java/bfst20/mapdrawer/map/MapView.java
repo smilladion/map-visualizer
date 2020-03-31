@@ -30,6 +30,7 @@ import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -140,17 +141,7 @@ public class MapView {
     public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
-        //Collection<OSMWay> visible = model.getKdTree().search(model.getKdTree().getRoot(), 0.56f * 10.4844000f, -55.7480000f, 0.56f * 10.7350000f, -56.0122000f);
-        //Collection<OSMWay> visible = model.getKdTree().search(model.getKdTree().getRoot(), 0, -60, 5.9f, -50);
-        Collection<OSMWay> visible = model.getKdTree().search(model.getKdTree().getRoot(), -1000000000, -1000000000, 1000000000, 1000000000);
-
-        if (visible.isEmpty()) {
-            System.out.println("empty");
-        } else {
-            for (OSMWay way : visible) {
-               way.print();
-            }
-        }
+        Collection<OSMWay> visible = model.getKdTree().search(model.getKdTree().getRoot(), 0.56f * 10.4844000f, -56.0122000f, 0.56f * 10.7350000f, 55.7480000f);
 
         for (OSMWay way : visible) {
             if (way.getNodes().isEmpty()) {
@@ -165,30 +156,16 @@ public class MapView {
             }
         }
 
-        /*for (OSMWay way : model.getWays()) {
-            if (way.getNodes().isEmpty()) {
-                // If a way has no nodes, do not draw
-                continue;
-            } else if (OSMWay.isColorable(way)) {
-                // If a way has the color specified, make a polygon
-                drawables.add(new Polygon(way, way.getColor()));
-            } else {
-                // If it has no color or otherwise shouldn't be filled with color, draw a line
-                drawables.add(new LinePath(way));
+        for (OSMRelation relation : model.getRelations()) {
+            if (!Collections.disjoint(visible, relation.getWays())) { // If at least one way from the relation is visible list, draw it
+                if (relation.getColor() == PathColor.NONE.getColor()) {
+                    // If a relation has no color, do not draw
+                    continue;
+                } else {
+                    drawables.add(new Polygon(relation, relation.getColor()));
+                }
             }
-        }*/
-
-        /*for (OSMRelation relation : model.getRelations()) {
-            if (relation.getWays().isEmpty()) {
-                // If a relation has no ways, do not draw
-                continue;
-            } else if (relation.getColor() == PathColor.NONE.getColor()) {
-                // If a relation has no color, do not draw
-                continue;
-            } else {
-                drawables.add(new Polygon(relation, relation.getColor()));
-            }
-        }*/
+        }
     }
 
     static void pan(double dx, double dy) {

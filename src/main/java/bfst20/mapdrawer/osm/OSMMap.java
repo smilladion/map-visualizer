@@ -554,10 +554,6 @@ public class OSMMap {
         return addressToId;
     }
 
-    public void printWays() {
-        System.out.println(ways.size());
-    }
-
     // Can move this to its own file if needed
     public static final class InvalidMapException extends Exception {}
 }
