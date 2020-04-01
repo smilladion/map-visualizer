@@ -7,6 +7,15 @@ import javafx.scene.image.Image;
 public class Point implements Drawable {
 
     private OSMNode node;
+
+    public double getX1() {
+        return x1;
+    }
+
+    public double getY1() {
+        return y1;
+    }
+
     private final double x1;
     private final double y1;
 
