@@ -5,6 +5,7 @@ import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMRelation;
@@ -32,7 +33,6 @@ import javafx.stage.Stage;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -148,18 +148,25 @@ public class MapView {
         Point2D bottomRight = null;
 
         try {
-            topLeft = transform.inverseTransform(100, 75);
-            bottomRight = transform.inverseTransform(canvas.getWidth() - 100, canvas.getHeight() - 56);
+            int offset = 100;
+            topLeft = transform.inverseTransform(offset, offset - 25);
+            bottomRight = transform.inverseTransform(canvas.getWidth() - offset, canvas.getHeight() - offset + 44);
         } catch (NonInvertibleTransformException e) {
             e.printStackTrace();
         }
 
-        Collection<OSMWay> visible = model.getKdTree().search(
+        List<OSMWay> visible = new ArrayList<>(1024);
+
+        model.getKdTree().search(
+            visible,
             model.getKdTree().getRoot(),
-            topLeft.getX(),
-            topLeft.getY(),
-            bottomRight.getX(),
-            bottomRight.getY());
+            new KdTree.Rect(
+                topLeft.getX(),
+                topLeft.getY(),
+                bottomRight.getX(),
+                bottomRight.getY()
+            )
+        );
 
         for (OSMWay way : visible) {
             if (way.getNodes().isEmpty()) {
@@ -172,6 +179,8 @@ public class MapView {
                 // If it has no color or otherwise shouldn't be filled with color, draw a line
                 drawables.add(new LinePath(way));
             }
+
+            // Debug bounding boxes: drawables.add(way);
         }
 
         for (OSMRelation relation : model.getRelations()) {

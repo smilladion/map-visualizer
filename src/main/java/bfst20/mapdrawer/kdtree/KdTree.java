@@ -1,7 +1,12 @@
 package bfst20.mapdrawer.kdtree;
 
+import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import javafx.geometry.Point2D;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,32 +73,40 @@ public class KdTree {
     }
 
     // Searches the tree with the specified range, returns a list of ways in the range
-    public Collection<OSMWay> search(KdNode node, double minx, double miny, double maxx, double maxy) {
+    public void search(List<OSMWay> results, KdNode node, Rect screen) {
+        if (node.left != null && screen.intersects(node.left.area)) {
+            search(results, node.left, screen);
+        }
 
-        Rect range = new Rect(minx, miny, maxx, maxy);
-        List<OSMWay> results = new ArrayList<>();
+        if (node.right != null && screen.intersects(node.right.area)) {
+            search(results, node.right, screen);
+        }
 
+        results.add(node.way);
+
+        /*
         if (node.left == null && node.right == null) { // If node is a leaf
-            if (range.containsPoint(node.point)) { // Is this point in the range?
+            if (screen.containsPoint(node.point)) { // Is this point in the range?
                 results.add(node.way); // Add to results (confirmed in range)
             }
         }
-        if (node.left != null && range.intersects(node.left.area)) { // If the range and node's area intersect
-            if (range.containsRect(node.left.area)) { // If the node's area is fully contained within range
+
+        if (node.left != null && screen.intersects(node.left.area)) { // If the range and node's area intersect
+            if (screen.containsRect(node.left.area)) { // If the node's area is fully contained within range
                 results.addAll(getKdNodesFrom(node.left)); // Add it and all of its children
             } else {
-                results.addAll(search(node.left, minx, miny, maxx, maxy)); // Run method again and add its results to the current result list
-            }
-        }
-        if (node.right != null && range.intersects(node.right.area)) {
-            if (range.containsRect(node.right.area)) {
-                results.addAll(getKdNodesFrom(node.right));
-            } else {
-                results.addAll(search(node.right, minx, miny, maxx, maxy));
+                search(results, node.left, screen); // Run method again and add its results to the current result list
             }
         }
 
-        return results;
+        if (node.right != null && screen.intersects(node.right.area)) {
+            if (screen.containsRect(node.right.area)) {
+                results.addAll(getKdNodesFrom(node.right));
+            } else {
+                search(results, node.right, screen);
+            }
+        }
+        */
     }
 
     private Collection<OSMWay> getKdNodesFrom(KdNode root) {
@@ -202,7 +215,7 @@ public class KdTree {
         }
     }
 
-    private static class Rect {
+    public static class Rect implements Drawable {
 
         private final double xmin;
         private final double ymin;
@@ -214,6 +227,25 @@ public class KdTree {
             this.ymin = ymin;
             this.xmax = xmax;
             this.ymax = ymax;
+        }
+
+        public Rect(OSMWay way) {
+            double xMin = Double.MAX_VALUE;
+            double xMax = -Double.MAX_VALUE;
+            double yMin = Double.MAX_VALUE;
+            double yMax = -Double.MAX_VALUE;
+
+            for (OSMNode node : way.getNodes()) {
+                xMin = Math.min(xMin, node.getLon());
+                xMax = Math.max(xMax, node.getLon());
+                yMin = Math.min(yMin, node.getLat());
+                yMax = Math.max(yMax, node.getLat());
+            }
+
+            this.xmin = xMin;
+            this.xmax = xMax;
+            this.ymin = yMin;
+            this.ymax = yMax;
         }
 
         // Returns true for normal intersections (including bounds) and if one is fully contained within the other
@@ -228,6 +260,19 @@ public class KdTree {
 
         public boolean containsPoint(KdPoint p) {
             return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax;
+        }
+
+        public Point2D getCenterPoint() {
+            return new Point2D((xmin + xmax) / 2.0, (ymin + ymax) / 2.0);
+        }
+
+        @Override
+        public void draw(GraphicsContext gc) {
+            gc.setFill(Color.GREEN);
+            gc.setStroke(Color.GREEN);
+            gc.strokeRect(xmin, ymin, xmax - xmin, ymax - ymin);
+            gc.setFill(Color.BLACK);
+            gc.setStroke(Color.BLACK);
         }
     }
 }

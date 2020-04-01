@@ -1,6 +1,9 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.map.PathColor;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
 import java.util.ArrayList;
@@ -8,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMWay implements LongSupplier {
+public class OSMWay implements LongSupplier, Drawable {
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -19,16 +22,20 @@ public class OSMWay implements LongSupplier {
     private final List<OSMNode> nodes;
     private final Paint color;
 
+    private final KdTree.Rect boundingBox;
+
     public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
+        this.boundingBox = new KdTree.Rect(this);
     }
 
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
         color = PathColor.UNKNOWN.getColor();
+        boundingBox = new KdTree.Rect(this);
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -179,22 +186,19 @@ public class OSMWay implements LongSupplier {
     }
 
     public float getAvgX() {
-        float sumX = 0.0f;
-
-        for (OSMNode node : nodes) {
-            sumX += node.getLon();
-        }
-
-        return sumX / nodes.size();
+        return (float) boundingBox.getCenterPoint().getX();
     }
 
     public float getAvgY() {
-        float sumY = 0.0f;
+        return (float) boundingBox.getCenterPoint().getY();
+    }
 
-        for (OSMNode node : nodes) {
-            sumY += node.getLat();
-        }
+    @Override
+    public void draw(GraphicsContext gc) {
+        boundingBox.draw(gc);
+    }
 
-        return sumY / nodes.size();
+    public KdTree.Rect getBoundingBox() {
+        return boundingBox;
     }
 }
