@@ -1,6 +1,7 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -9,6 +10,7 @@ import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -25,6 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.textfield.TextFields;
 
@@ -54,7 +57,7 @@ public class MapView {
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
 
-        this.model = model;
+        MapView.model = model;
 
         canvas = new Canvas(1280, 720);
         context = canvas.getGraphicsContext2D();
@@ -141,7 +144,22 @@ public class MapView {
     public static void populateDrawables(OSMMap model) {
         drawables.clear();
 
-        Collection<OSMWay> visible = model.getKdTree().search(model.getKdTree().getRoot(), 0.56f * 10.4844000f, -56.0122000f, 0.56f * 10.7350000f, 55.7480000f);
+        Point2D topLeft = null;
+        Point2D bottomRight = null;
+
+        try {
+            topLeft = transform.inverseTransform(100, 75);
+            bottomRight = transform.inverseTransform(canvas.getWidth() - 100, canvas.getHeight() - 56);
+        } catch (NonInvertibleTransformException e) {
+            e.printStackTrace();
+        }
+
+        Collection<OSMWay> visible = model.getKdTree().search(
+            model.getKdTree().getRoot(),
+            topLeft.getX(),
+            topLeft.getY(),
+            bottomRight.getX(),
+            bottomRight.getY());
 
         for (OSMWay way : visible) {
             if (way.getNodes().isEmpty()) {
@@ -157,7 +175,7 @@ public class MapView {
         }
 
         for (OSMRelation relation : model.getRelations()) {
-            if (!Collections.disjoint(visible, relation.getWays())) { // If at least one way from the relation is visible list, draw it
+            if (!Collections.disjoint(visible, relation.getWays())) { // If at least one way from the relation is in the visible list, draw it (otherwise don't)
                 if (relation.getColor() == PathColor.NONE.getColor()) {
                     // If a relation has no color, do not draw
                     continue;
@@ -166,6 +184,12 @@ public class MapView {
                 }
             }
         }
+
+        // Draws borders for where the culling happens
+        drawables.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+        drawables.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+        drawables.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+        drawables.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
     }
 
     static void pan(double dx, double dy) {
@@ -201,6 +225,8 @@ public class MapView {
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
+
+        populateDrawables(model);
 
         // Draw islands
         for (Drawable island : model.getIslands()) {
@@ -246,7 +272,6 @@ public class MapView {
     }
 
     public void paintOnMap(String address, String address2) {
-
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
@@ -282,10 +307,6 @@ public class MapView {
                 drawable.draw(context);
             }
         }
-    }
-
-    public void showSearchSuggestions(String string) {
-
     }
 
     public StackPane getRootPane() {

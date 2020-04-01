@@ -15,7 +15,7 @@ That way we can see whether the majority of a way is outside/inside of a boundin
 Because a way would not get drawn if less than its average is on screen, this method may need a "border" bigger than the current zoom level.
 Other situations like this will need similar fixes, but overall this implementation should hopefully work.
  */
-public class KdTree { // TODO Only works for distinct points?
+public class KdTree {
 
     // Stores the root. Allows "travel" down the tree through references to KdNode's left and right child.
     private final KdNode root;
@@ -68,7 +68,7 @@ public class KdTree { // TODO Only works for distinct points?
     }
 
     // Searches the tree with the specified range, returns a list of ways in the range
-    public Collection<OSMWay> search(KdNode node, float minx, float miny, float maxx, float maxy) {
+    public Collection<OSMWay> search(KdNode node, double minx, double miny, double maxx, double maxy) {
 
         Rect range = new Rect(minx, miny, maxx, maxy);
         List<OSMWay> results = new ArrayList<>();
