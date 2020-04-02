@@ -44,6 +44,7 @@ public class MapView {
     private final MapController controller;
     private final MenuBar menuBar = new MenuBar();
     private final Menu loadMenu = new Menu("Load");
+    private final Menu utilityMenu = new Menu("Utilities");
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
@@ -64,11 +65,16 @@ public class MapView {
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
         menuBar.getMenus().add(loadMenu);
+        menuBar.getMenus().add(utilityMenu);
+        MenuItem colorBlind = new MenuItem("Colorblind");
+        colorBlind.setOnAction(controller.changeColors());
         MenuItem loadZip = new MenuItem("Load .zip-file");
         loadZip.setOnAction(controller.getLoadZipAction());
         MenuItem loadOSM = new MenuItem("Load .osm-file");
         loadOSM.setOnAction(controller.getLoadOSMAction());
         loadMenu.getItems().addAll(loadZip, loadOSM);
+        utilityMenu.getItems().addAll(colorBlind);
+
 
         rootPane.getChildren().add(menuBox);
 

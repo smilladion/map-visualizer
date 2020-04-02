@@ -1,12 +1,9 @@
 package bfst20.mapdrawer.map;
 
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-
-import java.lang.reflect.Type;
-
-public enum PathColor {
-    UNKNOWN(Color.WHITE),
+/*
+public enum PathColorBlind {
+    UNKNOWN(Color.RED),
     BUILDING(Color.SADDLEBROWN),
     HIGHWAY(Color.YELLOW),
     COASTLINE(Color.GREY),
@@ -34,19 +31,7 @@ public enum PathColor {
     SCRUB(Color.DARKOLIVEGREEN),
     SEARCH(Color.RED),
     NONE(Color.BLACK);
-
-
-    private final Paint color;
-
-    PathColor(Paint color) {
-        this.color = color;
-    }
-
-    PathColor(Color color){
-        this.color = color.grayscale();
-    }
-
-    public Paint getColor() {
-        return color;
-    }
 }
+
+
+ */

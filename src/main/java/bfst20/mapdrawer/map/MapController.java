@@ -5,7 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.security.spec.ECField;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +23,12 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+
+import javax.swing.*;
+
+import static bfst20.mapdrawer.map.PathColor.UNKNOWN;
 
 public class MapController {
 
@@ -41,6 +50,7 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
     private final EventHandler<ActionEvent> clearAction;
+    private final EventHandler<ActionEvent> changeColors;
     private int lettersTyped = 0;
 
     private Point2D lastMouse;
@@ -120,6 +130,11 @@ public class MapController {
             }
         };
 
+        changeColors = e -> {
+            System.out.println(PathColor.WATER.getClass());
+            System.out.println(PathColor.WATER.getDeclaringClass());
+        };
+
         clickOnMapAction = e -> {
             double x1 = e.getX();
             double y1 = e.getY();
@@ -189,4 +204,6 @@ public class MapController {
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
     }
+
+    public EventHandler<ActionEvent> changeColors() { return changeColors; }
 }
