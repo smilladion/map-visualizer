@@ -40,6 +40,7 @@ public class MapView {
     private static GraphicsContext context;
     private static List<Drawable> drawables = new ArrayList<>();
     private static List<Drawable> searchedDrawables = new ArrayList<>();
+    private static List<Drawable> routeDrawables = new ArrayList<>();
     private final StackPane rootPane;
     private final MapController controller;
     private final MenuBar menuBar = new MenuBar();

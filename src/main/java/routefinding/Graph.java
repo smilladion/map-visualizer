@@ -1,15 +1,24 @@
 package routefinding;
 
+import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import edu.princeton.cs.algs4.Bag;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
-/*
+
 public class Graph {
     private int vertex;             // number of vertices in this digraph
     private int edge;               // number of edges in this digraph
     private int[] indegree;         // indegree[v] = indegree of vertex v
     private Bag<Integer>[] adj;    // adj[v] = adjacency list for vertex v
+
+    private final List<OSMNode> nodes = new ArrayList<>();
+    private final List<OSMWay> highways = new ArrayList<>();
+    private final List<OSMRelation> relations = new ArrayList<>();
 
     //Initialize new empty graph with vertices
     public Graph(int vertex) {
@@ -23,9 +32,22 @@ public class Graph {
             adj[i] = new Bag<Integer>();
         }
     }
+}
+/*
+        for(OSMWay way: highways){
+            way = new Edge(highways.first(), way.getLastNode(way), 0.0);
+        }
+        */
+
+
+/*
 
     //Initialize new graph from input
-    public Graph(OSMWay edge, OSMNode vertex) {
+    public GraphCreator(OSMMap bounds, List<OSMWay> highways, List<OSMNode> nodes) {
+
+
+
+
         if (edge == null) throw new IllegalArgumentException("edge is null");
         if (vertex == null) throw new IllegalArgumentException("vertice is null");
         try {
@@ -63,5 +85,4 @@ public class Graph {
             throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (vertex -1));
     }
 }
-
  */

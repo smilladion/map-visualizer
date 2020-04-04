@@ -8,7 +8,7 @@ public class OSMNode implements LongSupplier {
     private final float lon; // x
     private final float lat; // y
 
-    OSMNode(long id, float lon, float lat) {
+    public OSMNode(long id, float lon, float lat) {
         this.id = id;
         this.lon = lon;
         this.lat = lat;

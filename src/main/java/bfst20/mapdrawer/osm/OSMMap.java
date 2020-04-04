@@ -72,7 +72,7 @@ public class OSMMap {
 
     private KdTree kdtree;
 
-    private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
+    public OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;

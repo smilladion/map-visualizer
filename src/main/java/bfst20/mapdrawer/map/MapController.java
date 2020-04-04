@@ -1,10 +1,6 @@
 package bfst20.mapdrawer.map;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -25,10 +21,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import routefinding.OSMRoute;
 
 import javax.swing.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import static bfst20.mapdrawer.map.PathColor.UNKNOWN;
+import static routefinding.OSMRoute.printHighways;
 
 public class MapController {
 
@@ -131,8 +132,7 @@ public class MapController {
         };
 
         changeColors = e -> {
-            System.out.println(PathColor.WATER.getClass());
-            System.out.println(PathColor.WATER.getDeclaringClass());
+            printHighways();
         };
 
         clickOnMapAction = e -> {
