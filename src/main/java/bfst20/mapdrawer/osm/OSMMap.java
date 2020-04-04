@@ -3,6 +3,7 @@ package bfst20.mapdrawer.osm;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.kdtree.KdTree;
+import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.map.PathColor;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -152,9 +153,14 @@ public class OSMMap {
                     map.islands.add(new LinePath(entry.getValue()));
                 }
             }
-        }
 
-        map.kdtree = new KdTree(map.ways, map);
+            List<NodeProvider> providers = new ArrayList<>();
+
+            providers.addAll(map.ways);
+            providers.addAll(map.relations);
+
+            map.kdtree = new KdTree(providers);
+        }
 
         return map;
     }

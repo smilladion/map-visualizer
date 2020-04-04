@@ -1,17 +1,18 @@
 package bfst20.mapdrawer.osm;
 
 import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.kdtree.KdTree;
+import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.map.PathColor;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMWay implements LongSupplier, Drawable {
+public class OSMWay implements LongSupplier, NodeProvider {
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -21,21 +22,30 @@ public class OSMWay implements LongSupplier, Drawable {
     private final long id;
     private final List<OSMNode> nodes;
     private final Paint color;
-
-    private final KdTree.Rect boundingBox;
+    private final Drawable drawable;
 
     public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
-        this.boundingBox = new KdTree.Rect(this);
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else if (OSMWay.isColorable(this)) {
+            // If a way has the color specified, make a polygon
+            drawable = new Polygon(this, color);
+        } else {
+            // If it has no color or otherwise shouldn't be filled with color, draw a line
+            drawable = new LinePath(this);
+        }
     }
 
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
         color = PathColor.UNKNOWN.getColor();
-        boundingBox = new KdTree.Rect(this);
+        drawable = null;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -185,20 +195,23 @@ public class OSMWay implements LongSupplier, Drawable {
         return color;
     }
 
+    @Override
     public float getAvgX() {
-        return (float) boundingBox.getCenterPoint().getX();
-    }
-
-    public float getAvgY() {
-        return (float) boundingBox.getCenterPoint().getY();
+        return (float) getBoundingBox().getCenterPoint().getX();
     }
 
     @Override
-    public void draw(GraphicsContext gc) {
-        boundingBox.draw(gc);
+    public float getAvgY() {
+        return (float) getBoundingBox().getCenterPoint().getY();
     }
 
-    public KdTree.Rect getBoundingBox() {
-        return boundingBox;
+    @Override
+    public Drawable getDrawable() {
+        return drawable;
+    }
+
+    @Override
+    public Rectangle getBoundingBox() {
+        return new Rectangle(this);
     }
 }

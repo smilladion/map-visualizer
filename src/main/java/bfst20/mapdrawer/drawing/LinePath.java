@@ -8,7 +8,6 @@ public class LinePath implements Drawable {
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
     private final float[] coords;
 
-    // "WayRenderer"
     public LinePath(OSMWay way) {
         // Each point has an X and a Y (number of slots we need)
         coords = new float[2 * way.getNodes().size()];

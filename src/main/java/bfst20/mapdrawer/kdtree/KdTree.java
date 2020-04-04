@@ -1,159 +1,60 @@
 package bfst20.mapdrawer.kdtree;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
-import javafx.geometry.Point2D;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
 /*
-This tree takes in OSMWays and finds the average coordinate from its list of OSMNodes.
-This average coordinate represents the way, and is what the KdTree contains (and makes splitting lines from).
-That way we can see whether the majority of a way is outside/inside of a bounding box.
-Because a way would not get drawn if less than its average is on screen, this method may need a "border" bigger than the current zoom level.
-Other situations like this will need similar fixes, but overall this implementation should hopefully work.
+The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
+This makes it possible to have both ways and relations in the KdTree.
+Comparisons are made not using splitting lines like normal, but bounding boxes around each element.
+Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
  */
+
 public class KdTree {
 
-    // Stores the root. Allows "travel" down the tree through references to KdNode's left and right child.
     private final KdNode root;
-    private final Rect rootBounds; // The coordinates for the whole canvas
 
-    public KdTree(List<OSMWay> nodes, OSMMap model) {
-        rootBounds = new Rect(model.getMinLon(), model.getMinLat(), model.getMaxLon(), model.getMaxLat());
-        root = build(nodes, 0, rootBounds);
-
-        //draw(root, 0, 2); // TODO: For testing in console
-        System.out.flush(); // Bugfix for when it doesn't system print
+    public KdTree(List<NodeProvider> nodes) {
+        root = build(nodes, 0);
     }
 
     // Builds the tree (is called in the constructor)
-    private static KdNode build(List<OSMWay> nodes, int depth, Rect nodeArea) {
+    private static KdNode build(List<NodeProvider> nodes, int depth) {
         if (nodes == null || nodes.isEmpty()) {
             return null;
         }
 
-        if (nodes.size() == 1) { // If there is only one way left (this terminates the recursive call)
-            return new KdNode(nodes.get(0), nodeArea); // ... add as a leaf node
+        if (nodes.size() == 1) { // If there is only one node left (this terminates the recursive call)
+            return new KdNode(nodes.get(0)); // ... add as a leaf node
         } else if (depth % 2 == 0) { // If depth is even...
-            nodes.sort(Comparator.comparing(OSMWay::getAvgX)); // ... then we sort the list by x-coordinate
+            nodes.sort(Comparator.comparing(NodeProvider::getAvgX)); // ... then we sort the list by x-coordinate
         } else {
-            nodes.sort(Comparator.comparing(OSMWay::getAvgY)); // Otherwise if odd, sort by y-coordinate
+            nodes.sort(Comparator.comparing(NodeProvider::getAvgY)); // Otherwise if odd, sort by y-coordinate
         }
 
-        // Split the list down the middle and make two new lists, represents the left and right side of the splitting line
-        List<OSMWay> left = nodes.subList(0, nodes.size() / 2);
-        List<OSMWay> right = nodes.subList(nodes.size() / 2, nodes.size());
+        // Split the list down the middle and make two new lists
+        List<NodeProvider> left = nodes.subList(0, nodes.size() / 2);
+        List<NodeProvider> right = nodes.subList(nodes.size() / 2, nodes.size());
 
-        OSMWay median = left.get(left.size() - 1); // Stores the median way, which represents the coordinates for the splitting line
-
-        // The section below defines the area of the left and right children
-        Rect areaLeft, areaRight;
-
-        if (depth % 2 == 0) {
-            areaLeft = new Rect(nodeArea.xmin, nodeArea.ymin, median.getAvgX(), nodeArea.ymax);
-            areaRight = new Rect(median.getAvgX(), nodeArea.ymin, nodeArea.xmax, nodeArea.ymax);
-        } else {
-            areaLeft = new Rect(nodeArea.xmin, nodeArea.ymin, nodeArea.xmax, median.getAvgY());
-            areaRight = new Rect(nodeArea.xmin, median.getAvgY(), nodeArea.xmax, nodeArea.ymax);
-        }
+        NodeProvider median = left.get(left.size() - 1); // Stores the median way, which represents the current (root) node
 
         // Call method again with new lists to determine right and left child of the node
-        KdNode vLeft = build(left.subList(0, left.size() - 1), depth + 1, areaLeft); // Removes/ignores the median way to avoid duplicates in the tree
-        KdNode vRight = build(right, depth + 1, areaRight);
+        KdNode vLeft = build(left.subList(0, left.size() - 1), depth + 1); // Removes/ignores the median way to avoid duplicates in the tree
+        KdNode vRight = build(right, depth + 1);
 
-        return new KdNode(median, nodeArea, vLeft, vRight);
+        return new KdNode(median, vLeft, vRight);
     }
 
-    // Searches the tree with the specified range, returns a list of ways in the range
-    public void search(List<OSMWay> results, KdNode node, Rect screen) {
-        if (node.left != null && screen.intersects(node.left.area)) {
-            search(results, node.left, screen);
+    // Searches the tree with the specified range, returns a list of providers (ways/relations) in the range
+    public void search(List<NodeProvider> results, KdNode node, Rectangle range) {
+        results.add(node.provider);
+
+        if (node.left != null && range.intersects(node.left.boundingBox)) {
+            search(results, node.left, range);
         }
 
-        if (node.right != null && screen.intersects(node.right.area)) {
-            search(results, node.right, screen);
-        }
-
-        results.add(node.way);
-
-        /*
-        if (node.left == null && node.right == null) { // If node is a leaf
-            if (screen.containsPoint(node.point)) { // Is this point in the range?
-                results.add(node.way); // Add to results (confirmed in range)
-            }
-        }
-
-        if (node.left != null && screen.intersects(node.left.area)) { // If the range and node's area intersect
-            if (screen.containsRect(node.left.area)) { // If the node's area is fully contained within range
-                results.addAll(getKdNodesFrom(node.left)); // Add it and all of its children
-            } else {
-                search(results, node.left, screen); // Run method again and add its results to the current result list
-            }
-        }
-
-        if (node.right != null && screen.intersects(node.right.area)) {
-            if (screen.containsRect(node.right.area)) {
-                results.addAll(getKdNodesFrom(node.right));
-            } else {
-                search(results, node.right, screen);
-            }
-        }
-        */
-    }
-
-    private Collection<OSMWay> getKdNodesFrom(KdNode root) {
-        List<OSMWay> results = new ArrayList<>();
-        results.add(root.way);
-
-        if (root.left != null) {
-            results.addAll(getKdNodesFrom(root.left));
-        }
-        if (root.right != null) {
-            results.addAll(getKdNodesFrom(root.right));
-        }
-
-        return results;
-    }
-
-    // TODO: Method purely used for testing in console, remove when not needed anymore
-    public void draw(KdNode node, int indentation, int lrn) {
-        drawIndent(indentation);
-
-        if (node == null) {
-            if (lrn == 0) {
-                System.out.println("L EMPTY");
-            } else if (lrn == 1) {
-                System.out.println("R EMPTY");
-            }
-
-            return;
-        }
-
-        if (lrn == 0) {
-            System.out.print("L ");
-        } else if (lrn == 1) {
-            System.out.print("R ");
-        }
-
-        System.out.print(node);
-        System.out.print("\n");
-
-        draw(node.left, indentation + 1, 0);
-        draw(node.right, indentation + 1, 1);
-    }
-
-    // Also testing
-    private void drawIndent(int indentation) {
-        for (int i = 0; i < indentation; i++) {
-            System.out.print("-");
+        if (node.right != null && range.intersects(node.right.boundingBox)) {
+            search(results, node.right, range);
         }
     }
 
@@ -161,118 +62,39 @@ public class KdTree {
         return root;
     }
 
-    private static class KdPoint {
+    public static class KdNode {
 
-        private final float x;
-        private final float y;
-
-        private KdPoint(OSMWay way) {
-            this.x = way.getAvgX(); // Creates the average point for a specified way
-            this.y = way.getAvgY();
-        }
-
-        @Override
-        public String toString() { // TODO: Testing purposes
-            return "KdPoint{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
-        }
-    }
-
-    private static class KdNode {
-
-        private final OSMWay way;
-        private final KdPoint point;
-        private final Rect area; // The bounds the splitting node defines
-
+        private final NodeProvider provider;
+        private final Rectangle boundingBox;
         private final KdNode left;
         private final KdNode right;
 
-        private KdNode(OSMWay way, Rect area, KdNode left, KdNode right) { // This is a normal node
-            this.way = way;
-            this.point = new KdPoint(way);
-            this.area = area;
-
+        private KdNode(NodeProvider provider, KdNode left, KdNode right) { // This is a normal node
+            this.provider = provider;
             this.left = left;
             this.right = right;
+            this.boundingBox = createBoxFromChildren(this);
         }
 
-        private KdNode(OSMWay way, Rect area) { // This is a leaf node with no children
-            this.way = way;
-            this.point = new KdPoint(way);
-            this.area = area;
-
+        private KdNode(NodeProvider way) { // This is a leaf node with no children
+            this.provider = way;
             this.left = null;
             this.right = null;
+            this.boundingBox = provider.getBoundingBox();
         }
 
-        @Override
-        public String toString() { // TODO: Testing purposes
-            return "KdNode{" +
-                "point=" + point +
-                '}';
-        }
-    }
+        private Rectangle createBoxFromChildren(KdNode node) {
+            Rectangle midBox = node.provider.getBoundingBox();
+            Rectangle leftBox = node.left == null ? midBox : node.left.boundingBox; // If left is null, set to midBox, otherwise set to box of left node
+            Rectangle rightBox = node.right == null ? midBox : node.right.boundingBox;
 
-    public static class Rect implements Drawable {
+            // Compares all 3 boxes to each other and grabs the coordinates that will contain them all within
+            double xmin = Math.min(midBox.getXmin(), Math.min(leftBox.getXmin(), rightBox.getXmin()));
+            double xmax = Math.max(midBox.getXmax(), Math.max(leftBox.getXmax(), rightBox.getXmax()));
+            double ymin = Math.min(midBox.getYmin(), Math.min(leftBox.getYmin(), rightBox.getYmin()));
+            double ymax = Math.max(midBox.getYmax(), Math.max(leftBox.getYmax(), rightBox.getYmax()));
 
-        private final double xmin;
-        private final double ymin;
-        private final double xmax;
-        private final double ymax;
-
-        public Rect(double xmin, double ymin, double xmax, double ymax) {
-            this.xmin = xmin;
-            this.ymin = ymin;
-            this.xmax = xmax;
-            this.ymax = ymax;
-        }
-
-        public Rect(OSMWay way) {
-            double xMin = Double.MAX_VALUE;
-            double xMax = -Double.MAX_VALUE;
-            double yMin = Double.MAX_VALUE;
-            double yMax = -Double.MAX_VALUE;
-
-            for (OSMNode node : way.getNodes()) {
-                xMin = Math.min(xMin, node.getLon());
-                xMax = Math.max(xMax, node.getLon());
-                yMin = Math.min(yMin, node.getLat());
-                yMax = Math.max(yMax, node.getLat());
-            }
-
-            this.xmin = xMin;
-            this.xmax = xMax;
-            this.ymin = yMin;
-            this.ymax = yMax;
-        }
-
-        // Returns true for normal intersections (including bounds) and if one is fully contained within the other
-        public boolean intersects(Rect rect) {
-            return xmax >= rect.xmin && ymax >= rect.ymin && rect.xmax >= xmin && rect.ymax >= ymin;
-        }
-
-        // Returns true only if one rectangle is fully contained within another
-        public boolean containsRect(Rect rect) {
-            return rect.xmin >= xmin && rect.xmax <= xmax && rect.ymin >= ymin && rect.ymax <= ymax;
-        }
-
-        public boolean containsPoint(KdPoint p) {
-            return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax;
-        }
-
-        public Point2D getCenterPoint() {
-            return new Point2D((xmin + xmax) / 2.0, (ymin + ymax) / 2.0);
-        }
-
-        @Override
-        public void draw(GraphicsContext gc) {
-            gc.setFill(Color.GREEN);
-            gc.setStroke(Color.GREEN);
-            gc.strokeRect(xmin, ymin, xmax - xmin, ymax - ymin);
-            gc.setFill(Color.BLACK);
-            gc.setStroke(Color.BLACK);
+            return new Rectangle(xmin, ymin, xmax, ymax);
         }
     }
 }
