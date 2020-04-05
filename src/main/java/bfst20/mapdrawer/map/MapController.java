@@ -32,6 +32,8 @@ public class MapController {
 
     private final EventHandler<ActionEvent> editAction;
     private final EventHandler<ActionEvent> searchAction;
+    private final EventHandler<ActionEvent> clearAction;
+    private final EventHandler<MouseEvent> clickOnMapAction;
 
     private final EventHandler<ActionEvent> loadZipAction;
     private final EventHandler<ActionEvent> loadOSMAction;
@@ -39,9 +41,6 @@ public class MapController {
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
-    private final EventHandler<MouseEvent> clickOnMapAction;
-    private final EventHandler<ActionEvent> clearAction;
-    private int lettersTyped = 0;
 
     private Point2D lastMouse;
 
@@ -184,7 +183,9 @@ public class MapController {
         return loadOSMAction;
     }
 
-    public EventHandler<MouseEvent> clickOnMapAction() { return clickOnMapAction;}
+    public EventHandler<MouseEvent> clickOnMapAction() {
+        return clickOnMapAction;
+    }
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;

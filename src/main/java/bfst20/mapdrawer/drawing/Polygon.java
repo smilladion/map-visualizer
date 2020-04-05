@@ -7,10 +7,10 @@ import javafx.scene.paint.Paint;
 
 public class Polygon implements Drawable {
 
-    private final Drawable shape;
+    private final Drawable shape; // Shape is either a LinePath or PolyLinePath
     private final Paint paint;
 
-    // Draw filled-in Way
+    // Draw filled-in way
     public Polygon(OSMWay way, Paint paint) {
         shape = new LinePath(way);
         this.paint = paint;
@@ -25,7 +25,6 @@ public class Polygon implements Drawable {
     @Override
     public void draw(GraphicsContext gc) {
         gc.setFill(paint);
-        // Shape is either a LinePath or PolyLinePath
         shape.draw(gc);
         gc.fill();
     }
