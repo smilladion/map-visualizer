@@ -1,16 +1,17 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.LinePath;
-import bfst20.mapdrawer.drawing.Polygon;
-import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.kdtree.Rectangle;
-import bfst20.mapdrawer.map.PathColor;
-import javafx.scene.paint.Paint;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
+
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
+import javafx.scene.paint.Paint;
 
 public class OSMWay implements LongSupplier, NodeProvider {
 
@@ -29,6 +30,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
         this.nodes = nodes;
         this.color = color;
 
+        // TODO
         if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
             drawable = null;
@@ -44,7 +46,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        color = PathColor.UNKNOWN.getColor();
+        color = Type.UNKNOWN.getColor();
         drawable = null;
     }
 
@@ -97,81 +99,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
         }
 
         return way;
-    }
-
-    public static boolean isColorable(OSMWay way) {
-
-        if (way.getColor() == PathColor.SEARCH.getColor()) {
-            return true;
-        }
-
-        if (way.getColor() == PathColor.BUILDING.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.FOREST.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.WATER.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.BEACH.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.COMMERCIAL.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.CONSTRUCTION.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.ALLOTMENTS.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.FARMLAND.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.MEADOW.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.ORCHARD.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.BASIN.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.BROWNFIELD.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.CEMETERY.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.GRASS.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.RESERVOIR.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.VILLAGE_GREEN.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.PARK.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.DANGER_AREA.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.QUARRY.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.WOOD.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.HEATH.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.GRASSLAND.getColor())
-            return true;
-
-        return way.getColor() == PathColor.SCRUB.getColor();
     }
 
     @Override

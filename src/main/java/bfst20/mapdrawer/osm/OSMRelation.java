@@ -4,7 +4,6 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
-import bfst20.mapdrawer.map.PathColor;
 import javafx.scene.paint.Paint;
 import java.util.List;
 import java.util.function.LongSupplier;

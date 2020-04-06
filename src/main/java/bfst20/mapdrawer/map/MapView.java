@@ -4,6 +4,7 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
@@ -333,7 +334,7 @@ public class MapView {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
                 }
             }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor())));
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
