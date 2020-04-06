@@ -21,6 +21,9 @@ import javax.xml.stream.XMLStreamReader;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.map.PathColor;
+import edu.princeton.cs.algs4.EdgeWeightedDigraph;
+import edu.princeton.cs.algs4.Graph;
+
 
 public class OSMMap {
 
@@ -190,7 +193,7 @@ public class OSMMap {
         }
 
         address = street + " " + houseNumber + " " + city;
-        addressList.add(address);
+        addressList.add(address.toLowerCase());
         return address.toLowerCase();
     }
 
