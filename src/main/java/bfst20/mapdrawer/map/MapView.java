@@ -4,6 +4,7 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
@@ -32,7 +33,7 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
-import org.controlsfx.control.textfield.TextFields;
+//import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,8 +99,8 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
         toSearchField.setPromptText("Til...");
-        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
-        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        //TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        //TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
@@ -255,7 +256,7 @@ public class MapView {
         }
 
         // Draws all elements in reverse of the list order, to fix overlapping
-        for (int i = drawables.size() - 1; i >= 0; i--) {
+        /* for (int i = drawables.size() - 1; i >= 0; i--) {
             NodeProvider provider = drawables.get(i);
 
             if (provider.getDrawable() == null) {
@@ -263,6 +264,19 @@ public class MapView {
             }
 
             provider.getDrawable().draw(context);
+        } */
+
+        for(Type type : Type.values()){
+            for (int i = drawables.size() - 1; i >= 0; i--) {
+                NodeProvider provider = drawables.get(i);
+    
+                if (provider.getDrawable() == null) {
+                    continue;
+                }
+                
+                if(provider.getType() == type)
+                    provider.getDrawable().draw(context);
+            }
         }
 
         // Draw search results
@@ -333,7 +347,7 @@ public class MapView {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
                 }
             }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor(), Type.SEARCHRESULT)));
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);

@@ -1,6 +1,7 @@
 package bfst20.mapdrawer.kdtree;
 
 import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Type;
 
 /*
 This interface makes sure the classes implementing it contain a drawable.
@@ -15,4 +16,6 @@ public interface NodeProvider {
     float getAvgX();
 
     float getAvgY();
+
+    Type getType();
 }

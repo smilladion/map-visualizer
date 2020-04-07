@@ -1,13 +1,14 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.Polygon;
-import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.kdtree.Rectangle;
-import bfst20.mapdrawer.map.PathColor;
-import javafx.scene.paint.Paint;
 import java.util.List;
 import java.util.function.LongSupplier;
+
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
+import javafx.scene.paint.Paint;
 
 public class OSMRelation implements LongSupplier, NodeProvider {
 
@@ -16,12 +17,15 @@ public class OSMRelation implements LongSupplier, NodeProvider {
     private final Paint color;
     private final Drawable drawable;
 
-    OSMRelation(long id, List<OSMWay> ways, Paint color) {
+    private final Type type;
+
+    OSMRelation(long id, List<OSMWay> ways, Paint color, Type type) {
         this.id = id;
         this.ways = ways;
         this.color = color;
+        this.type = type;
 
-        if (color == PathColor.NONE.getColor()) {
+        if (color == Type.NONE.getColor()) {
             drawable = null;
         } else {
             drawable = new Polygon(this, color);
@@ -71,5 +75,10 @@ public class OSMRelation implements LongSupplier, NodeProvider {
     @Override
     public float getAvgY() {
         return (float) getBoundingBox().getCenterPoint().getY();
+    }
+
+    @Override
+    public Type getType(){
+        return type;
     }
 }
