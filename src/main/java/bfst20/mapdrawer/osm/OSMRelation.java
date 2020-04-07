@@ -1,12 +1,14 @@
 package bfst20.mapdrawer.osm;
 
+import java.util.List;
+import java.util.function.LongSupplier;
+
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
-import java.util.List;
-import java.util.function.LongSupplier;
 
 public class OSMRelation implements LongSupplier, NodeProvider {
 
@@ -20,7 +22,7 @@ public class OSMRelation implements LongSupplier, NodeProvider {
         this.ways = ways;
         this.color = color;
 
-        if (color == PathColor.NONE.getColor()) {
+        if (color == Type.NONE.getColor()) {
             drawable = null;
         } else {
             drawable = new Polygon(this, color);

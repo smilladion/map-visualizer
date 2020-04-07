@@ -31,7 +31,14 @@ public class OSMWay implements LongSupplier, NodeProvider {
         this.color = color;
 
         // TODO
-        if (nodes.isEmpty()) {
+
+        if(nodes.isEmpty()){
+            drawable = null;
+        } else {
+            drawable = new Polygon(this, color);
+        }
+
+        /* if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
             drawable = null;
         } else if (OSMWay.isColorable(this)) {
@@ -40,7 +47,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
         } else {
             // If it has no color or otherwise shouldn't be filled with color, draw a line
             drawable = new LinePath(this);
-        }
+        } */
     }
 
     private OSMWay() {
