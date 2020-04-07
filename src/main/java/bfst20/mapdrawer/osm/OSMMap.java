@@ -148,7 +148,7 @@ public class OSMMap {
         List<OSMNode> nodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMWay currentWay = new OSMWay(id, nodes, Type.UNKNOWN.getColor(), type);
+        OSMWay currentWay = new OSMWay(id, nodes, type.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -215,7 +215,7 @@ public class OSMMap {
         List<OSMWay> ways = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMRelation currentRelation = new OSMRelation(id, ways, Type.UNKNOWN.getColor(), type);
+        OSMRelation currentRelation = new OSMRelation(id, ways, type.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
