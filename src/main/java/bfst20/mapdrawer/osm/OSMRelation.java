@@ -17,10 +17,13 @@ public class OSMRelation implements LongSupplier, NodeProvider {
     private final Paint color;
     private final Drawable drawable;
 
-    OSMRelation(long id, List<OSMWay> ways, Paint color) {
+    private final Type type;
+
+    OSMRelation(long id, List<OSMWay> ways, Paint color, Type type) {
         this.id = id;
         this.ways = ways;
         this.color = color;
+        this.type = type;
 
         if (color == Type.NONE.getColor()) {
             drawable = null;
@@ -72,5 +75,10 @@ public class OSMRelation implements LongSupplier, NodeProvider {
     @Override
     public float getAvgY() {
         return (float) getBoundingBox().getCenterPoint().getY();
+    }
+
+    @Override
+    public Type getType(){
+        return type;
     }
 }

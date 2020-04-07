@@ -24,11 +24,13 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private final List<OSMNode> nodes;
     private final Paint color;
     private final Drawable drawable;
+    private final Type type;
 
-    public OSMWay(long id, List<OSMNode> nodes, Paint color) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
+        this.type = type;
 
         // TODO
 
@@ -55,6 +57,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
         this.nodes = new ArrayList<>();
         color = Type.UNKNOWN.getColor();
         drawable = null;
+        type = Type.UNKNOWN;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -147,5 +150,10 @@ public class OSMWay implements LongSupplier, NodeProvider {
     @Override
     public Rectangle getBoundingBox() {
         return new Rectangle(this);
+    }
+
+    @Override
+    public Type getType(){
+        return type;
     }
 }

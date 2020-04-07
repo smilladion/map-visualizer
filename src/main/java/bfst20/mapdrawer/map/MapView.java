@@ -256,7 +256,7 @@ public class MapView {
         }
 
         // Draws all elements in reverse of the list order, to fix overlapping
-        for (int i = drawables.size() - 1; i >= 0; i--) {
+        /* for (int i = drawables.size() - 1; i >= 0; i--) {
             NodeProvider provider = drawables.get(i);
 
             if (provider.getDrawable() == null) {
@@ -264,6 +264,19 @@ public class MapView {
             }
 
             provider.getDrawable().draw(context);
+        } */
+
+        for(Type type : Type.values()){
+            for (int i = drawables.size() - 1; i >= 0; i--) {
+                NodeProvider provider = drawables.get(i);
+    
+                if (provider.getDrawable() == null) {
+                    continue;
+                }
+                
+                if(provider.getType() == type)
+                    provider.getDrawable().draw(context);
+            }
         }
 
         // Draw search results
@@ -334,7 +347,7 @@ public class MapView {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
                 }
             }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor())));
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor(), Type.SEARCHRESULT)));
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);

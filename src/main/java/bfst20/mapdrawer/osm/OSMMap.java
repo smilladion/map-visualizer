@@ -147,8 +147,8 @@ public class OSMMap {
             throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
-        OSMWay currentWay = new OSMWay(id, nodes, Type.UNKNOWN.getColor());
         Type type = Type.UNKNOWN;
+        OSMWay currentWay = new OSMWay(id, nodes, Type.UNKNOWN.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -172,7 +172,7 @@ public class OSMMap {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
-                                currentWay = new OSMWay(id, nodes, Type.COASTLINE.getColor());
+                                currentWay = new OSMWay(id, nodes, Type.COASTLINE.getColor(), type);
 
                                 var before = nodeToCoastline.remove(currentWay.first());
                                 if (before != null) {
@@ -198,7 +198,7 @@ public class OSMMap {
             }
         }
 
-        currentWay = new OSMWay(id, nodes, type.getColor());
+        currentWay = new OSMWay(id, nodes, type.getColor(), type);
         return currentWay;
     }
 
@@ -211,8 +211,8 @@ public class OSMMap {
             throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
-        OSMRelation currentRelation = new OSMRelation(id, ways, Type.UNKNOWN.getColor());
         Type type = Type.UNKNOWN;
+        OSMRelation currentRelation = new OSMRelation(id, ways, Type.UNKNOWN.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -251,7 +251,7 @@ public class OSMMap {
             }
         }
 
-        currentRelation = new OSMRelation(id, ways, type.getColor());
+        currentRelation = new OSMRelation(id, ways, type.getColor(), type);
         return currentRelation;
     }
 
