@@ -13,7 +13,7 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMWay implements LongSupplier, NodeProvider {
+public class OSMWay implements LongSupplier, NodeProvider{
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -147,5 +147,10 @@ public class OSMWay implements LongSupplier, NodeProvider {
     @Override
     public Type getType(){
         return type;
+    }
+
+    @Override
+    public int compareTo(NodeProvider that) {
+        return this.type.compareTo(that.getType());
     }
 }

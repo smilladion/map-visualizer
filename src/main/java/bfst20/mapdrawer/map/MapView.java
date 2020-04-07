@@ -33,9 +33,10 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
-//import org.controlsfx.control.textfield.TextFields;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -99,8 +100,8 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
         toSearchField.setPromptText("Til...");
-        //TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
-        //TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
@@ -205,6 +206,10 @@ public class MapView {
             )
         );
 
+        // Sort the NodeProviders in drawables list based on types
+        // to make sure we draw the elements in the right order
+        Collections.sort(drawables);
+
         // Draws borders for where the culling happens
         drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
         drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
@@ -255,17 +260,9 @@ public class MapView {
             context.fill();
         }
 
-        for(Type type : Type.values()){
-            for (int i = drawables.size() - 1; i >= 0; i--) {
-                NodeProvider provider = drawables.get(i);
-    
-                if (provider.getDrawable() == null) {
-                    continue;
-                }
-                
-                if(provider.getType() == type)
-                    provider.getDrawable().draw(context);
-            }
+        for(NodeProvider provider : drawables){
+            if (provider.getDrawable() == null) continue;
+            provider.getDrawable().draw(context);
         }
 
         // Draw search results

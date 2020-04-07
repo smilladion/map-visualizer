@@ -10,7 +10,7 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMRelation implements LongSupplier, NodeProvider {
+public class OSMRelation implements LongSupplier, NodeProvider{
 
     private final long id;
     private final List<OSMWay> ways;
@@ -80,5 +80,10 @@ public class OSMRelation implements LongSupplier, NodeProvider {
     @Override
     public Type getType(){
         return type;
+    }
+
+    @Override
+    public int compareTo(NodeProvider that) {
+        return this.type.compareTo(that.getType());
     }
 }
