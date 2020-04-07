@@ -33,7 +33,7 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
-//import org.controlsfx.control.textfield.TextFields;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,8 +99,8 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
         toSearchField.setPromptText("Til...");
-        //TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
-        //TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
@@ -254,17 +254,6 @@ public class MapView {
             island.draw(context);
             context.fill();
         }
-
-        // Draws all elements in reverse of the list order, to fix overlapping
-        /* for (int i = drawables.size() - 1; i >= 0; i--) {
-            NodeProvider provider = drawables.get(i);
-
-            if (provider.getDrawable() == null) {
-                continue;
-            }
-
-            provider.getDrawable().draw(context);
-        } */
 
         for(Type type : Type.values()){
             for (int i = drawables.size() - 1; i >= 0; i--) {
