@@ -36,8 +36,10 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
         if(nodes.isEmpty()){
             drawable = null;
-        } else {
+        } else if(type.shouldBeFilled()){
             drawable = new Polygon(this, color);
+        } else {
+            drawable = new LinePath(this);
         }
 
         /* if (nodes.isEmpty()) {
