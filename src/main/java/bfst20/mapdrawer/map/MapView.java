@@ -260,6 +260,7 @@ public class MapView {
             context.fill();
         }
 
+        // Draw OSMWays and relations
         for(NodeProvider provider : drawables){
             if (provider.getDrawable() == null) continue;
             provider.getDrawable().draw(context);
