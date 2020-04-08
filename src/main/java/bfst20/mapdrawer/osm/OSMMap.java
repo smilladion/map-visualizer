@@ -26,32 +26,6 @@ import java.util.zip.ZipInputStream;
 
 public class OSMMap {
 
-    // Flags for way type (set by tag elements in readWay and readRelation)
-    static boolean building = false;
-    static boolean forest = false;
-    static boolean coastline = false;
-    static boolean water = false;
-    static boolean beach = false;
-    static boolean commercial = false;
-    static boolean construction = false;
-    static boolean allotments = false;
-    static boolean farmland = false;
-    static boolean meadow = false;
-    static boolean orchard = false;
-    static boolean basin = false;
-    static boolean brownfield = false;
-    static boolean cemetery = false;
-    static boolean grass = false;
-    static boolean reservoir = false;
-    static boolean villageGreen = false;
-    static boolean park = false;
-    static boolean dangerArea = false;
-    static boolean quarry = false;
-    static boolean wood = false;
-    static boolean heath = false;
-    static boolean grassland = false;
-    static boolean scrub = false;
-
     private static Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
     private static Map<String, Long> addressToId = new HashMap<>();
@@ -109,9 +83,9 @@ public class OSMMap {
 
                         // Create a new map and flips and fixes the spherical orientation
                         map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
-                            0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
-                            -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
-                            0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
+                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
@@ -222,33 +196,11 @@ public class OSMMap {
      * This is a better, and less error-prone, design than reading in the main loop
      */
     private static OSMWay readWay(XMLStreamReader xmlReader, Map<Long, OSMNode> idToNode, long id)
-        throws XMLStreamException {
+            throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
-        building = false;
-        forest = false;
-        coastline = false;
-        water = false;
-        beach = false;
-        commercial = false;
-        construction = false;
-        allotments = false;
-        farmland = false;
-        meadow = false;
-        orchard = false;
-        basin = false;
-        brownfield = false;
-        cemetery = false;
-        grass = false;
-        reservoir = false;
-        villageGreen = false;
-        park = false;
-        dangerArea = false;
-        quarry = false;
-        wood = false;
-        heath = false;
-        grassland = false;
-        scrub = false;
+        Type type = Type.UNKNOWN;
+        OSMWay currentWay = new OSMWay(id, nodes, type.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -256,7 +208,8 @@ public class OSMMap {
             if (nextType == XMLStreamReader.START_ELEMENT) {
                 switch (xmlReader.getLocalName()) {
                     case "nd":
-                        // Found a nd tag within this way, fetch the OSMNode object and add it to the way
+                        // Found a nd tag within this way, fetch the OSMNode object and add it to the
+                        // way
                         nodes.add(idToNode.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
                         break;
                     case "tag":
@@ -269,6 +222,33 @@ public class OSMMap {
                         }
 
                         setTag(key, value);
+                        if (key.equals("building")) {
+                            type = Type.BUILDING;
+
+                        } else if(key.equals("highway")){
+                            type = Type.HIGHWAY;
+
+                        } else if (Type.containsType(value)) {
+                            type = Type.getType(value);
+
+                            if (type == Type.COASTLINE) {
+                                currentWay = new OSMWay(id, nodes, Type.COASTLINE.getColor(), type);
+
+                                var before = nodeToCoastline.remove(currentWay.first());
+                                if (before != null) {
+                                    nodeToCoastline.remove(before.first());
+                                    nodeToCoastline.remove(before.last());
+                                }
+                                var after = nodeToCoastline.remove(currentWay.last());
+                                if (after != null) {
+                                    nodeToCoastline.remove(after.first());
+                                    nodeToCoastline.remove(after.last());
+                                }
+                                currentWay = OSMWay.fromWays(OSMWay.fromWays(before, currentWay), after);
+                                nodeToCoastline.put(currentWay.first(), currentWay);
+                                nodeToCoastline.put(currentWay.last(), currentWay);
+                            }
+                        }
 
                         break;
                 }
@@ -278,74 +258,8 @@ public class OSMMap {
             }
         }
 
-        // TODO: Make this system better (so you don't need a huge if or switch statement below)
-        if (building) {
-            return new OSMWay(id, nodes, PathColor.BUILDING.getColor());
-        } else if (forest) {
-            return new OSMWay(id, nodes, PathColor.FOREST.getColor());
-        } else if (coastline) {
-            OSMWay currentWay = new OSMWay(id, nodes, PathColor.COASTLINE.getColor());
-
-            var before = nodeToCoastline.remove(currentWay.first());
-            if (before != null) {
-                nodeToCoastline.remove(before.first());
-                nodeToCoastline.remove(before.last());
-            }
-            var after = nodeToCoastline.remove(currentWay.last());
-            if (after != null) {
-                nodeToCoastline.remove(after.first());
-                nodeToCoastline.remove(after.last());
-            }
-            currentWay = OSMWay.fromWays(OSMWay.fromWays(before, currentWay), after);
-            nodeToCoastline.put(currentWay.first(), currentWay);
-            nodeToCoastline.put(currentWay.last(), currentWay);
-
-            return currentWay;
-        } else if (water) {
-            return new OSMWay(id, nodes, PathColor.WATER.getColor());
-        } else if (beach) {
-            return new OSMWay(id, nodes, PathColor.BEACH.getColor());
-        } else if (commercial) {
-            return new OSMWay(id, nodes, PathColor.COMMERCIAL.getColor());
-        } else if (construction) {
-            return new OSMWay(id, nodes, PathColor.CONSTRUCTION.getColor());
-        } else if (allotments) {
-            return new OSMWay(id, nodes, PathColor.ALLOTMENTS.getColor());
-        } else if (farmland) {
-            return new OSMWay(id, nodes, PathColor.FARMLAND.getColor());
-        } else if (meadow) {
-            return new OSMWay(id, nodes, PathColor.MEADOW.getColor());
-        } else if (orchard) {
-            return new OSMWay(id, nodes, PathColor.ORCHARD.getColor());
-        } else if (basin) {
-            return new OSMWay(id, nodes, PathColor.BASIN.getColor());
-        } else if (brownfield) {
-            return new OSMWay(id, nodes, PathColor.BROWNFIELD.getColor());
-        } else if (cemetery) {
-            return new OSMWay(id, nodes, PathColor.CEMETERY.getColor());
-        } else if (grass) {
-            return new OSMWay(id, nodes, PathColor.GRASS.getColor());
-        } else if (reservoir) {
-            return new OSMWay(id, nodes, PathColor.RESERVOIR.getColor());
-        } else if (villageGreen) {
-            return new OSMWay(id, nodes, PathColor.VILLAGE_GREEN.getColor());
-        } else if (park) {
-            return new OSMWay(id, nodes, PathColor.PARK.getColor());
-        } else if (dangerArea) {
-            return new OSMWay(id, nodes, PathColor.DANGER_AREA.getColor());
-        } else if (quarry) {
-            return new OSMWay(id, nodes, PathColor.QUARRY.getColor());
-        } else if (wood) {
-            return new OSMWay(id, nodes, PathColor.WOOD.getColor());
-        } else if (heath) {
-            return new OSMWay(id, nodes, PathColor.HEATH.getColor());
-        } else if (grassland) {
-            return new OSMWay(id, nodes, PathColor.GRASSLAND.getColor());
-        } else if (scrub) {
-            return new OSMWay(id, nodes, PathColor.SCRUB.getColor());
-        } else {
-            return new OSMWay(id, nodes, PathColor.NONE.getColor());
-        }
+        currentWay = new OSMWay(id, nodes, type.getColor(), type);
+        return currentWay;
     }
 
     /**
@@ -354,32 +268,11 @@ public class OSMMap {
      * loop
      */
     private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id)
-        throws XMLStreamException {
+            throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
-        building = false;
-        forest = false;
-        water = false;
-        beach = false;
-        commercial = false;
-        construction = false;
-        allotments = false;
-        farmland = false;
-        meadow = false;
-        orchard = false;
-        basin = false;
-        brownfield = false;
-        cemetery = false;
-        grass = false;
-        reservoir = false;
-        villageGreen = false;
-        park = false;
-        dangerArea = false;
-        quarry = false;
-        wood = false;
-        heath = false;
-        grassland = false;
-        scrub = false;
+        Type type = Type.UNKNOWN;
+        OSMRelation currentRelation = new OSMRelation(id, ways, type.getColor(), type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -389,9 +282,10 @@ public class OSMMap {
                 switch (xmlReader.getLocalName()) {
                     case "member":
                         if (xmlReader.getAttributeValue(null, "type").equals("way")) {
-                            // If we have found a way member type, fetch the OSMWay object from the fast lookup and add to ways list
+                            // If we have found a way member type, fetch the OSMWay object from the fast
+                            // lookup and add to ways list
                             ways.add(idToWay.getOrDefault(Long.parseLong(xmlReader.getAttributeValue(null, "ref")),
-                                OSMWay.DUMMY_WAY));
+                                    OSMWay.DUMMY_WAY));
                         }
 
                         break;
@@ -400,105 +294,63 @@ public class OSMMap {
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
 
-                        setTag(key, value);
+                        if(key.equals("building")){
+                            type = Type.BUILDING;
+
+                        } else if(Type.containsType(value)){
+                            type = Type.getType(value);
+
+                        }
 
                         break;
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("relation")) {
-                // Once we have reached the end of the relation, break and return the OSM relation
+                // Once we have reached the end of the relation, break and return the OSM
+                // relation
                 break;
             }
         }
 
-        // TODO: Make this system better (so you don't need a huge if or switch statement below)
-        if (building) {
-            return new OSMRelation(id, ways, PathColor.BUILDING.getColor());
-        } else if (forest) {
-            return new OSMRelation(id, ways, PathColor.FOREST.getColor());
-        } else if (coastline) {
-            return new OSMRelation(id, ways, PathColor.COASTLINE.getColor());
-        } else if (water) {
-            return new OSMRelation(id, ways, PathColor.WATER.getColor());
-        } else if (beach) {
-            return new OSMRelation(id, ways, PathColor.BEACH.getColor());
-        } else if (commercial) {
-            return new OSMRelation(id, ways, PathColor.COMMERCIAL.getColor());
-        } else if (construction) {
-            return new OSMRelation(id, ways, PathColor.CONSTRUCTION.getColor());
-        } else if (allotments) {
-            return new OSMRelation(id, ways, PathColor.ALLOTMENTS.getColor());
-        } else if (farmland) {
-            return new OSMRelation(id, ways, PathColor.FARMLAND.getColor());
-        } else if (meadow) {
-            return new OSMRelation(id, ways, PathColor.MEADOW.getColor());
-        } else if (orchard) {
-            return new OSMRelation(id, ways, PathColor.ORCHARD.getColor());
-        } else if (basin) {
-            return new OSMRelation(id, ways, PathColor.BASIN.getColor());
-        } else if (brownfield) {
-            return new OSMRelation(id, ways, PathColor.BROWNFIELD.getColor());
-        } else if (cemetery) {
-            return new OSMRelation(id, ways, PathColor.CEMETERY.getColor());
-        } else if (grass) {
-            return new OSMRelation(id, ways, PathColor.GRASS.getColor());
-        } else if (reservoir) {
-            return new OSMRelation(id, ways, PathColor.RESERVOIR.getColor());
-        } else if (villageGreen) {
-            return new OSMRelation(id, ways, PathColor.VILLAGE_GREEN.getColor());
-        } else if (park) {
-            return new OSMRelation(id, ways, PathColor.PARK.getColor());
-        } else if (dangerArea) {
-            return new OSMRelation(id, ways, PathColor.DANGER_AREA.getColor());
-        } else if (quarry) {
-            return new OSMRelation(id, ways, PathColor.QUARRY.getColor());
-        } else if (wood) {
-            return new OSMRelation(id, ways, PathColor.WOOD.getColor());
-        } else if (heath) {
-            return new OSMRelation(id, ways, PathColor.HEATH.getColor());
-        } else if (grassland) {
-            return new OSMRelation(id, ways, PathColor.GRASSLAND.getColor());
-        } else if (scrub) {
-            return new OSMRelation(id, ways, PathColor.SCRUB.getColor());
-        } else {
-            return new OSMRelation(id, ways, PathColor.NONE.getColor());
-        }
+        currentRelation = new OSMRelation(id, ways, type.getColor(), type);
+        return currentRelation;
     }
 
-    public static void setTag(String key, String value) {
-        if (key.equals("building")) {
-            building = true;
-        } else if (key.equals("landuse")) {
-            // &&
-            if (value.equals("forest")) forest = true;
-            else if (value.equals("commercial")) commercial = true;
-            else if (value.equals("construction")) construction = true;
-            else if (value.equals("allotments")) allotments = true;
-            else if (value.equals("farmland")) farmland = true;
-            else if (value.equals("meadow")) meadow = true;
-            else if (value.equals("orchard")) orchard = true;
-            else if (value.equals("basin")) basin = true;
-            else if (value.equals("brownfield")) brownfield = true;
-            else if (value.equals("cemetery")) cemetery = true;
-            else if (value.equals("grass")) grass = true;
-            else if (value.equals("reservoir")) reservoir = true;
-            else if (value.equals("villageGreen")) villageGreen = true;
-            else if (value.equals("quarry")) quarry = true;
-        } else if (key.equals("natural")) {
-            // &&
-            if (value.equals("coastline")) coastline = true;
-            else if (value.equals("water")) water = true;
-            else if (value.equals("beach")) beach = true;
-            else if (value.equals("wood")) wood = true;
-            else if (value.equals("heath")) heath = true;
-            else if (value.equals("grassland")) grassland = true;
-            else if (value.equals("scrub")) scrub = true;
-        } else if (key.equals("leisure")) {
-            // &&
-            if (value.equals("park")) park = true;
-        } else if (key.equals("military")) {
-            // &&
-            if (value.equals("danger_area")) dangerArea = true;
+    private static String readAddress(XMLStreamReader xmlReader) throws XMLStreamException {
+
+        String address = null;
+        String street = null;
+        String houseNumber = null;
+        String city = null;
+
+        while (xmlReader.hasNext()) {
+            int nextType = xmlReader.next();
+
+            if (nextType == XMLStreamReader.START_ELEMENT) {
+                switch (xmlReader.getLocalName()) {
+                    case "tag":
+                        // Found a property tag, read and set the correct boolean for this tag
+                        String key = xmlReader.getAttributeValue(null, "k");
+                        String value = xmlReader.getAttributeValue(null, "v");
+
+                        if (key.equals("addr:street")) {
+                            street = value;
+                        }
+                        if (key.equals("addr:housenumber")) {
+                            houseNumber = value;
+                        }
+                        if (key.equals("addr:city")) {
+                            city = value;
+                        }
+                }
+            } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
+                // Reached the end of the current way, break and return a new OSMWay object
+                break;
+            }
         }
+
+        address = street + " " + houseNumber + " " + city;
+        addressList.add(address);
+        return address.toLowerCase();
     }
 
     public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
@@ -579,5 +431,6 @@ public class OSMMap {
     }
 
     // Can move this to its own file if needed
-    public static final class InvalidMapException extends Exception {}
+    public static final class InvalidMapException extends Exception {
+    }
 }

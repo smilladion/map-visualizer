@@ -4,7 +4,7 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.kdtree.KdTree;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
@@ -32,6 +32,7 @@ import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
+import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
@@ -66,6 +67,11 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
+
+    private static List<Drawable> myPoints = new ArrayList<>();
+    private static List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
+    private static ToggleSwitch myPointsToggle; //from the ControlsFX library
+    private Button saveFromSearch;
 
     public MapView(OSMMap model, Stage window) {
         window.setTitle("Google Map'nt");
@@ -106,24 +112,34 @@ public class MapView {
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
-        Button editButton = new Button("Edit");
+        Button editButton = new Button("Redigér");
         editButton.setOnAction(controller.getEditAction());
 
-        Button clearButton = new Button("Clear");
+        Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
+        saveFromSearch = new Button("Gem adresse");
+        Button saveToSearch = new Button("Gem adresse");
+        saveFromSearch.setVisible(false);
+
+        myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
+        myPointsToggle.setText("Vis mine gemte adresser");
+
+        myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
+        saveToSearch.setOnAction(controller.getSavePointOfInterestTo());
+        saveFromSearch.setOnAction(controller.getSavePointOfInterestFrom());
         canvas.setOnMouseClicked(controller.getPanClickAction());
         canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
-        HBox searchLabels = new HBox(new Label("Last search: "), userSearchLabel);
+        HBox searchLabels = new HBox(new Label("Sidste søgning: "), userSearchLabel);
         searchLabels.setAlignment(Pos.BASELINE_CENTER);
         searchLabels.setPickOnBounds(false);
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, searchLabels, editButton, clearButton, streetButton);
+        HBox searchRow = new HBox(fromSearchField, saveFromSearch, toSearchField, saveToSearch, searchLabels, editButton, clearButton, streetButton, myPointsToggle);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -197,6 +213,10 @@ public class MapView {
             )
         );
 
+        // Sort the NodeProviders in drawables list based on types
+        // to make sure we draw the elements in the right order
+        Collections.sort(drawables);
+
         // Draws borders for where the culling happens
         drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
         drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
@@ -247,14 +267,9 @@ public class MapView {
             context.fill();
         }
 
-        // Draws all elements in reverse of the list order, to fix overlapping
-        for (int i = drawables.size() - 1; i >= 0; i--) {
-            NodeProvider provider = drawables.get(i);
-
-            if (provider.getDrawable() == null) {
-                continue;
-            }
-
+        // Draw OSMWays and relations
+        for(NodeProvider provider : drawables){
+            if (provider.getDrawable() == null) continue;
             provider.getDrawable().draw(context);
         }
 
@@ -326,11 +341,17 @@ public class MapView {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
                 }
             }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
+            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor(), Type.SEARCHRESULT)));
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
             }
+        }
+    }
+
+    public void paintSavedAddresses() {
+        for (Drawable drawable : myPointsTemp) {
+            drawable.draw(context);
         }
     }
 
@@ -358,5 +379,21 @@ public class MapView {
 
     public List<Drawable> getSearchedDrawables() {
         return searchedDrawables;
+    }
+
+    public Button getSaveFromSearch() {
+        return saveFromSearch;
+    }
+
+    public List<Drawable> getMyPoints() {
+        return myPoints;
+    }
+
+    public List<Drawable> getMyPointsTemp() {
+        return myPointsTemp;
+    }
+
+    public ToggleSwitch getMyPointsToggle() {
+        return myPointsToggle;
     }
 }

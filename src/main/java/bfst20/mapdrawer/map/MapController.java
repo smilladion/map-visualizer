@@ -11,10 +11,13 @@ import java.util.Map;
 import java.util.Set;
 
 import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -44,6 +47,10 @@ public class MapController {
     private final EventHandler<ActionEvent> searchAction;
     private final EventHandler<ActionEvent> clearAction;
     private final EventHandler<MouseEvent> clickOnMapAction;
+
+    private final EventHandler<ActionEvent> savePointOfInterestTo;
+    private final EventHandler<ActionEvent> savePointOfInterestFrom;
+    private final EventHandler<MouseEvent> toggleAction;
 
     private final EventHandler<ActionEvent> loadZipAction;
     private final EventHandler<ActionEvent> loadOSMAction;
@@ -78,6 +85,38 @@ public class MapController {
 
         };
 
+        // Saves the address from the "til..." search field to my list.
+        savePointOfInterestTo = e-> {
+            String s = view.getToSearchField().getText().toLowerCase();
+            savePoint(s);
+        };
+
+        // saves address from the "fra..." searchfield.
+        savePointOfInterestFrom = e-> {
+            String s = view.getFromSearchField().getText().toLowerCase();
+            savePoint(s);
+        };
+
+        // the toggle button.
+        toggleAction = e-> {
+            if (view.getMyPointsToggle().isSelected()) {
+                if (view.getMyPoints().isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setHeaderText(null);
+                    alert.setContentText("You have no saved addresses");
+                    alert.showAndWait();
+                } else {
+                    for (Drawable drawable : view.getMyPoints()) {
+                        view.getMyPointsTemp().add(drawable);
+                    }
+                    view.paintSavedAddresses();
+                }
+            } else {
+                view.getMyPointsTemp().clear();
+                view.paintOnMap(null, null);
+            }
+        };
+
         searchAction = e -> {
 
             String address = view.getToSearchText().toLowerCase();
@@ -88,13 +127,11 @@ public class MapController {
             }
 
             view.getFromSearchField().setVisible(true);
+            view.getSaveFromSearch().setVisible(true);
 
             if (address1 != null) {
                 view.paintOnMap(address, address1);
             } else if (address1 == null) {
-                if (streetNames.contains(view.getToSearchText())) {
-                    view.showStreetButton(view.getToSearchText());
-                }
                 view.paintOnMap(address, null);
 
             }
@@ -124,22 +161,28 @@ public class MapController {
         loadZipAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            try{
+            try {
                 MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
             } catch (Exception exc){
                 exc.printStackTrace();
             }
         };
 
+        //TODO - doesn't work. Should probably be something else other than just clicking - maybe a double click?
         changeColors = e -> {
             printHighways();
         };
 
         clickOnMapAction = e -> {
-            double x1 = e.getX();
+            /*double x1 = e.getX();
             double y1 = e.getY();
+
+            try {
             Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
-            view.getContext().drawImage(pointImage, x1, y1, -0.01, -0.01);
+            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
+            } catch (NullPointerException ex) {
+                System.err.println("Pin point image not found!");
+            }*/
         };
 
         loadOSMAction = e -> {
@@ -151,6 +194,18 @@ public class MapController {
                 exc.printStackTrace();
             }
         };
+    }
+
+    public void savePoint(String s) {
+        if (s.trim().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText(null);
+            alert.setContentText("No address was found - please write an address to add it to your saved points");
+            alert.showAndWait();
+        } else {
+            long id = model.getAddressToId().get(s);
+            view.getMyPoints().add(new Point(model.getIdToNodeMap().get(id)));
+        }
     }
 
     // Can be moved to a separate model if needed (right now, it's only used in the controller)
@@ -205,6 +260,17 @@ public class MapController {
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
+    }
+
+    public EventHandler<ActionEvent> getSavePointOfInterestTo() {
+        return savePointOfInterestTo;
+    }
+    public EventHandler<ActionEvent> getSavePointOfInterestFrom() {
+        return savePointOfInterestFrom;
+    }
+
+    public EventHandler<MouseEvent> getToggleAction() {
+        return toggleAction;
     }
 
     public EventHandler<ActionEvent> changeColors() { return changeColors; }
