@@ -263,7 +263,14 @@ public class MapView {
         // Draw OSMWays and relations
         for(NodeProvider provider : drawables){
             if (provider.getDrawable() == null) continue;
+
+            // Set 
+            int lineWidth = provider.getType().getLineWidth();
+            if(lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+
             provider.getDrawable().draw(context);
+
+            context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         }
 
         // Draw search results
