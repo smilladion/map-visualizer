@@ -19,6 +19,10 @@ public class OSMNode implements LongSupplier {
         return id;
     }
 
+    public double getLonAsDouble() { return (double) lon; }
+
+    public double getLatAsDouble() { return (double) lat; }
+
     public float getLon() {
         return lon;
     }

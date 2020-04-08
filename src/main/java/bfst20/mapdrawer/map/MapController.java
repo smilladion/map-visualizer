@@ -51,8 +51,6 @@ public class MapController {
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
-    private final EventHandler<MouseEvent> clickOnMapAction;
-    private final EventHandler<ActionEvent> clearAction;
     private final EventHandler<ActionEvent> changeColors;
     private int lettersTyped = 0;
 

@@ -5,6 +5,8 @@ import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.map.PathColor;
+import routefinding.EdgeWeightedDiGraph;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -54,6 +56,8 @@ public class OSMMap {
 
     private static Map<String, Long> addressToId = new HashMap<>();
     private static List<String> addressList = new ArrayList<>();
+    private static List<OSMWay> highWays = new ArrayList<>();
+
 
     // Empty lookup maps (quickly find an OSM Node/Way/Relation from an ID)
     private static Map<Long, OSMNode> idToNode = new HashMap<>();
@@ -72,6 +76,7 @@ public class OSMMap {
     private final List<Drawable> islands = new ArrayList<>();
 
     private KdTree kdtree;
+    private static EdgeWeightedDiGraph graph;
 
     public OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -160,9 +165,18 @@ public class OSMMap {
             providers.addAll(map.relations);
 
             map.kdtree = new KdTree(providers);
+            for(int i = 0; i < highWays.size(); i++){
+                System.out.println("Highway:" + highWays.get(i).getAsLong());
+            }
+
+            //buildGraph();
         }
 
         return map;
+    }
+
+    private static void buildGraph() {
+        graph = new EdgeWeightedDiGraph(highWays);
     }
 
     private static String readAddress(XMLStreamReader xmlReader) throws XMLStreamException {
@@ -249,6 +263,10 @@ public class OSMMap {
                         // Found a property tag, read and set the correct boolean for this tag
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
+
+                        if(key.equals("highway")){
+                            highWays.add(new OSMWay(id, nodes, PathColor.HIGHWAY.getColor()));
+                        }
 
                         setTag(key, value);
 

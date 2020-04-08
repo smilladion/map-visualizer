@@ -50,11 +50,8 @@ public class MapView {
 
     private static Canvas canvas;
     private static GraphicsContext context;
-    private static List<Drawable> drawables = new ArrayList<>();
-    private static List<Drawable> searchedDrawables = new ArrayList<>();
     private static List<Drawable> routeDrawables = new ArrayList<>();
     private final StackPane rootPane;
-    private static GraphicsContext context;
 
     private static List<NodeProvider> drawables = new ArrayList<>(); // All map elements
     private static List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
