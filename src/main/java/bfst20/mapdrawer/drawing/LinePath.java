@@ -8,7 +8,6 @@ public class LinePath implements Drawable {
 
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
     private final float[] coords;
-
     private final Paint color;
 
     public LinePath(OSMWay way) {
