@@ -20,10 +20,26 @@ public class OSMWay implements LongSupplier {
     private final List<OSMNode> nodes;
     private final Paint color;
 
+    private int weight;
+    private boolean bike;
+    private boolean walk;
+    private boolean car;
+
     public OSMWay(long id, List<OSMNode> nodes, Paint color) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
+    }
+    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
+    public OSMWay(long id, List<OSMNode> nodes, Paint color, int weight, boolean bike, boolean walk, boolean car) {
+        this.id = id;
+        this.nodes = nodes;
+        this.color = color;
+        this.weight = weight;
+        this.bike = bike;
+        this.walk = walk;
+        this.car = car;
+
     }
 
     private OSMWay() {
@@ -102,6 +118,20 @@ public class OSMWay implements LongSupplier {
 
     public Paint getColor() {
         return color;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+    public boolean isWalk() {
+        return walk;
+    }
+    public boolean isCar() {
+        return car;
     }
 
     public static boolean isColorable(OSMWay way) {

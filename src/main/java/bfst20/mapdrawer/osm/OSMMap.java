@@ -18,12 +18,12 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import bfst20.mapdrawer.Rutevejledning.Graph;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.map.PathColor;
+import edu.princeton.cs.algs4.DirectedEdge;
 import edu.princeton.cs.algs4.EdgeWeightedDigraph;
-import edu.princeton.cs.algs4.Graph;
-
 
 public class OSMMap {
 
@@ -57,8 +57,10 @@ public class OSMMap {
     static boolean heath = false;
     static boolean grassland = false;
     static boolean scrub = false;
+    static boolean residential = false;
+    static boolean highway = false;
 
-    private final List<OSMNode> nodes = new ArrayList<>();
+    private final static List<OSMNode> nodes = new ArrayList<>();
     private final static List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
 
@@ -68,6 +70,15 @@ public class OSMMap {
     private static Map<String, Long> addressToId = new HashMap<>();
     private static Map<Long, OSMNode> idToNode = new HashMap<>();
     private static List<String> addressList = new ArrayList<>();
+
+    private static List<OSMWay> highways = new ArrayList<>();
+
+    private static Map<OSMNode, Integer> nodeToInt = new HashMap<>();
+    private static Map<Integer, OSMNode> intToNode = new HashMap<>();
+    private static int nodeNumber = 1;
+    private static int numberOfNodesForHighways = 0;
+
+    private static Graph routeGraph;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -116,8 +127,10 @@ public class OSMMap {
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
-                        idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
+                        OSMNode node =  new OSMNode(id, 0.56f * lon, -lat, -1);
+                        idToNode.put(id, node);
                         addressToId.put(readAddress(xmlReader), id);
+
 
                         break;
                     }
@@ -154,6 +167,8 @@ public class OSMMap {
                 }
             }
         }
+
+        routeGraph = new Graph(20000, highways);
 
         return map;
     }
@@ -229,6 +244,8 @@ public class OSMMap {
         heath = false;
         grassland = false;
         scrub = false;
+        highway = false;
+        residential = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -244,6 +261,10 @@ public class OSMMap {
                         // Found a property tag, read and set the correct boolean for this tag
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
+
+                        if (key.equals("highway")) {
+                            readTags(key, value, nodes, id);
+                        }
 
                         setTag(key, value);
 
@@ -328,6 +349,17 @@ public class OSMMap {
         }
     }
 
+    private static void readTags(String key, String value, List<OSMNode> list, long id) {
+
+            for (OSMNode node : list) {
+                node.setNumberForGraph(nodeNumber);
+                intToNode.put(nodeNumber, node);
+                nodeToInt.put(node, nodeNumber);
+                nodeNumber++;
+            }
+            highways.add(new OSMWay(id, list, PathColor.SEARCH.getColor(), 1, true, true, true));
+
+    }
     /**
      * readRelation will continuously read XML tags until the end of the relation is
      * found This is a better, and less error-prone, design than reading in the main
@@ -360,6 +392,7 @@ public class OSMMap {
         heath = false;
         grassland = false;
         scrub = false;
+        residential = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -486,6 +519,11 @@ public class OSMMap {
         // &&
             if(value.equals("danger_area")) dangerArea = true;
             
+        } else if (key.equals("highway")) {
+            highway = true;
+            if(value.equals("residential")) {
+                residential = true;
+            }
         }
     }
 
@@ -560,6 +598,26 @@ public class OSMMap {
 
     public Map<String, Long> getAddressToId() {
         return addressToId;
+    }
+
+    public Map<OSMNode, Integer> getNodeToInt() {
+        return nodeToInt;
+    }
+
+    public Map<Integer, OSMNode> getIntToNode() {
+        return intToNode;
+    }
+
+    public List<OSMWay> getHighways() {
+        return highways;
+    }
+
+    public int getNumberOfNodesForHighways() {
+        return numberOfNodesForHighways;
+    }
+
+    public Graph getRouteGraph() {
+        return routeGraph;
     }
 
     // Can move this to its own file if needed

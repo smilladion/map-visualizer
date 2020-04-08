@@ -260,6 +260,17 @@ public class MapView {
         }
 
     }
+
+    public void test() {
+
+        context.setTransform(transform);
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+        System.out.println("hej");
+        OSMNode node = model.getIdtoNodeMap().get((long) 303870663);
+        Point p = new Point(node);
+        p.draw(context);
+    }
+
     public void paintOnMap(String address, String address2) {
 
         context.setTransform(transform);

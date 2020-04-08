@@ -7,8 +7,10 @@ public class OSMNode implements LongSupplier {
     private final long id;
     private final float lat;
     private final float lon;
+    private int numberForGraph;
 
-    OSMNode(long id, float lon, float lat) {
+    OSMNode(long id, float lon, float lat, int numberForGraph) {
+        this.numberForGraph = numberForGraph;
         this.id = id;
         this.lon = lon;
         this.lat = lat;
@@ -25,5 +27,13 @@ public class OSMNode implements LongSupplier {
 
     public float getLon() {
         return lon;
+    }
+
+    public int getNumberForGraph() {
+        return numberForGraph;
+    }
+
+    public void setNumberForGraph(int number) {
+        numberForGraph = number;
     }
 }

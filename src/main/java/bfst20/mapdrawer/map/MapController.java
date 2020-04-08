@@ -88,6 +88,7 @@ public class MapController {
 
         // the toggle button.
         toggleAction = e-> {
+            view.test();
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getMyPoints().isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
