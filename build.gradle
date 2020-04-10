@@ -36,6 +36,11 @@ test {
     useJUnitPlatform()
 }
 
+run {
+    // Add module exports to fix ControlsFX Java 11+ bug
+    jvmArgs = ['--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED']
+}
+
 jar {
     manifest {
         attributes 'Main-Class': application.mainClassName
