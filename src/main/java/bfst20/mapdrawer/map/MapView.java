@@ -58,7 +58,7 @@ public class MapView {
     private static List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
 
     private final MenuBar menuBar = new MenuBar();
-    private final Menu loadMenu = new Menu("Load");
+    private final Menu fileMenu = new Menu("File");
     private final Menu optionsMenu = new Menu("Options");
 
     private final TextField toSearchField = new TextField();
@@ -85,12 +85,10 @@ public class MapView {
 
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
-        menuBar.getMenus().add(loadMenu);
-        MenuItem loadZip = new MenuItem("Load .zip-file");
-        loadZip.setOnAction(controller.getLoadZipAction());
-        MenuItem loadOSM = new MenuItem("Load .osm-file");
-        loadOSM.setOnAction(controller.getLoadOSMAction());
-        loadMenu.getItems().addAll(loadZip, loadOSM);
+        menuBar.getMenus().add(fileMenu);
+        MenuItem loadFile = new MenuItem("Open...      (.zip, .osm, .bin)");
+        loadFile.setOnAction(controller.getLoadFileAction());
+        fileMenu.getItems().add(loadFile);
 
         optionsMenu.getItems().add(showKdTree);
         menuBar.getMenus().add(optionsMenu);

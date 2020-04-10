@@ -1,8 +1,5 @@
 package bfst20.mapdrawer.osm;
 
-import java.util.List;
-import java.util.function.LongSupplier;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.drawing.Type;
@@ -10,7 +7,10 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMRelation implements LongSupplier, NodeProvider{
+import java.util.List;
+import java.util.function.LongSupplier;
+
+public class OSMRelation implements LongSupplier, NodeProvider {
 
     private final long id;
     private final List<OSMWay> ways;
@@ -78,7 +78,7 @@ public class OSMRelation implements LongSupplier, NodeProvider{
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         return type;
     }
 
