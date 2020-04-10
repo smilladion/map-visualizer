@@ -87,7 +87,7 @@ public class MapView {
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
         menuBar.getMenus().add(fileMenu);
-        MenuItem loadFile = new MenuItem("Åben...      (.zip, .osm, .bin)");
+        MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
         loadFile.setOnAction(controller.getLoadFileAction());
         fileMenu.getItems().add(loadFile);
 
