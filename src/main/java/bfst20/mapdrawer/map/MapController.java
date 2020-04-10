@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,8 @@ import java.util.Set;
 public class MapController {
 
     private final OSMMap model;
-    private final MapView view;
+    private MapView view;
+    private final Stage stage;
 
     // HashSet provides O(1) time for lookups, but not as fast iteration
     // Street names are part of the model, but will only be set and accessed via controller
@@ -43,9 +45,10 @@ public class MapController {
 
     private Point2D lastMouse;
 
-    MapController(OSMMap model, MapView view) {
+    MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
+        this.stage = stage;
 
         try {
             populateStreets(streetNames);
@@ -66,19 +69,19 @@ public class MapController {
         };
 
         // Saves the address from the "til..." search field to my list.
-        savePointOfInterestTo = e-> {
+        savePointOfInterestTo = e -> {
             String s = view.getToSearchField().getText().toLowerCase();
             savePoint(s);
         };
 
         // saves address from the "fra..." searchfield.
-        savePointOfInterestFrom = e-> {
+        savePointOfInterestFrom = e -> {
             String s = view.getFromSearchField().getText().toLowerCase();
             savePoint(s);
         };
 
         // the toggle button.
-        toggleAction = e-> {
+        toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getMyPoints().isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -147,7 +150,7 @@ public class MapController {
             switch (fileExt) {
                 case ".osm":
                     try {
-                        view.updateMap(OSMMap.fromFile(file));
+                        this.view = new MapView(OSMMap.fromFile(file), stage);
                     } catch (Exception exc) {
                         exc.printStackTrace();
                     }
@@ -155,8 +158,8 @@ public class MapController {
                     break;
                 case ".zip":
                     try {
-                        view.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
-                    } catch (Exception exc){
+                        this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
+                    } catch (Exception exc) {
                         exc.printStackTrace();
                     }
 
@@ -251,6 +254,7 @@ public class MapController {
     public EventHandler<ActionEvent> getSavePointOfInterestTo() {
         return savePointOfInterestTo;
     }
+
     public EventHandler<ActionEvent> getSavePointOfInterestFrom() {
         return savePointOfInterestFrom;
     }

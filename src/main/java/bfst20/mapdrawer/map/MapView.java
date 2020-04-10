@@ -42,51 +42,52 @@ import java.util.Map;
 
 public class MapView {
 
-    private final static Affine transform = new Affine();
+    private final Affine transform = new Affine();
 
-    private static CheckMenuItem showKdTree = new CheckMenuItem("Show KD Tree");
+    private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
-    private static OSMMap model;
+    private OSMMap model;
     private final MapController controller;
 
-    private static Canvas canvas;
+    private final Canvas canvas;
     private final StackPane rootPane;
-    private static GraphicsContext context;
+    private final GraphicsContext context;
 
-    private static List<NodeProvider> drawables = new ArrayList<>(); // All map elements
-    private static List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
-    private static List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
+    private final List<NodeProvider> drawables = new ArrayList<>(); // All map elements
+    private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
+    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
 
     private final MenuBar menuBar = new MenuBar();
-    private final Menu fileMenu = new Menu("File");
-    private final Menu optionsMenu = new Menu("Options");
+    private final Menu fileMenu = new Menu("Fil");
+    private final Menu optionsMenu = new Menu("Indstillinger");
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
 
-    private static List<Drawable> myPoints = new ArrayList<>();
-    private static List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
-    private static ToggleSwitch myPointsToggle; //from the ControlsFX library
+    private final List<Drawable> myPoints = new ArrayList<>();
+    private final List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
+    private final ToggleSwitch myPointsToggle; //from the ControlsFX library
     private Button saveFromSearch;
 
     public MapView(OSMMap model, Stage window) {
+
         window.setTitle("Google Map'nt");
 
-        MapView.model = model;
+        this.model = model;
 
         canvas = new Canvas(1280, 720);
         context = canvas.getGraphicsContext2D();
 
         rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
 
-        controller = new MapController(model, this);
+        controller = new MapController(model, this, window);
 
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
         menuBar.getMenus().add(fileMenu);
-        MenuItem loadFile = new MenuItem("Open...      (.zip, .osm, .bin)");
+        MenuItem loadFile = new MenuItem("Åben...      (.zip, .osm, .bin)");
         loadFile.setOnAction(controller.getLoadFileAction());
         fileMenu.getItems().add(loadFile);
 
@@ -156,7 +157,6 @@ public class MapView {
         resetSearchField();
         streetButton.setVisible(false);
 
-        populateDrawables(model);
         resetPanZoom();
 
         paintMap();
@@ -165,13 +165,7 @@ public class MapView {
         canvas.requestFocus();
     }
 
-    public static void updateMap(OSMMap map) {
-        MapView.model = map;
-        populateDrawables(model);
-        paintMap();
-    }
-
-    public static void populateDrawables(OSMMap model) {
+    public void populateDrawables(OSMMap model) {
         drawables.clear();
         drawableExtras.clear();
 
@@ -215,24 +209,23 @@ public class MapView {
         drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
     }
 
-    static void pan(double dx, double dy) {
+    void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    static void zoom(double factor, double x, double y) {
+    void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         paintMap();
     }
 
-    private static void resetPanZoom() {
+    private void resetPanZoom() {
         pan(-model.getMinLon(), -model.getMinLat());
         zoom(canvas.getWidth() / (model.getMaxLat() - model.getMinLat()), 0, 0);
-        paintMap();
     }
 
     // Updates and repaints the whole map
-    public static void paintMap() {
+    public void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
@@ -307,7 +300,7 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
         if ((address == null) && (address2 == null)) {
-            updateMap(model);
+            paintMap();
         }
         if ((address2 == null) && (address != null)) {
 
