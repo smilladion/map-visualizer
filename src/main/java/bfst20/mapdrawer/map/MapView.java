@@ -33,7 +33,7 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
-//import org.controlsfx.control.textfield.TextFields;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -99,8 +99,8 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
         toSearchField.setPromptText("Til...");
-        //TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
-        //TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
         fromSearchField.setVisible(false);
 
