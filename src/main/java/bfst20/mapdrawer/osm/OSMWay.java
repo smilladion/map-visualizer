@@ -1,10 +1,5 @@
 package bfst20.mapdrawer.osm;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.LongSupplier;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -13,7 +8,12 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMWay implements LongSupplier, NodeProvider{
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.LongSupplier;
+
+public class OSMWay implements LongSupplier, NodeProvider {
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -32,10 +32,10 @@ public class OSMWay implements LongSupplier, NodeProvider{
         this.color = color;
         this.type = type;
 
-        if(nodes.isEmpty()){
+        if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
             drawable = null;
-        } else if(type.shouldBeFilled()){
+        } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
             drawable = new Polygon(this, color);
         } else {
@@ -145,7 +145,7 @@ public class OSMWay implements LongSupplier, NodeProvider{
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         return type;
     }
 
