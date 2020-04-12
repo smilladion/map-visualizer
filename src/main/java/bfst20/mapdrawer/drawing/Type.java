@@ -11,7 +11,7 @@ public enum Type {
     // First type (unknown) should be drawn first, bottom type will be last.
 
     UNKNOWN(null, Color.TRANSPARENT, false, 0),
-    COASTLINE("coastline", Color.TRANSPARENT, false, 1),
+    COASTLINE("coastline", Color.TRANSPARENT, false, 0),
     COMMERCIAL("commercial", Color.LIGHTPINK, true, 0),
     CONSTRUCTION("construction", Color.LIGHTGREY, true, 0),
     INDUSTRIAL("industrial", Color.LIGHTGREY, true, 0),
@@ -35,7 +35,7 @@ public enum Type {
     FARMYARD("farmyard", Color.DARKSALMON, true, 0),
     AERODROME("aerodrome", Color.LIGHTGREY, true, 0),
     APRON("apron", Color.GREY, true, 0),
-    RUNWAY("runway", Color.DARKGREY, true, 4),
+    RUNWAY("runway", Color.DARKGREY, true, 2),
     BASIN("basin", Color.LIGHTBLUE, true, 0),
     RESERVOIR("reservoir", Color.LIGHTBLUE, true, 0),
     PARKING("parking", Color.LIGHTGREY, true, 0),
@@ -43,9 +43,9 @@ public enum Type {
     SCRUB("scrub", Color.DARKOLIVEGREEN, true, 0),
     BEACH("beach", Color.YELLOW, true, 0),
     WATER("water", Color.LIGHTBLUE, true, 0),
-    STREAM("stream", Color.LIGHTBLUE, false, 3),
-    PIER("pier", Color.LIGHTGREY, false, 3),
-    HIGHWAY("highway", Color.DIMGRAY, false, 2),
+    STREAM("stream", Color.LIGHTBLUE, false, 2),
+    PIER("pier", Color.LIGHTGREY, false, 2),
+    HIGHWAY("highway", Color.DIMGRAY, false, 1),
     SEARCHRESULT("searchresult", Color.RED, false, 3),
     BUILDING("building", Color.SADDLEBROWN, true, 0),
     NONE("none", Color.BLACK, false, 0);
