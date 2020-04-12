@@ -8,7 +8,7 @@ import javafx.scene.paint.Paint;
 
 public enum Type {
 
-    // First type (unknown) should be drawn first, bottom type will be last.
+    // First type (unknown) will be drawn first, bottom type will be last.
 
     UNKNOWN(null, Color.TRANSPARENT, false, 0),
     COASTLINE("coastline", Color.TRANSPARENT, false, 0),
@@ -50,9 +50,12 @@ public enum Type {
     BUILDING("building", Color.SADDLEBROWN, true, 0),
     NONE("none", Color.BLACK, false, 0);
 
+    // Key should be exactly what is read from the 'value' field in a tag in the osm file eg. "farmland" or "scrub"
     private final String key;
     private final Paint color;
     private final boolean fill;
+    // For relations and types that should be filled lineWidth = 0
+    // For ways that should be drawn with different widths a lineWidth can be specified. 1 is the narrowest.
     private final int lineWidth;
 
     Type(String key, Paint color, boolean fill, int lineWidth) {
@@ -76,7 +79,7 @@ public enum Type {
     }
 
     // If map contains a mapping for the specified key return true
-    // Used to check if Type class contains the given type in a <tag> element from OSM data
+    // Used to check if Type class contains the given type in a <tag> element from osm file
     public static boolean containsType(String key){
         return map.containsKey(key);
     }
