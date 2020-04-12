@@ -3,28 +3,43 @@ package bfst20.mapdrawer.drawing;
 import bfst20.mapdrawer.osm.OSMNode;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.transform.Affine;
+
+import java.util.Objects;
 
 public class Point implements Drawable {
 
-    private OSMNode node;
-    private final double x1;
-    private final double y1;
+    private static final float SIZE = 0.85f;
 
-    // to be used when you want to mark a single point. Image that is being painted is a pin point, like we know from other maps.
-    public Point(OSMNode node) {
+    private final double x;
+    private final double y;
+    private final OSMNode node;
+    private final Affine transform;
+    private final double initialZoom;
+    private final Image image;
+
+    // To be used when you want to mark a single point. Image that is being painted is a pin point, like we know from other maps.
+    public Point(OSMNode node, Affine transform, double initialZoom) {
         this.node = node;
-        x1 = node.getLon();
-        y1 = node.getLat();
+        this.transform = transform;
+        this.initialZoom = initialZoom;
+        x = node.getLon();
+        y = node.getLat();
+        image = new Image(Objects.requireNonNull(
+                getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"),
+                "Point image not found!"
+        ));
     }
 
-    //x1 gets plussed with (0.01 / 2) to center the point of the pin at the searched spot.
+    // Scales the image relative to the zoom level. Variable SIZE can be changed to whatever size we want it to be.
     @Override
     public void draw(GraphicsContext gc) {
-        try {
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
-            gc.drawImage(pointImage, x1+ (0.01 / 2), y1, -0.01, -0.01);
-        } catch (NullPointerException e) {
-            System.err.println("Pin point image not found!");
-        }
+        double scale = transform.getMxx() / initialZoom;
+
+        gc.drawImage(
+                image,
+                x + SIZE * 0.01 / (2 * scale), y,
+                SIZE * -0.01 / scale, SIZE * -0.01 / scale
+        );
     }
 }

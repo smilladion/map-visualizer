@@ -64,7 +64,7 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            view.paintOnMap(null, null);
+            view.paintPoints(null, null);
 
         };
 
@@ -96,7 +96,7 @@ public class MapController {
                 }
             } else {
                 view.getMyPointsTemp().clear();
-                view.paintOnMap(null, null);
+                view.paintPoints(null, null);
             }
         };
 
@@ -113,9 +113,9 @@ public class MapController {
             view.getSaveFromSearch().setVisible(true);
 
             if (address1 != null) {
-                view.paintOnMap(address, address1);
+                view.paintPoints(address, address1);
             } else if (address1 == null) {
-                view.paintOnMap(address, null);
+                view.paintPoints(address, null);
 
             }
             view.setLastSearch(view.getToSearchText());
@@ -200,7 +200,7 @@ public class MapController {
             alert.showAndWait();
         } else {
             long id = model.getAddressToId().get(s);
-            view.getMyPoints().add(new Point(model.getIdToNodeMap().get(id)));
+            view.getMyPoints().add(new Point(model.getIdToNodeMap().get(id), view.getTransform(), view.getInitialZoom()));
         }
     }
 

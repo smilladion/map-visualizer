@@ -10,6 +10,7 @@ import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import impl.org.controlsfx.i18n.Localization;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -35,10 +36,7 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MapView {
 
@@ -60,6 +58,8 @@ public class MapView {
     private final MenuBar menuBar = new MenuBar();
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
+
+    private final double initialZoom;
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
@@ -160,6 +160,8 @@ public class MapView {
         resetPanZoom();
 
         paintMap();
+
+        initialZoom = transform.getMxx();
 
         // Remove focus from search field on startup
         canvas.requestFocus();
@@ -276,6 +278,55 @@ public class MapView {
         }
     }
 
+    public void paintPoints(String address, String address2) {
+        context.setTransform(transform);
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        if ((address == null) && (address2 == null)) {
+            paintMap();
+        }
+        if ((address2 == null) && (address != null)) {
+
+            List<OSMNode> list = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().contains(address)) {
+                    list.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
+                }
+            }
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        } else if ((address2 != null) && (address != null)) {
+            List<OSMNode> list1 = new ArrayList<>();
+
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
+                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
+                }
+            }
+
+            for (Drawable drawable : searchedDrawables) {
+                drawable.draw(context);
+            }
+        }
+    }
+
+    public void paintSavedAddresses() {
+        for (Drawable drawable : myPointsTemp) {
+            drawable.draw(context);
+        }
+    }
+
+    public void resetSearchField() {
+        toSearchField.clear();
+        fromSearchField.clear();
+        rootPane.requestFocus();
+    }
+
     public String getToSearchText() {
         return toSearchField.getText();
     }
@@ -290,75 +341,6 @@ public class MapView {
 
     public void setLastSearch(String text) {
         userSearchLabel.setText(text);
-    }
-
-    public void showStreetButton(String text) {
-        streetButton.setVisible(true);
-        streetButton.setText(text);
-    }
-
-    public void resetSearchField() {
-        toSearchField.clear();
-        fromSearchField.clear();
-        rootPane.requestFocus();
-    }
-
-    public void paintOnMap(String address, String address2) {
-        context.setTransform(transform);
-        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-
-        if ((address == null) && (address2 == null)) {
-            paintMap();
-        }
-        if ((address2 == null) && (address != null)) {
-
-            List<OSMNode> list = new ArrayList<>();
-
-            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().contains(address)) {
-                    list.add(model.getIdToNodeMap().get(entry.getValue()));
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
-                }
-            }
-
-            for (Drawable drawable : searchedDrawables) {
-                drawable.draw(context);
-            }
-        } else if ((address2 != null) && (address != null)) {
-            List<OSMNode> list1 = new ArrayList<>();
-
-            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
-                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue())));
-                }
-            }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, Type.SEARCHRESULT.getColor(), Type.SEARCHRESULT)));
-
-            for (Drawable drawable : searchedDrawables) {
-                drawable.draw(context);
-            }
-        }
-    }
-
-    public void paintSavedAddresses() {
-        for (Drawable drawable : myPointsTemp) {
-            drawable.draw(context);
-        }
-    }
-
-    public GraphicsContext getContext() {
-        return context;
-    }
-
-    public String getFromSearchText() {
-        if (fromSearchField.getText().trim().equals("")) {
-            return null;
-        }
-        if (!fromSearchField.isVisible()) {
-            return null;
-        }
-        return fromSearchField.getText().toLowerCase();
     }
 
     public TextField getToSearchField() {
@@ -387,5 +369,13 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
+    }
+
+    public Affine getTransform() {
+        return transform;
+    }
+
+    public double getInitialZoom() {
+        return initialZoom;
     }
 }

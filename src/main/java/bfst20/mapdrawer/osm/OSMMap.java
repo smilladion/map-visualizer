@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +51,9 @@ public class OSMMap {
         this.maxLon = maxLon;
     }
 
-    public static OSMMap fromFile(File file) throws XMLStreamException, FileNotFoundException, InvalidMapException {
-        XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file));
+    public static OSMMap fromFile(File file) throws XMLStreamException, IOException, InvalidMapException {
+        // Use charset encoding of UTF-8 (originally Windows-1252) to display ÆØÅ characters properly
+        XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file, StandardCharsets.UTF_8));
 
         OSMMap map = null;
 
@@ -254,7 +256,6 @@ public class OSMMap {
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
-        String address = null;
         String street = null;
         String houseNumber = null;
         String city = null;
@@ -285,8 +286,12 @@ public class OSMMap {
             }
         }
 
-        address = street + " " + houseNumber + " " + city;
-        map.addressList.add(address);
+        String address = street + " " + houseNumber + " " + city;
+
+        if (street != null && houseNumber != null && city != null) {
+            map.addressList.add(address);
+        }
+
         return address.toLowerCase();
     }
 
