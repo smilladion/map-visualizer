@@ -144,34 +144,37 @@ public class MapController {
         loadFileAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            String fileName = file.getName();
-            String fileExt = fileName.substring(fileName.lastIndexOf("."));
 
-            switch (fileExt) {
-                case ".osm":
-                    try {
-                        this.view = new MapView(OSMMap.fromFile(file), stage);
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
+            if (file != null) {
+                String fileName = file.getName();
+                String fileExt = fileName.substring(fileName.lastIndexOf("."));
 
-                    break;
-                case ".zip":
-                    try {
-                        this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
+                switch (fileExt) {
+                    case ".osm":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
 
-                    break;
-                case ".bin":
-                    break;
-                default:
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Fejlmeddelelse");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
-                    alert.showAndWait();
+                        break;
+                    case ".zip":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".bin":
+                        break;
+                    default:
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Fejlmeddelelse");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                        alert.showAndWait();
+                }
             }
         };
 
