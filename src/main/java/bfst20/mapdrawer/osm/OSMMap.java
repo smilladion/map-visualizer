@@ -164,6 +164,9 @@ public class OSMMap {
                         if (key.equals("building")) {
                             type = Type.BUILDING;
 
+                        } else if (key.equals("highway")) {
+                            type = Type.HIGHWAY;
+
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
@@ -184,10 +187,6 @@ public class OSMMap {
                                 map.nodeToCoastline.put(currentWay.first(), currentWay);
                                 map.nodeToCoastline.put(currentWay.last(), currentWay);
                             }
-
-                        } else if (key.equals("highway")) {
-                            type = Type.HIGHWAY;
-
                         }
 
                         break;
