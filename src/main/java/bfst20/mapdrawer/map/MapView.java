@@ -246,11 +246,10 @@ public class MapView {
         for (NodeProvider provider : drawables) {
             if (provider.getDrawable() == null) continue;
 
-            int lineWidth = provider.getType().getLineWidth();
-            // Change linewidth for drawable objects where this is specified
-            if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
-
             if(provider.getType().shouldPaint(transform.getMxx())){
+                int lineWidth = provider.getType().getLineWidth();
+                // Change linewidth for drawable objects where this is specified
+                if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
                 provider.getDrawable().draw(context);
             }
 
