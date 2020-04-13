@@ -251,10 +251,9 @@ public class MapView {
                 // Change linewidth for drawable objects where this is specified
                 if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
                 provider.getDrawable().draw(context);
+                // Change linewidth back to normal to ensure next element is drawn properly
+                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
-
-            // Change linewidth back to normal to ensure next element is drawn properly
-            context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         }
 
         // Draw search results
