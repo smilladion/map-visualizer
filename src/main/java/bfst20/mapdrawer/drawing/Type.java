@@ -18,29 +18,29 @@ public enum Type {
     RESIDENTIAL("residential", Color.LIGHTPINK, true, 0, 0),
     RETAIL("retail", Color.PALETURQUOISE, true, 0, 0),
     MILITARY("military", Color.TOMATO, true, 0, 0),
-    ALLOTMENTS("allotments", Color.LIGHTGREEN, true, 0, 20000),
+    ALLOTMENTS("allotments", Color.LIGHTGREEN, true, 0, 18000),
     WETLAND("wetland", Color.CADETBLUE, true, 0, 12000),
     //GRASS("grass", Color.LAWNGREEN, true, 0, 12000),
     FARMLAND("farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 12000),
-    BROWNFIELD("brownfield", Color.DARKKHAKI, true, 0, 20000),
-    LANDFILL("landfill", Color.DARKKHAKI, true, 0, 20000),
-    GRASSLAND("grassland", Color.LAWNGREEN, true, 0, 20000),
-    FOREST("forest", Color.FORESTGREEN, true, 0, 20000),
+    BROWNFIELD("brownfield", Color.DARKKHAKI, true, 0, 18000),
+    LANDFILL("landfill", Color.DARKKHAKI, true, 0, 18000),
+    GRASSLAND("grassland", Color.LAWNGREEN, true, 0, 18000),
+    FOREST("forest", Color.FORESTGREEN, true, 0, 18000),
     HEATH("heath", Color.WHEAT, true, 0, 12000),
-    MEADOW("meadow", Color.LIGHTGREEN, true, 0, 20000),
+    MEADOW("meadow", Color.LIGHTGREEN, true, 0, 18000),
     QUARRY("quarry", Color.LIGHTGREY, true, 0, 12000),
-    WOOD("wood", Color.FORESTGREEN, true, 0, 20000), 
-    CEMETERY("cemetery", Color.LIGHTGREEN, true, 0, 20000),
-    ORCHARD("orchard", Color.GREEN, true, 0, 12000),
-    FARMYARD("farmyard", Color.DARKSALMON, true, 0, 20000),
+    WOOD("wood", Color.FORESTGREEN, true, 0, 18000), 
+    CEMETERY("cemetery", Color.LIGHTGREEN, true, 0, 18000),
+    ORCHARD("orchard", Color.GREEN, true, 0, 18000),
+    FARMYARD("farmyard", Color.DARKSALMON, true, 0, 18000),
     AERODROME("aerodrome", Color.LIGHTGREY, true, 0, 12000),
     APRON("apron", Color.GREY, true, 0, 12000),
     RUNWAY("runway", Color.DARKGREY, true, 2, 30000),
-    BASIN("basin", Color.LIGHTBLUE, true, 0, 20000),
-    RESERVOIR("reservoir", Color.LIGHTBLUE, true, 0, 20000),
-    PARKING("parking", Color.LIGHTGREY, true, 0, 20000),
-    VILLAGE_GREEN("village_green", Color.LIGHTGREEN, true, 0, 20000),
-    SCRUB("scrub", Color.DARKOLIVEGREEN, true, 0, 20000),
+    BASIN("basin", Color.LIGHTBLUE, true, 0, 18000),
+    RESERVOIR("reservoir", Color.LIGHTBLUE, true, 0, 18000),
+    PARKING("parking", Color.LIGHTGREY, true, 0, 18000),
+    VILLAGE_GREEN("village_green", Color.LIGHTGREEN, true, 0, 18000),
+    SCRUB("scrub", Color.DARKOLIVEGREEN, true, 0, 18000),
     BEACH("beach", Color.YELLOW, true, 0, 15000),
     WATER("water", Color.LIGHTBLUE, true, 0, 6000),
     STREAM("stream", Color.LIGHTBLUE, false, 2, 15000),
@@ -57,14 +57,15 @@ public enum Type {
     // For relations and types that should be filled lineWidth = 0
     // For ways that should be drawn with different widths a lineWidth can be specified. 1 is the narrowest.
     private final int lineWidth;
-    private final int zoomLevel;
+    // zoomLevel 0 is the baseline and will always be drawn, larger numbers = larger (closer) zoomLevel
+    private final int zoom;
 
-    Type(String key, Paint color, boolean fill, int lineWidth, int zoomLevel) {
+    Type(String key, Paint color, boolean fill, int lineWidth, int zoom) {
         this.key = key;
         this.color = color;
         this.fill = fill;
         this.lineWidth = lineWidth;
-        this.zoomLevel = zoomLevel;
+        this.zoom = zoom;
     }
 
     private static final Map<String, Type> map;
@@ -107,8 +108,9 @@ public enum Type {
         return fill;
     }
 
+    // If the types zoom < transform.getMxx() returns true, draw
     public boolean shouldPaint(double mxx){
-        return zoomLevel < mxx;
+        return zoom < mxx;
     }
     
 }
