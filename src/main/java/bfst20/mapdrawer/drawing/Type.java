@@ -38,7 +38,7 @@ public enum Type {
     RUNWAY("aeroway", "runway", Color.DARKGREY, true, 2, 38000),
     BASIN("landuse", "basin", Color.LIGHTBLUE, true, 0, 6000),
     RESERVOIR("landuse", "reservoir", Color.LIGHTBLUE, true, 0, 6000),
-    PARKING("amenity", "parking", Color.LIGHTGREY, true, 0, 12000),
+    PARKING("amenity", "parking", Color.LIGHTGREY, true, 0, 18000),
     VILLAGE_GREEN("landuse", "village_green", Color.LIGHTGREEN, true, 0, 18000),
     SCRUB("natural", "scrub", Color.DARKOLIVEGREEN, true, 0, 18000),
     BEACH("natural", "beach", Color.YELLOW, true, 0, 18000),
@@ -46,12 +46,12 @@ public enum Type {
     STREAM("waterway", "stream", Color.LIGHTBLUE, false, 2, 6000),
     PIER("man_made", "pier", Color.LIGHTGREY, false, 2, 18000),
 
+    // roads
     HIGHWAY("highway", "highway", Color.DIMGRAY, false, 1, 80000),
     PRIMARY("highway", "primary", Color.YELLOW, false, 4, 0),
     SECONDARY("highway", "secondary", Color.DARKBLUE, false, 2, 0),
     TERTIARY("highway", "tertiary", Color.DARKGREEN, false, 2, 0),
     
-
     SEARCHRESULT("highway", "searchresult", Color.RED, false, 3, 0),
     BUILDING("building", "building", Color.SADDLEBROWN, true, 0, 80000),
     NONE(null, null, Color.BLACK, false, 0, 0);
