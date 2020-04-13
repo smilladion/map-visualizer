@@ -1,7 +1,11 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.map.PathColor;
-import javafx.scene.paint.Color;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Polygon;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
 import java.util.ArrayList;
@@ -9,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMWay implements LongSupplier {
+public class OSMWay implements LongSupplier, NodeProvider {
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -19,33 +23,58 @@ public class OSMWay implements LongSupplier {
     private final long id;
     private final List<OSMNode> nodes;
     private final Paint color;
+    private final Drawable drawable;
+    private final Type type;
 
     private int weight;
     private boolean bike;
     private boolean walk;
     private boolean car;
 
-    public OSMWay(long id, List<OSMNode> nodes, Paint color) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
+        this.type = type;
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else if (type.shouldBeFilled()) {
+            // If a way should be filled with colour, make a polygon
+            drawable = new Polygon(this, color);
+        } else {
+            // If it should not, draw a line
+            drawable = new LinePath(this);
+        }
     }
+
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Paint color, int weight, boolean bike, boolean walk, boolean car) {
+    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type, int weight, boolean bike, boolean walk, boolean car) {
         this.id = id;
         this.nodes = nodes;
         this.color = color;
+        this.type = type;
+
         this.weight = weight;
         this.bike = bike;
         this.walk = walk;
         this.car = car;
 
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else {
+            drawable = new LinePath(this);
+        }
     }
 
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        color = PathColor.UNKNOWN.getColor();
+        color = Type.UNKNOWN.getColor();
+        drawable = null;
+        type = Type.UNKNOWN;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -127,88 +156,42 @@ public class OSMWay implements LongSupplier {
     public boolean isBike() {
         return bike;
     }
+
     public boolean isWalk() {
         return walk;
     }
+
     public boolean isCar() {
         return car;
     }
 
-    public static boolean isColorable(OSMWay way) {
+    @Override
+    public float getAvgX() {
+        return (float) getBoundingBox().getCenterPoint().getX();
+    }
 
-        if (way.getColor() == PathColor.SEARCH.getColor()) {
-            return true;
-        }
+    @Override
+    public float getAvgY() {
+        return (float) getBoundingBox().getCenterPoint().getY();
+    }
 
-        if (way.getColor() == PathColor.BUILDING.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.FOREST.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.WATER.getColor()) {
-            return true;
-        }
-        if (way.getColor() == PathColor.BEACH.getColor())
-            return true;
-        
-        if (way.getColor() == PathColor.COMMERCIAL.getColor())
-            return true;
+    @Override
+    public Drawable getDrawable() {
+        return drawable;
+    }
 
-        if (way.getColor() == PathColor.CONSTRUCTION.getColor())
-            return true;
-        
-        if (way.getColor() == PathColor.ALLOTMENTS.getColor())
-            return true;
+    @Override
+    public Rectangle getBoundingBox() {
+        return new Rectangle(this);
+    }
 
-        if (way.getColor() == PathColor.FARMLAND.getColor())
-            return true;
+    @Override
+    public Type getType() {
+        return type;
+    }
 
-        if (way.getColor() == PathColor.MEADOW.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.ORCHARD.getColor())
-            return true;
-    
-        if (way.getColor() == PathColor.BASIN.getColor())
-            return true;
-        
-        if (way.getColor() == PathColor.BROWNFIELD.getColor())
-            return true; 
-        
-        if (way.getColor() == PathColor.CEMETERY.getColor())
-            return true;
-        
-        if (way.getColor() == PathColor.GRASS.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.RESERVOIR.getColor())
-            return true;
-        
-        if (way.getColor() == PathColor.VILLAGE_GREEN.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.PARK.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.DANGER_AREA.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.QUARRY.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.WOOD.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.HEATH.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.GRASSLAND.getColor())
-            return true;
-
-        if (way.getColor() == PathColor.SCRUB.getColor())
-            return true;
-
-        return false;
+    @Override
+    public int compareTo(NodeProvider that) {
+        return this.type.compareTo(that.getType());
     }
 }

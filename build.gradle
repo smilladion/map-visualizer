@@ -1,17 +1,10 @@
 plugins {
-    id 'java'
-
     id 'application'
-
-    id 'jacoco'
-
-    id 'com.github.sherter.google-java-format' version '0.8'
-
     id 'org.openjfx.javafxplugin' version '0.0.8'
 }
 
 javafx {
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 repositories {
@@ -19,10 +12,15 @@ repositories {
 }
 
 dependencies {
-    implementation files('libs/controlsfx-11.0.1.jar')
+    // implementation file('libs/xyx.jar')
+
+    implementation 'org.controlsfx:controlsfx:11.0.1'
+    implementation 'edu.princeton.cs:algs4:1.0.3'
+
     // Use JUnit Jupiter Engine for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.1'
+
     // Allow for JUnit 4 legacy
     testCompileOnly 'junit:junit:4.12'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.5.1'
@@ -38,10 +36,16 @@ test {
     useJUnitPlatform()
 }
 
+run {
+    // Add module exports to fix ControlsFX Java 11+ bug
+    jvmArgs = ['--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED']
+}
+
 jar {
     manifest {
         attributes 'Main-Class': application.mainClassName
     }
+
     from {
         configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }

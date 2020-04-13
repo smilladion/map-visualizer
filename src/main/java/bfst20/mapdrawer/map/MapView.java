@@ -1,58 +1,78 @@
 package bfst20.mapdrawer.map;
 
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import bfst20.mapdrawer.drawing.*;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Line;
+import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
+import impl.org.controlsfx.i18n.Localization;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
 
+import java.util.*;
+
 public class MapView {
 
-    private static OSMMap model;
+    private final Affine transform = new Affine();
 
-    private static Canvas canvas;
-    private static GraphicsContext context;
-    private final static Affine transform = new Affine();
+    private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
-    private final StackPane rootPane;
+    private OSMMap model;
     private final MapController controller;
 
+    private final Canvas canvas;
+    private final StackPane rootPane;
+    private final GraphicsContext context;
+
+    private final List<NodeProvider> drawables = new ArrayList<>(); // All map elements
+    private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
+    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
+
     private final MenuBar menuBar = new MenuBar();
-    private final Menu loadMenu = new Menu("Load");
+    private final Menu fileMenu = new Menu("Fil");
+    private final Menu optionsMenu = new Menu("Indstillinger");
+
+    private final double initialZoom;
+
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final Label userSearchLabel = new Label();
     private final Button streetButton = new Button();
-    private static List<Drawable> drawables = new ArrayList<>();
-    private static List<Drawable> searchedDrawables = new ArrayList<>();
-    private static List<Drawable> myPoints = new ArrayList<>();
-    private static List<Drawable> myPointsTemp = new ArrayList(); // temp list of saved drawables that can be cleared when toggle is off.
-    private static ToggleSwitch myPointsToggle; //from the ControlsFX library
 
+    private final List<Drawable> myPoints = new ArrayList<>();
+    private final List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
+    private final ToggleSwitch myPointsToggle; //from the ControlsFX library
     private Button saveFromSearch;
 
     public MapView(OSMMap model, Stage window) {
+
         window.setTitle("Google Map'nt");
 
         this.model = model;
@@ -62,16 +82,19 @@ public class MapView {
 
         rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
 
-        controller = new MapController(model, this);
+        controller = new MapController(model, this, window);
 
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
-        menuBar.getMenus().add(loadMenu);
-        MenuItem loadZip = new MenuItem("Load .zip-file");
-        loadZip.setOnAction(controller.getLoadZipAction());
-        MenuItem loadOSM = new MenuItem("Load .osm-file");
-        loadOSM.setOnAction(controller.getLoadOSMAction());
-        loadMenu.getItems().addAll(loadZip, loadOSM);
+        menuBar.getMenus().add(fileMenu);
+        MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
+        loadFile.setOnAction(controller.getLoadFileAction());
+        fileMenu.getItems().add(loadFile);
+
+        optionsMenu.getItems().add(showKdTree);
+        menuBar.getMenus().add(optionsMenu);
+
+        showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
 
         rootPane.getChildren().add(menuBox);
 
@@ -112,8 +135,7 @@ public class MapView {
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
-                                          // areas
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -122,8 +144,7 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive
-        // design)
+        // Code below makes the canvas resizable when the window changes (responsive design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
         canvas.widthProperty().addListener((a, b, c) -> {
@@ -133,101 +154,80 @@ public class MapView {
             paintMap();
         });
 
-        // Remove focus from search field on startup
         resetSearchField();
         streetButton.setVisible(false);
 
-        populateDrawables(model);
         resetPanZoom();
 
         paintMap();
 
+        initialZoom = transform.getMxx();
+
+        // Remove focus from search field on startup
         canvas.requestFocus();
     }
 
-    public static void updateMap(OSMMap map) {
-        MapView.model = map;
-        populateDrawables(model);
-        paintMap();
-    }
-
-    String getToSearchText() {
-        return toSearchField.getText();
-    }
-
-    void setSearchText(String text) {
-        toSearchField.setText(text);
-    }
-
-    String getLastSearch() {
-        return userSearchLabel.getText();
-    }
-
-    void setLastSearch(String text) {
-        userSearchLabel.setText(text);
-    }
-
-    void resetSearchField() {
-        toSearchField.clear();
-        fromSearchField.clear();
-        rootPane.requestFocus();
-    }
-
-    public static void populateDrawables(OSMMap model) {
+    public void populateDrawables(OSMMap model) {
         drawables.clear();
+        drawableExtras.clear();
 
-        // TODO: Need to find a system for coloring objects, or we are gonna end up with huge else-if statements here (and also several places in OSMMap)
-        for (OSMWay way : model.getWays()) {
-            if (way.getNodes().isEmpty()) {
-                // If a way has no nodes, do not draw
-                continue;
-            }  else if (OSMWay.isColorable(way)) {
-                // If a way has the color specified, make a polygon
-                drawables.add(new Polygon(way, way.getColor()));
+        Point2D topLeft = null;
+        Point2D bottomRight = null;
+
+        try {
+            if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
+                float size = 325.0f; // Use this offset to create a smaller range for searching (making the culling visible on screen)
+
+                // Gives coords for the current zoom/pan level
+                topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2, canvas.getHeight() / 2 - size / 2);
+                bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
             } else {
-                // If it has no color or otherwise shouldn't be filled with color, draw a line
-                drawables.add(new LinePath(way));
+                topLeft = transform.inverseTransform(0.0f, 0.0f);
+                bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
             }
+        } catch (NonInvertibleTransformException e) {
+            e.printStackTrace();
         }
 
-        for (OSMRelation relation : model.getRelations()) {
-            if (relation.getWays().isEmpty()) {
-                // If a relation has no ways, do not draw
-                continue;
-            } else if (relation.getColor() == PathColor.NONE.getColor()) {
-                // If a relation has no color, do not draw
-                continue;
-            } else {
-                drawables.add(new Polygon(relation, relation.getColor()));
-            }
-        }
+        model.getKdTree().search(
+            drawables,
+            model.getKdTree().getRoot(),
+            new Rectangle(
+                topLeft.getX(),
+                topLeft.getY(),
+                bottomRight.getX(),
+                bottomRight.getY()
+            )
+        );
+
+        // Sort the NodeProviders in drawables list based on types
+        // to make sure we draw the elements in the right order
+        Collections.sort(drawables);
+
+        // Draws borders for where the culling happens
+        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+        drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+        drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
     }
 
-    static void pan(double dx, double dy) {
+    void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    static void zoom(double factor, double x, double y) {
+    void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         paintMap();
     }
 
-    private static void resetPanZoom() {
+    private void resetPanZoom() {
         pan(-model.getMinLon(), -model.getMinLat());
         zoom(canvas.getWidth() / (model.getMaxLat() - model.getMinLat()), 0, 0);
-        paintMap();
     }
 
-    private Point2D convertMouseToMap(double x, double y) {
-        try {
-            return transform.inverseTransform(x, y);
-        } catch (Exception ignored) {
-            return Point2D.ZERO;
-        }
-    }
-
-    public static void paintMap() {
+    // Updates and repaints the whole map
+    public void paintMap() {
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
@@ -245,67 +245,69 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
 
+        populateDrawables(model);
+
         // Draw islands
         for (Drawable island : model.getIslands()) {
             island.draw(context);
             context.fill();
         }
 
-        // Draw the map's drawables
-        for (Drawable drawable : drawables) {
-            drawable.draw(context);
+        // Draw OSMWays and relations
+        for(NodeProvider provider : drawables){
+            if (provider.getDrawable() == null) continue;
+
+            int lineWidth = provider.getType().getLineWidth();
+            // Change linewidth for drawable objects where this is specified
+            if(lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+
+            provider.getDrawable().draw(context);
+
+            // Change linewidth back to normal to ensure next element is drawn properly
+            context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         }
+
+        // Draw search results
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
 
+        // Draw extra UI elements
+        for (Drawable drawable : drawableExtras) {
+            drawable.draw(context);
+        }
     }
 
-    public void test() {
-
+    public void paintPoints(String address, String address2) {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-        System.out.println("hej");
-        OSMNode node = model.getIdtoNodeMap().get((long) 303870663);
-        Point p = new Point(node);
-        p.draw(context);
-    }
-
-    public void paintOnMap(String address, String address2) {
-
-        context.setTransform(transform);
-        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-
 
         if ((address == null) && (address2 == null)) {
-            updateMap(model);
-
+            paintMap();
         }
         if ((address2 == null) && (address != null)) {
 
-                List<OSMNode> list = new ArrayList<>();
+            List<OSMNode> list = new ArrayList<>();
 
-                for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                    if (entry.getKey().contains(address)) {
-                        list.add(model.getIdtoNodeMap().get(entry.getValue()));
-                        searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
-                    }
+            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
+                if (entry.getKey().contains(address)) {
+                    list.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
                 }
+            }
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
-
             }
         } else if ((address2 != null) && (address != null)) {
             List<OSMNode> list1 = new ArrayList<>();
 
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
-                    list1.add(model.getIdtoNodeMap().get(entry.getValue()));
-                    searchedDrawables.add(new Point(model.getIdtoNodeMap().get(entry.getValue())));
+                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
                 }
             }
-            searchedDrawables.add(new LinePath(new OSMWay(1, list1, PathColor.SEARCH.getColor())));
 
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
@@ -319,47 +321,61 @@ public class MapView {
         }
     }
 
-        public GraphicsContext getContext() {
-        return context;
-        }
-
-        public String getFromSearchText() {
-        if (fromSearchField.getText().trim().equals("")) {
-                return null;
-        }
-        if (!fromSearchField.isVisible()) {
-            return null;
-        }
-        return fromSearchField.getText().toLowerCase();
-        }
-
-        public TextField getToSearchField() {
-            return toSearchField;
-        }
-
-        public TextField getFromSearchField() {
-            return  fromSearchField;
-        }
-
-        public List<Drawable> getSearchedDrawables() {
-            return searchedDrawables;
-        }
-
-        public Button getSaveFromSearch() {
-        return saveFromSearch;
-        }
-
-        public List<Drawable> getMyPoints () {
-            return myPoints;
-        }
-
-        public List<Drawable> getMyPointsTemp() {
-            return myPointsTemp;
-        }
-
-        public ToggleSwitch getMyPointsToggle() {
-        return myPointsToggle;
-        }
-
+    public void resetSearchField() {
+        toSearchField.clear();
+        fromSearchField.clear();
+        rootPane.requestFocus();
     }
-    
+
+    public String getToSearchText() {
+        return toSearchField.getText();
+    }
+
+    public void setSearchText(String text) {
+        toSearchField.setText(text);
+    }
+
+    public String getLastSearch() {
+        return userSearchLabel.getText();
+    }
+
+    public void setLastSearch(String text) {
+        userSearchLabel.setText(text);
+    }
+
+    public TextField getToSearchField() {
+        return toSearchField;
+    }
+
+    public TextField getFromSearchField() {
+        return fromSearchField;
+    }
+
+    public List<Drawable> getSearchedDrawables() {
+        return searchedDrawables;
+    }
+
+    public Button getSaveFromSearch() {
+        return saveFromSearch;
+    }
+
+    public List<Drawable> getMyPoints() {
+        return myPoints;
+    }
+
+    public List<Drawable> getMyPointsTemp() {
+        return myPointsTemp;
+    }
+
+    public ToggleSwitch getMyPointsToggle() {
+        return myPointsToggle;
+    }
+
+    public Affine getTransform() {
+        return transform;
+    }
+
+    public double getInitialZoom() {
+        return initialZoom;
+    }
+}
