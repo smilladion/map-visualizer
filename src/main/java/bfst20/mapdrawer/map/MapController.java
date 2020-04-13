@@ -1,15 +1,5 @@
 package bfst20.mapdrawer.map;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
@@ -18,42 +8,47 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MapController {
 
     private final OSMMap model;
-    private final MapView view;
+    private MapView view;
+    private final Stage stage;
 
     // HashSet provides O(1) time for lookups, but not as fast iteration
-    // Street names are part of the model, but will only be set and accessed via
-    // controller
+    // Street names are part of the model, but will only be set and accessed via controller
     private final Set<String> streetNames = new HashSet<>();
 
     private final EventHandler<ActionEvent> editAction;
     private final EventHandler<ActionEvent> searchAction;
-
-    private final EventHandler<ActionEvent> loadZipAction;
-    private final EventHandler<ActionEvent> loadOSMAction;
-
-    private final EventHandler<MouseEvent> panAction;
-    private final EventHandler<MouseEvent> panClickAction;
-    private final EventHandler<ScrollEvent> scrollAction;
-    private final EventHandler<MouseEvent> clickOnMapAction;
     private final EventHandler<ActionEvent> clearAction;
+    private final EventHandler<MouseEvent> clickOnMapAction;
+
     private final EventHandler<ActionEvent> savePointOfInterestTo;
     private final EventHandler<ActionEvent> savePointOfInterestFrom;
     private final EventHandler<MouseEvent> toggleAction;
 
+    private final EventHandler<ActionEvent> loadFileAction;
+
+    private final EventHandler<MouseEvent> panAction;
+    private final EventHandler<MouseEvent> panClickAction;
+    private final EventHandler<ScrollEvent> scrollAction;
+
     private Point2D lastMouse;
 
-    MapController(OSMMap model, MapView view) {
+    MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
+        this.stage = stage;
 
         try {
             populateStreets(streetNames);
@@ -69,31 +64,28 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            view.paintOnMap(null, null);
+            view.paintPoints(null, null);
 
         };
 
         // Saves the address from the "til..." search field to my list.
-        savePointOfInterestTo = e-> {
+        savePointOfInterestTo = e -> {
             String s = view.getToSearchField().getText().toLowerCase();
             savePoint(s);
         };
 
         // saves address from the "fra..." searchfield.
-        savePointOfInterestFrom = e-> {
+        savePointOfInterestFrom = e -> {
             String s = view.getFromSearchField().getText().toLowerCase();
             savePoint(s);
-
         };
 
-        // the toggle button.
-        toggleAction = e-> {
-            view.test();
+        toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getMyPoints().isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setHeaderText(null);
-                    alert.setContentText("You have no saved addresses");
+                    alert.setContentText("Du har ingen gemte adresser");
                     alert.showAndWait();
                 } else {
                     for (Drawable drawable : view.getMyPoints()) {
@@ -103,7 +95,7 @@ public class MapController {
                 }
             } else {
                 view.getMyPointsTemp().clear();
-                view.paintOnMap(null, null);
+                view.paintPoints(null, null);
             }
         };
 
@@ -120,9 +112,9 @@ public class MapController {
             view.getSaveFromSearch().setVisible(true);
 
             if (address1 != null) {
-                view.paintOnMap(address, address1);
+                view.paintPoints(address, address1);
             } else if (address1 == null) {
-                view.paintOnMap(address, null);
+                view.paintPoints(address, null);
 
             }
             view.setLastSearch(view.getToSearchText());
@@ -148,32 +140,54 @@ public class MapController {
             view.zoom(factor, e.getX(), e.getY());
         };
 
-        loadZipAction = e -> {
+        loadFileAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            try{
-                MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
-            } catch (Exception exc){
-                exc.printStackTrace();
+
+            if (file != null) {
+                String fileName = file.getName();
+                String fileExt = fileName.substring(fileName.lastIndexOf("."));
+
+                switch (fileExt) {
+                    case ".osm":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".zip":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".bin":
+                        break;
+                    default:
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Fejlmeddelelse");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                        alert.showAndWait();
+                }
             }
         };
 
         //TODO - doesn't work. Should probably be something else other than just clicking - maybe a double click?
         clickOnMapAction = e -> {
-            double x1 = e.getX();
+            /*double x1 = e.getX();
             double y1 = e.getY();
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("main/resources/REDlogotrans.png"));
-            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
-        };
 
-        loadOSMAction = e -> {
-            FileChooser fileChooser = new FileChooser();
-            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            try{
-                MapView.updateMap(OSMMap.fromFile(file));
-            } catch (Exception exc){
-                exc.printStackTrace();
-            }
+            try {
+            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
+            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
+            } catch (NullPointerException ex) {
+                System.err.println("Pin point image not found!");
+            }*/
         };
     }
 
@@ -185,7 +199,7 @@ public class MapController {
             alert.showAndWait();
         } else {
             long id = model.getAddressToId().get(s);
-            view.getMyPoints().add(new Point(model.getIdtoNodeMap().get(id)));
+            view.getMyPoints().add(new Point(model.getIdToNodeMap().get(id), view.getTransform(), view.getInitialZoom()));
         }
     }
 
@@ -227,15 +241,13 @@ public class MapController {
         return scrollAction;
     }
 
-    public EventHandler<ActionEvent> getLoadZipAction() {
-        return loadZipAction;
+    public EventHandler<ActionEvent> getLoadFileAction() {
+        return loadFileAction;
     }
 
-    public EventHandler<ActionEvent> getLoadOSMAction() {
-        return loadOSMAction;
+    public EventHandler<MouseEvent> clickOnMapAction() {
+        return clickOnMapAction;
     }
-
-    public EventHandler<MouseEvent> clickOnMapAction() { return clickOnMapAction;}
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
@@ -244,6 +256,7 @@ public class MapController {
     public EventHandler<ActionEvent> getSavePointOfInterestTo() {
         return savePointOfInterestTo;
     }
+
     public EventHandler<ActionEvent> getSavePointOfInterestFrom() {
         return savePointOfInterestFrom;
     }
