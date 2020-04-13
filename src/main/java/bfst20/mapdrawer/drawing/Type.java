@@ -15,7 +15,7 @@ public enum Type {
     COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 0),
     CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 0),
     INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 0),
-    RESIDENTIAL("landuse", "residential", Color.LIGHTPINK, true, 0, 0),
+    //RESIDENTIAL("landuse", "residential", Color.LIGHTPINK, true, 0, 0),
     RETAIL("landuse", "retail", Color.LIGHTPINK, true, 0, 0),
     MILITARY("landuse", "military", Color.TOMATO, true, 0, 0),
     ALLOTMENTS("landuse", "allotments", Color.LIGHTGREEN, true, 0, 18000),
