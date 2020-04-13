@@ -54,8 +54,6 @@ public class MapView {
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
 
-    private final double initialZoom;
-
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle; //from the ControlsFX library
@@ -145,8 +143,6 @@ public class MapView {
         resetPanZoom();
 
         paintMap();
-
-        initialZoom = transform.getMxx();
 
         // Remove focus from search field on startup
         canvas.requestFocus();
@@ -279,7 +275,7 @@ public class MapView {
         } else if ((addressFrom == null)) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().contains(addressTo)) {
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform));
                 }
             }
 
@@ -289,7 +285,7 @@ public class MapView {
         } else if (addressTo != null) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().equals(addressTo) || entry.getKey().equals(addressFrom)) {
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
+                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform));
                 }
             }
 
@@ -307,7 +303,7 @@ public class MapView {
 
     public void savePoint(String s) {
         long id = model.getAddressToId().get(s);
-        getSavedPoints().add(new Point(model.getIdToNodeMap().get(id), transform, initialZoom));
+        getSavedPoints().add(new Point(model.getIdToNodeMap().get(id), transform));
     }
 
     public void resetSearchField() {
