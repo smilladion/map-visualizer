@@ -58,6 +58,8 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle; //from the ControlsFX library
 
+    private final Label zoomDisplay = new Label();
+
     public MapView(OSMMap model, Stage window) {
 
         window.setTitle("Google Map'nt");
@@ -104,6 +106,11 @@ public class MapView {
 
         myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
         myPointsToggle.setText("Vis gemte adresser");
+
+        HBox zoomLevel = new HBox(zoomDisplay);
+        zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
+        zoomLevel.setPickOnBounds(false);
+        rootPane.getChildren().add(zoomLevel);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
@@ -199,6 +206,7 @@ public class MapView {
 
     void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
+        zoomDisplay.setText("Zoom niveau: " + transform.getMxx());
         paintMap();
     }
 
@@ -242,7 +250,9 @@ public class MapView {
             // Change linewidth for drawable objects where this is specified
             if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
 
-            provider.getDrawable().draw(context);
+            if(provider.getType().shouldPaint(transform.getMxx())){
+                provider.getDrawable().draw(context);
+            }
 
             // Change linewidth back to normal to ensure next element is drawn properly
             context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
