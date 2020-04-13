@@ -22,14 +22,12 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     private final long id;
     private final List<OSMNode> nodes;
-    private final Paint color;
     private final Drawable drawable;
     private final Type type;
 
-    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type) {
         this.id = id;
         this.nodes = nodes;
-        this.color = color;
         this.type = type;
 
         if (nodes.isEmpty()) {
@@ -37,7 +35,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
             drawable = null;
         } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, color);
+            drawable = new Polygon(this, type.getColor());
         } else {
             // If it should not, draw a line
             drawable = new LinePath(this);
@@ -47,7 +45,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        color = Type.UNKNOWN.getColor();
         drawable = null;
         type = Type.UNKNOWN;
     }
@@ -118,10 +115,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     public List<OSMNode> getNodes() {
         return nodes;
-    }
-
-    public Paint getColor() {
-        return color;
     }
 
     @Override

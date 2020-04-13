@@ -20,7 +20,7 @@ public class LinePath implements Drawable {
             coords[i * 2 + 1] = way.getNodes().get(i).getLat();
         }
 
-        this.color = way.getColor();
+        this.color = way.getType().getColor();
     }
 
     @Override
