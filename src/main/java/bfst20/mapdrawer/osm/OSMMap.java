@@ -167,7 +167,11 @@ public class OSMMap {
                             type = Type.BUILDING;
 
                         } else if (key.equals("highway")) {
-                            type = Type.HIGHWAY;
+                            if (Type.containsType(value)){
+                               type = Type.getType(value); 
+                            } else {
+                                type = Type.HIGHWAY;
+                            }
 
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
