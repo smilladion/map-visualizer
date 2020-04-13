@@ -38,7 +38,7 @@ public enum Type {
     RUNWAY("runway", Color.DARKGREY, true, 2, 30000),
     BASIN("basin", Color.LIGHTBLUE, true, 0, 18000),
     RESERVOIR("reservoir", Color.LIGHTBLUE, true, 0, 18000),
-    PARKING("parking", Color.LIGHTGREY, true, 0, 18000),
+    PARKING("parking", Color.LIGHTGREY, true, 0, 34000),
     VILLAGE_GREEN("village_green", Color.LIGHTGREEN, true, 0, 18000),
     SCRUB("scrub", Color.DARKOLIVEGREEN, true, 0, 18000),
     BEACH("beach", Color.YELLOW, true, 0, 15000),
