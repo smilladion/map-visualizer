@@ -6,7 +6,6 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMNode;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -37,23 +36,29 @@ public class MapView {
     private final Affine transform = new Affine();
 
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
+
     private final MapController controller;
+    private OSMMap model;
+
     private final Canvas canvas;
     private final StackPane rootPane;
     private final GraphicsContext context;
+
     private final List<NodeProvider> drawables = new ArrayList<>(); // All map elements
     private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
-    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
+    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
+
+    private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
+
     private final MenuBar menuBar = new MenuBar();
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
+
     private final double initialZoom;
+
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
-    private final List<Drawable> myPoints = new ArrayList<>();
-    private final List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
     private final ToggleSwitch myPointsToggle; //from the ControlsFX library
-    private OSMMap model;
 
     public MapView(OSMMap model, Stage window) {
 
@@ -252,6 +257,13 @@ public class MapView {
             drawable.draw(context);
         }
 
+        // Draws saved searches so they are updated on pan/zoom
+        if (myPointsToggle.isSelected()) {
+            for (Drawable drawable : savedPoints) {
+                drawable.draw(context);
+            }
+        }
+
         // Draw extra UI elements
         for (Drawable drawable : drawableExtras) {
             drawable.draw(context);
@@ -288,24 +300,20 @@ public class MapView {
     }
 
     public void paintSavedAddresses() {
-        for (Drawable drawable : myPointsTemp) {
+        for (Drawable drawable : savedPoints) {
             drawable.draw(context);
         }
     }
 
     public void savePoint(String s) {
         long id = model.getAddressToId().get(s);
-        getMyPoints().add(new Point(model.getIdToNodeMap().get(id), transform, initialZoom));
+        getSavedPoints().add(new Point(model.getIdToNodeMap().get(id), transform, initialZoom));
     }
 
     public void resetSearchField() {
         toSearchField.clear();
         fromSearchField.clear();
         rootPane.requestFocus();
-    }
-
-    public String getToSearchText() {
-        return toSearchField.getText();
     }
 
     public TextField getToSearchField() {
@@ -320,12 +328,8 @@ public class MapView {
         return searchedDrawables;
     }
 
-    public List<Drawable> getMyPoints() {
-        return myPoints;
-    }
-
-    public List<Drawable> getMyPointsTemp() {
-        return myPointsTemp;
+    public List<Drawable> getSavedPoints() {
+        return savedPoints;
     }
 
     public ToggleSwitch getMyPointsToggle() {

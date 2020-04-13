@@ -1,7 +1,6 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
-import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -86,20 +85,16 @@ public class MapController {
         // the toggle button.
         toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
-                if (view.getMyPoints().isEmpty()) {
+                if (view.getSavedPoints().isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Besked");
                     alert.setHeaderText(null);
                     alert.setContentText("Du har ingen gemte adresser!");
                     alert.showAndWait();
                 } else {
-                    for (Drawable drawable : view.getMyPoints()) {
-                        view.getMyPointsTemp().add(drawable);
-                    }
                     view.paintSavedAddresses();
                 }
             } else {
-                view.getMyPointsTemp().clear();
                 view.paintPoints(null, null);
             }
         };
@@ -108,7 +103,7 @@ public class MapController {
             view.getSearchedDrawables().clear();
             view.paintPoints(null, null);
 
-            String addressTo = view.getToSearchText().toLowerCase();
+            String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
 
             if (addressFrom.trim().equals("")) {
