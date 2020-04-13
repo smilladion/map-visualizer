@@ -76,7 +76,6 @@ public class OSMMap {
     private static Map<OSMNode, Integer> nodeToInt = new HashMap<>();
     private static Map<Integer, OSMNode> intToNode = new HashMap<>();
     private static int nodeNumber = 1;
-    private static int numberOfNodesForHighways = 0;
 
     private static Graph routeGraph;
 
@@ -610,10 +609,6 @@ public class OSMMap {
 
     public List<OSMWay> getHighways() {
         return highways;
-    }
-
-    public int getNumberOfNodesForHighways() {
-        return numberOfNodesForHighways;
     }
 
     public Graph getRouteGraph() {
