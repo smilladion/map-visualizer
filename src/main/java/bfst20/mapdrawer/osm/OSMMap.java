@@ -256,29 +256,34 @@ public class OSMMap {
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
-        String street = null;
-        String houseNumber = null;
-        String city = null;
+        String street = null, houseNumber = null, postcode = null, place = null, city = null;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
 
             if (nextType == XMLStreamReader.START_ELEMENT) {
-                switch (xmlReader.getLocalName()) {
-                    case "tag":
-                        // Found a property tag, read and set the correct boolean for this tag
-                        String key = xmlReader.getAttributeValue(null, "k");
-                        String value = xmlReader.getAttributeValue(null, "v");
+                if ("tag".equals(xmlReader.getLocalName())) {
 
-                        if (key.equals("addr:street")) {
+                    String key = xmlReader.getAttributeValue(null, "k");
+                    String value = xmlReader.getAttributeValue(null, "v");
+
+                    switch (key) {
+                        case "addr:street":
                             street = value;
-                        }
-                        if (key.equals("addr:housenumber")) {
+                            break;
+                        case "addr:housenumber":
                             houseNumber = value;
-                        }
-                        if (key.equals("addr:city")) {
+                            break;
+                        case "addr:postcode":
+                            postcode = value;
+                            break;
+                        case "addr:place":
+                            place = value;
+                            break;
+                        case "addr:city":
                             city = value;
-                        }
+                            break;
+                    }
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
                 // Reached the end of the current way, break and return a new OSMWay object
@@ -286,9 +291,9 @@ public class OSMMap {
             }
         }
 
-        String address = street + " " + houseNumber + " " + city;
+        String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
 
-        if (street != null && houseNumber != null && city != null) {
+        if (!address.contains("null")) {
             map.addressList.add(address);
         }
 

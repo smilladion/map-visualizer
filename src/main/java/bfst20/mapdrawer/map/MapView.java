@@ -2,15 +2,11 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
-import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
-import impl.org.controlsfx.i18n.Localization;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -18,13 +14,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -34,42 +24,36 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
     private final Affine transform = new Affine();
 
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
-
-    private OSMMap model;
     private final MapController controller;
-
     private final Canvas canvas;
     private final StackPane rootPane;
     private final GraphicsContext context;
-
     private final List<NodeProvider> drawables = new ArrayList<>(); // All map elements
     private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results
-
     private final MenuBar menuBar = new MenuBar();
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
-
     private final double initialZoom;
-
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
-    private final Label userSearchLabel = new Label();
-    private final Button streetButton = new Button();
-
     private final List<Drawable> myPoints = new ArrayList<>();
     private final List<Drawable> myPointsTemp = new ArrayList<>(); // temp list of saved drawables that can be cleared when toggle is off.
     private final ToggleSwitch myPointsToggle; //from the ControlsFX library
-    private Button saveFromSearch;
+    private OSMMap model;
 
     public MapView(OSMMap model, Stage window) {
 
@@ -99,39 +83,36 @@ public class MapView {
         rootPane.getChildren().add(menuBox);
 
         toSearchField.setPromptText("Til...");
-        TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
-        TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
         fromSearchField.setPromptText("Fra...");
-        fromSearchField.setVisible(false);
 
-        Button editButton = new Button("Redigér");
-        editButton.setOnAction(controller.getEditAction());
+        AutoCompletionBinding<String> autoTo = TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
+        AutoCompletionBinding<String> autoFrom = TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
+
+        autoTo.setVisibleRowCount(5);
+        autoTo.setMinWidth(300);
+
+        autoFrom.setVisibleRowCount(5);
+        autoFrom.setMinWidth(300);
 
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
-        saveFromSearch = new Button("Gem adresse");
         Button saveToSearch = new Button("Gem adresse");
-        saveFromSearch.setVisible(false);
 
-        myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
-        myPointsToggle.setText("Vis mine gemte adresser");
+        myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
+        myPointsToggle.setText("Vis gemte adresser");
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
-        saveToSearch.setOnAction(controller.getSavePointOfInterestTo());
-        saveFromSearch.setOnAction(controller.getSavePointOfInterestFrom());
+        saveToSearch.setOnAction(controller.getSaveAddressAction());
+
         canvas.setOnMouseClicked(controller.getPanClickAction());
         canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
 
-        HBox searchLabels = new HBox(new Label("Sidste søgning: "), userSearchLabel);
-        searchLabels.setAlignment(Pos.BASELINE_CENTER);
-        searchLabels.setPickOnBounds(false);
-
-        HBox searchRow = new HBox(fromSearchField, saveFromSearch, toSearchField, saveToSearch, searchLabels, editButton, clearButton, streetButton, myPointsToggle);
+        HBox searchRow = new HBox(fromSearchField, toSearchField, saveToSearch, clearButton, myPointsToggle);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -155,7 +136,6 @@ public class MapView {
         });
 
         resetSearchField();
-        streetButton.setVisible(false);
 
         resetPanZoom();
 
@@ -190,14 +170,14 @@ public class MapView {
         }
 
         model.getKdTree().search(
-            drawables,
-            model.getKdTree().getRoot(),
-            new Rectangle(
-                topLeft.getX(),
-                topLeft.getY(),
-                bottomRight.getX(),
-                bottomRight.getY()
-            )
+                drawables,
+                model.getKdTree().getRoot(),
+                new Rectangle(
+                        topLeft.getX(),
+                        topLeft.getY(),
+                        bottomRight.getX(),
+                        bottomRight.getY()
+                )
         );
 
         // Sort the NodeProviders in drawables list based on types
@@ -254,12 +234,12 @@ public class MapView {
         }
 
         // Draw OSMWays and relations
-        for(NodeProvider provider : drawables){
+        for (NodeProvider provider : drawables) {
             if (provider.getDrawable() == null) continue;
 
             int lineWidth = provider.getType().getLineWidth();
             // Change linewidth for drawable objects where this is specified
-            if(lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+            if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
 
             provider.getDrawable().draw(context);
 
@@ -278,20 +258,15 @@ public class MapView {
         }
     }
 
-    public void paintPoints(String address, String address2) {
+    public void paintPoints(String addressTo, String addressFrom) {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
-        if ((address == null) && (address2 == null)) {
+        if (addressTo == null && addressFrom == null) {
             paintMap();
-        }
-        if ((address2 == null) && (address != null)) {
-
-            List<OSMNode> list = new ArrayList<>();
-
+        } else if ((addressFrom == null)) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().contains(address)) {
-                    list.add(model.getIdToNodeMap().get(entry.getValue()));
+                if (entry.getKey().contains(addressTo)) {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
                 }
             }
@@ -299,12 +274,9 @@ public class MapView {
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
             }
-        } else if ((address2 != null) && (address != null)) {
-            List<OSMNode> list1 = new ArrayList<>();
-
+        } else if (addressTo != null) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().equals(address) || entry.getKey().equals(address2)) {
-                    list1.add(model.getIdToNodeMap().get(entry.getValue()));
+                if (entry.getKey().equals(addressTo) || entry.getKey().equals(addressFrom)) {
                     searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform, initialZoom));
                 }
             }
@@ -321,6 +293,11 @@ public class MapView {
         }
     }
 
+    public void savePoint(String s) {
+        long id = model.getAddressToId().get(s);
+        getMyPoints().add(new Point(model.getIdToNodeMap().get(id), transform, initialZoom));
+    }
+
     public void resetSearchField() {
         toSearchField.clear();
         fromSearchField.clear();
@@ -329,18 +306,6 @@ public class MapView {
 
     public String getToSearchText() {
         return toSearchField.getText();
-    }
-
-    public void setSearchText(String text) {
-        toSearchField.setText(text);
-    }
-
-    public String getLastSearch() {
-        return userSearchLabel.getText();
-    }
-
-    public void setLastSearch(String text) {
-        userSearchLabel.setText(text);
     }
 
     public TextField getToSearchField() {
@@ -355,10 +320,6 @@ public class MapView {
         return searchedDrawables;
     }
 
-    public Button getSaveFromSearch() {
-        return saveFromSearch;
-    }
-
     public List<Drawable> getMyPoints() {
         return myPoints;
     }
@@ -369,13 +330,5 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
-    }
-
-    public Affine getTransform() {
-        return transform;
-    }
-
-    public double getInitialZoom() {
-        return initialZoom;
     }
 }
