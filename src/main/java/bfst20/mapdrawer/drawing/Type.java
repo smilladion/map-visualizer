@@ -13,14 +13,14 @@ public enum Type {
     UNKNOWN(null, null, Color.TRANSPARENT, false, 0, 0),
     COASTLINE("natural", "coastline", Color.TRANSPARENT, false, 0, 4000),
     COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
-    CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
-    INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
+    //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
+    //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
 
     // TODO: "residential" duplicate value, atm we just draw roads
     //RESIDENTIAL("landuse", "residential", Color.LIGHTPINK, true, 0, 4000),
 
     RETAIL("landuse", "retail", Color.LIGHTPINK, true, 0, 4000),
-    MILITARY("landuse", "military", Color.TOMATO, true, 0, 4000),
+    //MILITARY("landuse", "military", Color.TOMATO, true, 0, 4000),
     ALLOTMENTS("landuse", "allotments", Color.LIGHTGREEN, true, 0, 18000),
     WETLAND("natural", "wetland", Color.CADETBLUE, true, 0, 18000),
 
@@ -47,30 +47,30 @@ public enum Type {
     PARKING("amenity", "parking", Color.LIGHTGREY, true, 0, 18000),
     VILLAGE_GREEN("landuse", "village_green", Color.LIGHTGREEN, true, 0, 18000),
     SCRUB("natural", "scrub", Color.LIGHTGREEN, true, 0, 18000),
-    BEACH("natural", "beach", Color.YELLOW, true, 0, 18000),
+    BEACH("natural", "beach", Color.KHAKI, true, 0, 18000),
     WATER("natural", "water", Color.LIGHTBLUE, true, 0, 6000),
     STREAM("waterway", "stream", Color.LIGHTBLUE, false, 2, 6000),
     PIER("man_made", "pier", Color.LIGHTGREY, false, 2, 18000),
 
     // roads
-    HIGHWAY("highway", "highway", Color.DIMGRAY, false, 1, 80000),
+    HIGHWAY("highway", "highway", Color.GAINSBORO, false, 1, 80000),
     MOTORWAY("highway", "motorway", Color.SALMON, false, 6, 0),
     MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 5, 0),
     PRIMARY("highway", "primary", Color.LIGHTPINK, false, 5, 0),
     PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, false, 4, 0),
-    SECONDARY("highway", "secondary", Color.WHITE, false, 4, 0),
-    SECONDAY_LINK("highway", "seconday", Color.WHITE, false, 3, 0),
-    TERTIARY("highway", "tertiary", Color.WHITE, false, 4, 6000),
-    TERTIARY_LINK("highway", "tertiary_link", Color.WHITE, false, 3, 6000),
-    UNCLASSIFIED("highway", "unclassified", Color.WHITE, false, 3, 10000),
-    RESIDENTIAL_ROAD("highway", "residential", Color.WHITE, false, 2, 18000),
-    LIVING_STREET("highway", "living_street", Color.WHITE, false, 2, 30000),
-    SERVICE("highway", "service", Color.WHITE, false, 1, 40000),
-    PEDESTRIAN("highway", "pedestrian", Color.WHITE, false, 1, 40000),
-    TRACK("highway", "track", Color.WHITE, false, 1, 40000),
+    SECONDARY("highway", "secondary", Color.GAINSBORO, false, 4, 0),
+    SECONDAY_LINK("highway", "seconday", Color.GAINSBORO, false, 3, 0),
+    TERTIARY("highway", "tertiary", Color.GAINSBORO, false, 4, 6000),
+    TERTIARY_LINK("highway", "tertiary_link", Color.GAINSBORO, false, 3, 6000),
+    UNCLASSIFIED("highway", "unclassified", Color.GAINSBORO, false, 3, 10000),
+    RESIDENTIAL_ROAD("highway", "residential", Color.GAINSBORO, false, 2, 18000),
+    LIVING_STREET("highway", "living_street", Color.GAINSBORO, false, 2, 30000),
+    SERVICE("highway", "service", Color.GAINSBORO, false, 1, 60000),
+    PEDESTRIAN("highway", "pedestrian", Color.GAINSBORO, false, 1, 60000),
+    TRACK("highway", "track", Color.GAINSBORO, false, 1, 60000),
 
     SEARCHRESULT("highway", "searchresult", Color.RED, false, 3, 0),
-    BUILDING("building", "building", Color.GREY, true, 0, 100000),
+    BUILDING("building", "building", Color.DARKGREY, true, 0, 100000),
     NONE(null, null, Color.BLACK, false, 0, 0);
 
     // key should be exactly what is read from the 'key' field in a tag in the osm file eg. "landuse" or "natural"
