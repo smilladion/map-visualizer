@@ -125,6 +125,8 @@ public class MapView {
 
         Scene scene = new Scene(rootPane);
 
+        scene.getStylesheets().add("mapStyle.css");
+
         window.setScene(scene);
         window.show();
 
