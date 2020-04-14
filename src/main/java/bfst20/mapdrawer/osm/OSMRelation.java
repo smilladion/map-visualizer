@@ -78,6 +78,6 @@ public class OSMRelation implements LongSupplier, NodeProvider {
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        return type.ordinal() - that.getType().ordinal();
     }
 }

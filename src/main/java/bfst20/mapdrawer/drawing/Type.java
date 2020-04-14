@@ -1,10 +1,10 @@
 package bfst20.mapdrawer.drawing;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public enum Type {
 
@@ -26,16 +26,16 @@ public enum Type {
 
     // TODO: Scuffed grass relations
     //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
-    
-    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 6000),
+
+    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 0),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, true, 0, 18000),
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, true, 0, 18000),
-    FOREST("landuse", "forest", Color.LIGHTGREEN, true, 0, 6000),
+    FOREST("landuse", "forest", Color.LIGHTGREEN, true, 0, 0),
     HEATH("natural", "heath", Color.WHEAT, true, 0, 18000),
     MEADOW("landuse", "meadow", Color.LIGHTGREEN, true, 0, 6000),
     QUARRY("landuse", "quarry", Color.LIGHTGREY, true, 0, 18000),
-    WOOD("natural", "wood", Color.LIGHTGREEN, true, 0, 18000), 
+    WOOD("natural", "wood", Color.LIGHTGREEN, true, 0, 18000),
     CEMETERY("landuse", "cemetery", Color.LIGHTGREEN, true, 0, 18000),
     ORCHARD("landuse", "orchard", Color.LIGHTGREEN, true, 0, 18000),
     FARMYARD("landuse", "farmyard", Color.LIGHTGOLDENRODYELLOW, true, 0, 18000),
@@ -102,45 +102,44 @@ public enum Type {
         map = new HashMap<String, Type>();
 
         // Add every type and their value to the map
-        for(Type type : Type.values()){
+        for (Type type : Type.values()) {
             map.put(type.value, type);
         }
     }
 
     // If map contains a mapping for the specified value return true
     // Used to check if Type class contains the given type in a <tag> element from osm file
-    public static boolean containsType(String value){
+    public static boolean containsType(String value) {
         return map.containsKey(value);
     }
 
     // Return the Type object corresponding to given value
-    public static Type getType(String value){
+    public static Type getType(String value) {
         return map.get(value);
     }
 
-    public Paint getColor(){
+    public Paint getColor() {
         return color;
     }
 
-    public String getKey(){
+    public String getKey() {
         return key;
     }
 
-    public String getValue(){
+    public String getValue() {
         return value;
     }
 
-    public int getLineWidth(){
+    public int getLineWidth() {
         return lineWidth;
     }
 
-    public boolean shouldBeFilled(){
+    public boolean shouldBeFilled() {
         return fill;
     }
 
     // If the type's zoom < transform.getMxx() returns true, draw
-    public boolean shouldPaint(double mxx){
+    public boolean shouldPaint(double mxx) {
         return zoom < mxx;
     }
-    
 }

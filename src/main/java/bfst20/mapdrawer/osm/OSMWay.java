@@ -144,6 +144,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        // Ordinal returns a number representing the type's order/position in the enum class, from 0 and up
+        return type.ordinal() - that.getType().ordinal();
     }
 }
