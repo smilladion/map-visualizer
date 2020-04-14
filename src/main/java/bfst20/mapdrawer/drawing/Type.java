@@ -33,7 +33,7 @@ public enum Type {
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, true, 0, 18000),
     FOREST("landuse", "forest", Color.LIGHTGREEN, true, 0, 6000),
     HEATH("natural", "heath", Color.WHEAT, true, 0, 18000),
-    MEADOW("landuse", "meadow", Color.LIGHTGREEN, true, 0, 18000),
+    MEADOW("landuse", "meadow", Color.LIGHTGREEN, true, 0, 6000),
     QUARRY("landuse", "quarry", Color.LIGHTGREY, true, 0, 18000),
     WOOD("natural", "wood", Color.LIGHTGREEN, true, 0, 18000), 
     CEMETERY("landuse", "cemetery", Color.LIGHTGREEN, true, 0, 18000),

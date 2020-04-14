@@ -16,7 +16,7 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        File file = new File("src/main/resources/maps/samsoe.osm");
+        File file = new File("src/main/resources/samsoe.osm");
         String fileName = file.getName();
         String fileExt = fileName.substring(fileName.lastIndexOf("."));
         switch (fileExt) {
