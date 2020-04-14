@@ -54,23 +54,23 @@ public enum Type {
 
     // roads
     HIGHWAY("highway", "highway", Color.DIMGRAY, false, 1, 80000),
-    MOTORWAY("highway", "motorway", Color.SALMON, false, 4, 0),
-    MOTORWAY_LINK("highway", "motorway_link", Color.DIMGRAY, false, 3, 20000),
-    PRIMARY("highway", "primary", Color.YELLOW, false, 3, 0),
-    PRIMARY_LINK("highway", "primary_link", Color.YELLOW, false, 3, 0),
-    SECONDARY("highway", "secondary", Color.DARKBLUE, false, 2, 0),
-    SECONDAY_LINK("highway", "seconday", Color.DARKBLUE, false, 2, 0),
-    TERTIARY("highway", "tertiary", Color.DIMGRAY, false, 2, 4000),
-    TERTIARY_LINK("highway", "tertiary_link", Color.DIMGRAY, false, 2, 4000),
-    UNCLASSIFIED("highway", "unclassified", Color.DIMGRAY, false, 2, 6000),
-    RESIDENTIAL_ROAD("highway", "residential", Color.DIMGRAY, false, 1, 12000),
-    LIVING_STREET("highway", "living_street", Color.DIMGRAY, false, 1, 18000),
-    SERVICE("highway", "service", Color.DIMGRAY, false, 1, 18000),
-    PEDESTRIAN("highway", "pedestrian", Color.DIMGRAY, false, 1, 18000),
-    TRACK("highway", "track", Color.DIMGRAY, false, 1, 12000),
+    MOTORWAY("highway", "motorway", Color.SALMON, false, 6, 0),
+    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 5, 0),
+    PRIMARY("highway", "primary", Color.LIGHTPINK, false, 5, 0),
+    PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, false, 4, 0),
+    SECONDARY("highway", "secondary", Color.WHITE, false, 4, 0),
+    SECONDAY_LINK("highway", "seconday", Color.WHITE, false, 3, 0),
+    TERTIARY("highway", "tertiary", Color.WHITE, false, 4, 6000),
+    TERTIARY_LINK("highway", "tertiary_link", Color.WHITE, false, 3, 6000),
+    UNCLASSIFIED("highway", "unclassified", Color.WHITE, false, 3, 10000),
+    RESIDENTIAL_ROAD("highway", "residential", Color.WHITE, false, 2, 18000),
+    LIVING_STREET("highway", "living_street", Color.WHITE, false, 2, 30000),
+    SERVICE("highway", "service", Color.WHITE, false, 1, 40000),
+    PEDESTRIAN("highway", "pedestrian", Color.WHITE, false, 1, 40000),
+    TRACK("highway", "track", Color.WHITE, false, 1, 40000),
 
     SEARCHRESULT("highway", "searchresult", Color.RED, false, 3, 0),
-    BUILDING("building", "building", Color.GREY, true, 0, 70000),
+    BUILDING("building", "building", Color.GREY, true, 0, 100000),
     NONE(null, null, Color.BLACK, false, 0, 0);
 
     // key should be exactly what is read from the 'key' field in a tag in the osm file eg. "landuse" or "natural"
