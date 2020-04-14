@@ -168,18 +168,7 @@ public class OSMMap {
 
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-
-                            // Only set specific highway type if there is a type with this value ...
-                            if (Type.containsType(value)){
-                                
-                                // ... and if that type has the correct key (highway)
-                                if(Type.getType(value).getKey().equals(key))
-                                type = Type.getType(value);
-
-                                // This fixes duplicate values eg. residential:
-                                // can be either a relation (key:landuse) or a way (key:highway)
-                                
-                            }
+                            if(Type.containsType(value)) type = Type.getType(value);
 
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
