@@ -26,7 +26,7 @@ public class Point implements Drawable {
         y = node.getLat();
 
         image = new Image(Objects.requireNonNull(
-                getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"),
+                getClass().getClassLoader().getResourceAsStream("point_a.png"),
                 "Point image not found!"
         ));
     }
