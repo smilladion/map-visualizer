@@ -46,15 +46,16 @@ public class KdTree {
     }
 
     // Searches the tree with the specified range, returns a list of providers (ways/relations) in the range
-    public void search(List<NodeProvider> results, KdNode node, Rectangle range) {
-        results.add(node.provider);
+    public void search(List<NodeProvider> results, KdNode node, Rectangle range, double mxx) {
+        if(node.provider.getType().shouldPaint(mxx))
+            results.add(node.provider);
 
         if (node.left != null && range.intersects(node.left.boundingBox)) {
-            search(results, node.left, range);
+            search(results, node.left, range, mxx);
         }
 
         if (node.right != null && range.intersects(node.right.boundingBox)) {
-            search(results, node.right, range);
+            search(results, node.right, range, mxx);
         }
     }
 
