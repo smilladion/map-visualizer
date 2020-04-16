@@ -51,15 +51,10 @@ public class OSMMap {
 
     private final List<OSMWay> highways = new ArrayList<>();
 
-<<<<<<< HEAD
-    private static Map<OSMNode, Integer> nodeToInt = new HashMap<>();
-    private static Map<Integer, OSMNode> intToNode = new HashMap<>();
-    private static int nodeNumber = 1;
-=======
+
     private final Map<OSMNode, Integer> nodeToInt = new HashMap<>();
     private final Map<Integer, OSMNode> intToNode = new HashMap<>();
     private int nodeNumber = 1;
->>>>>>> ebbf7bf9cfd7abe015afd250449c5de56f7635ae
 
     private Graph routeGraph;
 
