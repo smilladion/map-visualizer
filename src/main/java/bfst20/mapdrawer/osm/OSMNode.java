@@ -35,6 +35,8 @@ public class OSMNode implements LongSupplier {
     }
 
     public void setNumberForGraph(int number) {
-        numberForGraph = number;
+        if (numberForGraph < 0) {
+            numberForGraph = number;
+        }
     }
 }

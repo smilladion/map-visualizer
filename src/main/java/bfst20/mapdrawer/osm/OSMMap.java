@@ -148,6 +148,12 @@ public class OSMMap {
 
             map.kdtree = new KdTree(providers);
 
+            for (OSMWay way : map.highways) {
+                for (OSMNode node : way.getNodes()) {
+                    System.out.println(node.getNumberForGraph());
+                }
+            }
+
             map.routeGraph = new Graph(20000, map.highways);
         }
 
