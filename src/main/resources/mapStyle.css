@@ -34,6 +34,10 @@
     -fx-fill: #ffc857;
 }
 
+#toggleBox {
+    -fx-padding: 35 10 0;
+}
+
 .toggle-switch:selected .thumb-area {
     -fx-background-color: #ffc857;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 0.2, 0.0, 0.0, 2);

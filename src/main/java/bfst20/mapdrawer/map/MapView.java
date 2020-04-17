@@ -6,8 +6,6 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -55,11 +53,12 @@ public class MapView {
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
-    private final ToggleSwitch myPointsToggle; //from the ControlsFX library
+    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
 
     private final Label zoomDisplay = new Label();
     
     private final Label closestRoad = new Label();
+    private Point pointOfInterest = new Point();
 
     public MapView(OSMMap model, Stage window) {
 
@@ -104,9 +103,14 @@ public class MapView {
         clearButton.setOnAction(controller.getClearAction());
 
         Button saveToSearch = new Button("Gem adresse");
-
-        myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
+        
         myPointsToggle.setText("Vis gemte adresser");
+        
+        VBox toggles = new VBox(myPointsToggle);
+        toggles.setId("toggleBox");
+        toggles.setAlignment(Pos.TOP_RIGHT);
+        toggles.setPickOnBounds(false);
+        rootPane.getChildren().add(toggles);
 
         HBox zoomLevel = new HBox(zoomDisplay);
         zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
@@ -124,13 +128,12 @@ public class MapView {
         fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
-        canvas.setOnMouseClicked(controller.getPanClickAction());
-        canvas.setOnMousePressed(controller.clickOnMapAction());
+        canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, saveToSearch, clearButton, myPointsToggle);
+        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -282,6 +285,8 @@ public class MapView {
         for (Drawable drawable : drawableExtras) {
             drawable.draw(context);
         }
+
+        pointOfInterest.draw(context);
     }
 
     public void paintPoints(String addressTo, String addressFrom) {
@@ -333,6 +338,10 @@ public class MapView {
     public void setClosestRoad(String t) {
         closestRoad.setText(t);
     }
+    
+    public void setPointOfInterest(Point p) {
+        pointOfInterest = p;
+    }
 
     public TextField getToSearchField() {
         return toSearchField;
@@ -356,5 +365,9 @@ public class MapView {
     
     public Affine getTransform() {
         return transform;
+    }
+    
+    public GraphicsContext getContext() {
+        return context;
     }
 }

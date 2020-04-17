@@ -77,7 +77,7 @@ public class KdTree {
         OSMNode closestNode = new OSMNode(0, 0, 0);
         
         if (nearest == null) {
-            nearest = predicate.test(node.provider) ? node.provider : new OSMWay(node.provider);
+            nearest = predicate.test(node.provider) ? node.provider : null;
         }
         
         if (node.left != null && node.left.boundingBox.containsPoint(p)) {
