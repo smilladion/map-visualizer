@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class Point implements Drawable {
 
-    private static final float SIZE = 0.85f;
+    private static final double SIZE = 0.85f;
 
     private final double x;
     private final double y;

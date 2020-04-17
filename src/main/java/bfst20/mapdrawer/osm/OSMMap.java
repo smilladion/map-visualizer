@@ -42,7 +42,7 @@ public class OSMMap {
 
     private final List<Drawable> islands = new ArrayList<>();
 
-    private KdTree kdtree;
+    private KdTree kdTree;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -131,7 +131,7 @@ public class OSMMap {
             providers.addAll(map.ways);
             providers.addAll(map.relations);
 
-            map.kdtree = new KdTree(providers);
+            map.kdTree = new KdTree(providers);
         }
 
         return map;
@@ -146,7 +146,8 @@ public class OSMMap {
         List<OSMNode> nodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMWay currentWay = new OSMWay(id, nodes, type);
+        String road = null;
+        OSMWay currentWay;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -168,13 +169,16 @@ public class OSMMap {
 
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-                            if(Type.containsType(value)) type = Type.getType(value);
-
+                            if (Type.containsType(value)) type = Type.getType(value);
+                            
+                        } else if (key.equals("name") && "highway".equals(type.getKey())) {
+                            road = value;
+                            
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
-                                currentWay = new OSMWay(id, nodes, type);
+                                currentWay = new OSMWay(id, nodes, type, road);
 
                                 var before = map.nodeToCoastline.remove(currentWay.first());
                                 if (before != null) {
@@ -200,7 +204,8 @@ public class OSMMap {
             }
         }
 
-        currentWay = new OSMWay(id, nodes, type);
+        currentWay = new OSMWay(id, nodes, type, road);
+        
         return currentWay;
     }
 
@@ -367,7 +372,7 @@ public class OSMMap {
     }
 
     public KdTree getKdTree() {
-        return kdtree;
+        return kdTree;
     }
 
     public List<String> getAddressList() {

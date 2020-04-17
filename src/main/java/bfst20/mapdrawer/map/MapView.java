@@ -6,6 +6,8 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -56,6 +58,8 @@ public class MapView {
     private final ToggleSwitch myPointsToggle; //from the ControlsFX library
 
     private final Label zoomDisplay = new Label();
+    
+    private final Label closestRoad = new Label();
 
     public MapView(OSMMap model, Stage window) {
 
@@ -108,6 +112,12 @@ public class MapView {
         zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
         zoomLevel.setPickOnBounds(false);
         rootPane.getChildren().add(zoomLevel);
+        
+        closestRoad.setText("Adresse");
+        HBox roadBox = new HBox(closestRoad);
+        roadBox.setAlignment(Pos.BOTTOM_LEFT);
+        roadBox.setPickOnBounds(false);
+        rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
@@ -118,6 +128,7 @@ public class MapView {
         canvas.setOnMousePressed(controller.clickOnMapAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
+        canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
         HBox searchRow = new HBox(fromSearchField, toSearchField, saveToSearch, clearButton, myPointsToggle);
         searchRow.setSpacing(20.0);
@@ -149,7 +160,7 @@ public class MapView {
         resetPanZoom();
 
         paintMap();
-
+        
         // Remove focus from search field on startup
         canvas.requestFocus();
     }
@@ -319,6 +330,10 @@ public class MapView {
         rootPane.requestFocus();
     }
 
+    public void setClosestRoad(String t) {
+        closestRoad.setText(t);
+    }
+
     public TextField getToSearchField() {
         return toSearchField;
     }
@@ -337,5 +352,9 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
+    }
+    
+    public Affine getTransform() {
+        return transform;
     }
 }

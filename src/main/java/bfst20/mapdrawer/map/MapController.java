@@ -1,13 +1,16 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -38,6 +41,8 @@ public class MapController {
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
+
+    private final EventHandler<MouseEvent> roadFinderAction;
 
     private Point2D lastMouse;
 
@@ -182,6 +187,23 @@ public class MapController {
                 System.err.println("Pin point image not found!");
             }*/
         };
+        
+        roadFinderAction = e -> {
+            try {
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+
+                NodeProvider result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY(), node -> node instanceof OSMWay && ((OSMWay) node).getRoad() != null);
+                
+                // TODO Too many calls return null, none should
+                if (result instanceof OSMWay) {
+                    if (((OSMWay) result).getRoad() != null) {
+                        view.setClosestRoad(((OSMWay) result).getRoad());
+                    }
+                }
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
+            }
+        };
     }
 
     // Can be moved to a separate model if needed (right now, it's only used in the controller)
@@ -236,5 +258,9 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<MouseEvent> getRoadFinderAction() {
+        return roadFinderAction;
     }
 }

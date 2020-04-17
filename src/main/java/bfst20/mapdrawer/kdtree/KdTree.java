@@ -1,7 +1,14 @@
 package bfst20.mapdrawer.kdtree;
 
+import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
+import javafx.geometry.Point2D;
+import org.w3c.dom.Node;
+
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 /*
 The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
@@ -16,6 +23,9 @@ public class KdTree {
 
     public KdTree(List<NodeProvider> nodes) {
         root = build(nodes, 0);
+
+        //draw(root, 0, 2); // TODO: For testing in console
+        System.out.flush();
     }
 
     // Builds the tree (is called in the constructor)
@@ -58,8 +68,78 @@ public class KdTree {
         }
     }
 
+    public NodeProvider nearest(double x, double y, Predicate<NodeProvider> predicate) {
+        return nearest(root, new Point2D(x, y), null, predicate);
+    }
+
+    // TODO Middle nodes may be closer, right now only checking leaves
+    private NodeProvider nearest(KdNode node, Point2D p, NodeProvider nearest, Predicate<NodeProvider> predicate) {
+        OSMNode closestNode = new OSMNode(0, 0, 0);
+        
+        if (nearest == null) {
+            nearest = predicate.test(node.provider) ? node.provider : new OSMWay(node.provider);
+        }
+        
+        if (node.left != null && node.left.boundingBox.containsPoint(p)) {
+            nearest = nearest(node.left, p, nearest, predicate);
+        }
+
+        if (node.right != null && node.right.boundingBox.containsPoint(p)) {
+            nearest = nearest(node.right, p, nearest, predicate);
+        }
+        
+        if (node.left == null && node.right == null) {
+            if (predicate.test(node.provider)) {
+                for (OSMNode n : ((OSMWay) node.provider).getNodes()) {
+                    if (p.distance(new Point2D(n.getLon(), n.getLat())) < p.distance(new Point2D(closestNode.getLon(), closestNode.getLat()))) {
+                        nearest = node.provider;
+                        closestNode = n;
+                    }
+                }
+            }
+            
+            /*if (p.distance(node.boundingBox.getCenterPoint()) < p.distance(nearest.getBoundingBox().getCenterPoint())) {
+                    nearest = node.provider;*/
+        }
+
+        return nearest;
+    }
+
     public KdNode getRoot() {
         return root;
+    }
+
+    public void draw(KdNode node, int indentation, int lrn) {
+        drawIndent(indentation);
+
+        if (node == null) {
+            if (lrn == 0) {
+                System.out.println("L EMPTY");
+            } else if (lrn == 1) {
+                System.out.println("R EMPTY");
+            }
+
+            return;
+        }
+
+        if (lrn == 0) {
+            System.out.print("L ");
+        } else if (lrn == 1) {
+            System.out.print("R ");
+        }
+
+        System.out.print(node.provider.getAvgX() + " " + node.provider.getAvgY());
+        System.out.print("\n");
+
+        draw(node.left, indentation + 1, 0);
+        draw(node.right, indentation + 1, 1);
+    }
+
+    // Also testing
+    private void drawIndent(int indentation) {
+        for (int i = 0; i < indentation; i++) {
+            System.out.print("-");
+        }
     }
 
     public static class KdNode {
@@ -95,6 +175,17 @@ public class KdTree {
             double ymax = Math.max(midBox.getYmax(), Math.max(leftBox.getYmax(), rightBox.getYmax()));
 
             return new Rectangle(xmin, ymin, xmax, ymax);
+        }
+    }
+
+    private static class KdPoint {
+
+        private final float x;
+        private final float y;
+
+        private KdPoint(float x, float y) {
+            this.x = x;
+            this.y = y;
         }
     }
 }
