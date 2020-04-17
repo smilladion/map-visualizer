@@ -26,7 +26,10 @@ import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
@@ -53,9 +56,13 @@ public class MapView {
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
-    private final ToggleSwitch myPointsToggle; //from the ControlsFX library
+    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
 
     private final Label zoomDisplay = new Label();
+    private final double initialZoom;
+    
+    private final Label closestRoad = new Label();
+    private Point pointOfInterest = new Point();
 
     public MapView(OSMMap model, Stage window) {
 
@@ -100,26 +107,38 @@ public class MapView {
         clearButton.setOnAction(controller.getClearAction());
 
         Button saveToSearch = new Button("Gem adresse");
-
-        myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
+        
         myPointsToggle.setText("Vis gemte adresser");
-
+        
+        VBox toggles = new VBox(myPointsToggle);
+        toggles.setId("toggleBox");
+        toggles.setAlignment(Pos.TOP_RIGHT);
+        toggles.setPickOnBounds(false);
+        rootPane.getChildren().add(toggles);
+        
+        zoomDisplay.setId("zoomDisplay");
         HBox zoomLevel = new HBox(zoomDisplay);
         zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
         zoomLevel.setPickOnBounds(false);
         rootPane.getChildren().add(zoomLevel);
+        
+        closestRoad.setId("closestRoad");
+        HBox roadBox = new HBox(closestRoad);
+        roadBox.setAlignment(Pos.BOTTOM_LEFT);
+        roadBox.setPickOnBounds(false);
+        rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
-        canvas.setOnMouseClicked(controller.getPanClickAction());
-        canvas.setOnMousePressed(controller.clickOnMapAction());
+        canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
+        canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        HBox searchRow = new HBox(fromSearchField, toSearchField, saveToSearch, clearButton, myPointsToggle);
+        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -150,6 +169,9 @@ public class MapView {
 
         paintMap();
 
+        initialZoom = transform.getMxx();
+        zoomDisplay.setText(String.format("x" + "%.1f", 1.0)); // Makes sure only 1 decimal is shown
+        
         // Remove focus from search field on startup
         canvas.requestFocus();
     }
@@ -163,11 +185,17 @@ public class MapView {
 
         try {
             if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
-                float size = 325.0f; // Use this offset to create a smaller range for searching (making the culling visible on screen)
+                double size = 325.0; // Use this offset to create a smaller range for searching (making the culling visible on screen)
 
                 // Gives coords for the current zoom/pan level
                 topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2, canvas.getHeight() / 2 - size / 2);
                 bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
+
+                // Draws borders for where the culling happens
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
             } else {
                 topLeft = transform.inverseTransform(0.0f, 0.0f);
                 bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
@@ -191,12 +219,6 @@ public class MapView {
         // Sort the NodeProviders in drawables list based on types
         // to make sure we draw the elements in the right order
         Collections.sort(drawables);
-
-        // Draws borders for where the culling happens
-        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
-        drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
-        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
-        drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
     }
 
     void pan(double dx, double dy) {
@@ -206,7 +228,7 @@ public class MapView {
 
     void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
-        zoomDisplay.setText("Zoom niveau: " + transform.getMxx());
+        zoomDisplay.setText(String.format("x" + "%.1f", transform.getMxx() / initialZoom));
         paintMap();
     }
 
@@ -244,11 +266,16 @@ public class MapView {
 
         // Draw OSMWays and relations
         for (NodeProvider provider : drawables) {
-            if (provider.getDrawable() == null) continue;
-
+            if (provider.getDrawable() == null) {
+                continue;
+            }
+            
             // Change linewidth for drawable objects where this is specified
             int lineWidth = provider.getType().getLineWidth();
-            if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+            
+            if (lineWidth > 0) {
+                context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+            }
             
             provider.getDrawable().draw(context);
 
@@ -272,6 +299,8 @@ public class MapView {
         for (Drawable drawable : drawableExtras) {
             drawable.draw(context);
         }
+
+        pointOfInterest.draw(context);
     }
 
     public void paintPoints(String addressTo, String addressFrom) {
@@ -320,6 +349,14 @@ public class MapView {
         rootPane.requestFocus();
     }
 
+    public void setClosestRoad(String t) {
+        closestRoad.setText(t);
+    }
+    
+    public void setPointOfInterest(Point p) {
+        pointOfInterest = p;
+    }
+
     public TextField getToSearchField() {
         return toSearchField;
     }
@@ -338,5 +375,9 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
+    }
+    
+    public Affine getTransform() {
+        return transform;
     }
 }

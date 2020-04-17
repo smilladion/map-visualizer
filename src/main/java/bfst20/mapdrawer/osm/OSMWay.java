@@ -24,11 +24,13 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private final List<OSMNode> nodes;
     private final Drawable drawable;
     private final Type type;
+    private final String road; // null if way is not a highway or there is no <name> tag
 
-    public OSMWay(long id, List<OSMNode> nodes, Type type) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
+        this.road = road;
 
         if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
@@ -47,6 +49,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
         this.nodes = new ArrayList<>();
         drawable = null;
         type = Type.UNKNOWN;
+        road = null;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -115,6 +118,10 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     public List<OSMNode> getNodes() {
         return nodes;
+    }
+    
+    public String getRoad() {
+        return road;
     }
 
     @Override

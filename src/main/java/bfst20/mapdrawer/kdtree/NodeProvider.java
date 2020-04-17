@@ -7,7 +7,7 @@ import bfst20.mapdrawer.drawing.Type;
 This interface makes sure the classes implementing it contain a drawable.
 This drawable must have a corresponding bounding box and center point.
  */
-public interface NodeProvider extends Comparable<NodeProvider>{
+public interface NodeProvider extends Comparable<NodeProvider> {
 
     Drawable getDrawable();
 

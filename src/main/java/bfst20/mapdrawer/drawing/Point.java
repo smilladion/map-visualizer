@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class Point implements Drawable {
 
-    private static final float SIZE = 0.85f;
+    private static final double SIZE = 0.85;
 
     private final double x;
     private final double y;
@@ -17,7 +17,7 @@ public class Point implements Drawable {
     private final Affine transform;
     private final Image image;
 
-    // To be used when you want to mark a single point. Image that is being painted is a pin point, like we know from other maps.
+    // To be used when you want to mark a single point with an address.
     public Point(OSMNode node, Affine transform) {
         this.node = node;
         this.transform = transform;
@@ -30,10 +30,36 @@ public class Point implements Drawable {
                 "Point image not found!"
         ));
     }
+    
+    // To be used for user-made point of interest.
+    public Point(double x, double y, Affine transform) {
+        this.node = null;
+        this.transform = transform;
+        this.x = x;
+        this.y = y;
+
+        image = new Image(Objects.requireNonNull(
+                getClass().getClassLoader().getResourceAsStream("point_b.png"),
+                "Point image not found!"
+        ));
+    }
+    
+    // Empty point for initialization.
+    public Point() {
+        this.node = null;
+        transform = null;
+        x = 0;
+        y = 0;
+        image = null;
+    }
 
     // Scales the image relative to the zoom level. Variable SIZE can be changed to whatever size we want it to be.
     @Override
     public void draw(GraphicsContext gc) {
+        if (image == null) {
+            return;
+        }
+        
         double initialZoom = 5000.0; // Found to be the appropriate value
         double scale = transform.getMxx() / initialZoom;
 

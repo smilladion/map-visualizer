@@ -1,13 +1,18 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -28,7 +33,6 @@ public class MapController {
 
     private final EventHandler<ActionEvent> searchAction;
     private final EventHandler<ActionEvent> clearAction;
-    private final EventHandler<MouseEvent> clickOnMapAction;
 
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
@@ -36,8 +40,10 @@ public class MapController {
     private final EventHandler<ActionEvent> loadFileAction;
 
     private final EventHandler<MouseEvent> panAction;
-    private final EventHandler<MouseEvent> panClickAction;
+    private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
+
+    private final EventHandler<MouseEvent> roadFinderAction;
 
     private Point2D lastMouse;
 
@@ -58,8 +64,8 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
+            view.setPointOfInterest(new Point());
             view.paintPoints(null, null);
-
         };
 
         // Saves the current address to my list.
@@ -112,11 +118,25 @@ public class MapController {
 
             view.paintPoints(addressTo, addressFrom);
         };
-
-        // Resets the value of lastMouse before the next pan/drag occurs
-        panClickAction = e -> {
+        
+        clickAction = e -> {
+            // Resets the value of lastMouse before the next pan/drag occurs
             if (!e.isPrimaryButtonDown()) {
                 lastMouse = null;
+            }
+
+            try {
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                
+                // Sets point of interest on right click
+                if (e.getButton() == MouseButton.SECONDARY) {
+                    Point p = new Point(mousePoint.getX(), mousePoint.getY(), view.getTransform());
+                    view.setPointOfInterest(p);
+                    view.paintMap();
+                }
+                
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
             }
         };
 
@@ -169,18 +189,15 @@ public class MapController {
                 }
             }
         };
-
-        //TODO - doesn't work. Should probably be something else other than just clicking - maybe a double click?
-        clickOnMapAction = e -> {
-            /*double x1 = e.getX();
-            double y1 = e.getY();
-
+        
+        roadFinderAction = e -> {
             try {
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
-            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
-            } catch (NullPointerException ex) {
-                System.err.println("Pin point image not found!");
-            }*/
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
+                view.setClosestRoad(result.getRoad());
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
+            }
         };
     }
 
@@ -210,8 +227,8 @@ public class MapController {
         return panAction;
     }
 
-    public EventHandler<MouseEvent> getPanClickAction() {
-        return panClickAction;
+    public EventHandler<MouseEvent> getClickAction() {
+        return clickAction;
     }
 
     public EventHandler<ScrollEvent> getScrollAction() {
@@ -220,10 +237,6 @@ public class MapController {
 
     public EventHandler<ActionEvent> getLoadFileAction() {
         return loadFileAction;
-    }
-
-    public EventHandler<MouseEvent> clickOnMapAction() {
-        return clickOnMapAction;
     }
 
     public EventHandler<ActionEvent> getClearAction() {
@@ -236,5 +249,9 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<MouseEvent> getRoadFinderAction() {
+        return roadFinderAction;
     }
 }

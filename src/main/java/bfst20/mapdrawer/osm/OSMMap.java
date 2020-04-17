@@ -31,10 +31,10 @@ public class OSMMap {
     private final Map<Long, OSMWay> idToWay = new HashMap<>();
     private final Map<Long, OSMRelation> idToRelation = new HashMap<>();
 
-    private final float minLat;
-    private final float minLon;
-    private final float maxLat;
-    private final float maxLon;
+    private final double minLat;
+    private final double minLon;
+    private final double maxLat;
+    private final double maxLon;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
@@ -42,9 +42,9 @@ public class OSMMap {
 
     private final List<Drawable> islands = new ArrayList<>();
 
-    private KdTree kdtree;
+    private KdTree kdTree;
 
-    private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
+    private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;
@@ -75,16 +75,16 @@ public class OSMMap {
                         }
 
                         // Create a new map and flips and fixes the spherical orientation
-                        map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
-                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
+                        map = new OSMMap(-Double.parseDouble(xmlReader.getAttributeValue(null, "maxlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "minlon")),
+                                -Double.parseDouble(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-                        float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
-                        float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
+                        double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
+                        double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
@@ -131,7 +131,7 @@ public class OSMMap {
             providers.addAll(map.ways);
             providers.addAll(map.relations);
 
-            map.kdtree = new KdTree(providers);
+            map.kdTree = new KdTree(providers);
         }
 
         return map;
@@ -146,7 +146,8 @@ public class OSMMap {
         List<OSMNode> nodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMWay currentWay = new OSMWay(id, nodes, type);
+        String road = null;
+        OSMWay currentWay;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -168,13 +169,16 @@ public class OSMMap {
 
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-                            if(Type.containsType(value)) type = Type.getType(value);
-
+                            if (Type.containsType(value)) type = Type.getType(value);
+                            
+                        } else if (key.equals("name") && "highway".equals(type.getKey())) {
+                            road = value;
+                            
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
-                                currentWay = new OSMWay(id, nodes, type);
+                                currentWay = new OSMWay(id, nodes, type, road);
 
                                 var before = map.nodeToCoastline.remove(currentWay.first());
                                 if (before != null) {
@@ -200,7 +204,8 @@ public class OSMMap {
             }
         }
 
-        currentWay = new OSMWay(id, nodes, type);
+        currentWay = new OSMWay(id, nodes, type, road);
+        
         return currentWay;
     }
 
@@ -330,19 +335,19 @@ public class OSMMap {
         return newFile;
     }
 
-    public float getMinLat() {
+    public double getMinLat() {
         return minLat;
     }
 
-    public float getMinLon() {
+    public double getMinLon() {
         return minLon;
     }
 
-    public float getMaxLat() {
+    public double getMaxLat() {
         return maxLat;
     }
 
-    public float getMaxLon() {
+    public double getMaxLon() {
         return maxLon;
     }
 
@@ -367,7 +372,7 @@ public class OSMMap {
     }
 
     public KdTree getKdTree() {
-        return kdtree;
+        return kdTree;
     }
 
     public List<String> getAddressList() {

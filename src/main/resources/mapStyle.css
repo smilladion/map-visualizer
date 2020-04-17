@@ -34,9 +34,33 @@
     -fx-fill: #ffc857;
 }
 
+.label {
+    -fx-font-family: "Roboto";
+}
+
+#toggleBox {
+    -fx-padding: 35 10 0;
+}
+
 .toggle-switch:selected .thumb-area {
     -fx-background-color: #ffc857;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 0.2, 0.0, 0.0, 2);
+}
+
+#closestRoad {
+    -fx-font-size: 12px;
+    -fx-background-color: white;
+    -fx-background-insets: 5;
+    -fx-background-radius: 5px;
+    -fx-padding: 10 15 10;
+}
+
+#zoomDisplay {
+    -fx-font-size: 12px;
+    -fx-background-color: white;
+    -fx-background-insets: 5;
+    -fx-background-radius: 5px;
+    -fx-padding: 10 15 10;
 }
 
 .menu-bar {
