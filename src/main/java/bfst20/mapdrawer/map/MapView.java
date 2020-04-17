@@ -26,7 +26,10 @@ import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
@@ -182,11 +185,17 @@ public class MapView {
 
         try {
             if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
-                float size = 325.0f; // Use this offset to create a smaller range for searching (making the culling visible on screen)
+                double size = 325.0; // Use this offset to create a smaller range for searching (making the culling visible on screen)
 
                 // Gives coords for the current zoom/pan level
                 topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2, canvas.getHeight() / 2 - size / 2);
                 bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
+
+                // Draws borders for where the culling happens
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
             } else {
                 topLeft = transform.inverseTransform(0.0f, 0.0f);
                 bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
@@ -209,12 +218,6 @@ public class MapView {
         // Sort the NodeProviders in drawables list based on types
         // to make sure we draw the elements in the right order
         Collections.sort(drawables);
-
-        // Draws borders for where the culling happens
-        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
-        drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
-        drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
-        drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
     }
 
     void pan(double dx, double dy) {
@@ -262,13 +265,18 @@ public class MapView {
 
         // Draw OSMWays and relations
         for (NodeProvider provider : drawables) {
-            if (provider.getDrawable() == null) continue;
+            if (provider.getDrawable() == null) {
+                continue;
+            }
 
-            if(provider.getType().shouldPaint(transform.getMxx())){
+            if (provider.getType().shouldPaint(transform.getMxx())) {
                 int lineWidth = provider.getType().getLineWidth();
                 // Change linewidth for drawable objects where this is specified
-                if (lineWidth > 0) context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+                if (lineWidth > 0) {
+                    context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+                }
                 provider.getDrawable().draw(context);
+                
                 // Change linewidth back to normal to ensure next element is drawn properly
                 context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }

@@ -23,7 +23,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private final long id;
     private final List<OSMNode> nodes;
     private final Drawable drawable;
-    private final Rectangle boundingBox;
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
@@ -43,18 +42,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
             // If it should not, draw a line
             drawable = new LinePath(this);
         }
-
-        boundingBox = new Rectangle(this);
-    }
-    
-    // Create a way from another way/relation simply to save its bounding box (used for nearest() in kdtree)
-    public OSMWay(NodeProvider provider) {
-        this.id = NO_ID;
-        this.nodes = new ArrayList<>();
-        drawable = provider.getDrawable();
-        type = provider.getType();
-        road = null;
-        boundingBox = provider.getBoundingBox();
     }
 
     private OSMWay() {
@@ -63,7 +50,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
         drawable = null;
         type = Type.UNKNOWN;
         road = null;
-        boundingBox = null;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {

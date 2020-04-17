@@ -193,15 +193,8 @@ public class MapController {
         roadFinderAction = e -> {
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-
-                NodeProvider result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY(), node -> node instanceof OSMWay && ((OSMWay) node).getRoad() != null);
-                
-                // TODO Too many calls return null, none should
-                if (result instanceof OSMWay) {
-                    if (((OSMWay) result).getRoad() != null) {
-                        view.setClosestRoad(((OSMWay) result).getRoad());
-                    }
-                }
+                OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
+                view.setClosestRoad(result.getRoad());
             } catch (NonInvertibleTransformException ex) {
                 ex.printStackTrace();
             }

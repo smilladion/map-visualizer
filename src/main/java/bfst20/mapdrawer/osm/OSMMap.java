@@ -31,10 +31,10 @@ public class OSMMap {
     private final Map<Long, OSMWay> idToWay = new HashMap<>();
     private final Map<Long, OSMRelation> idToRelation = new HashMap<>();
 
-    private final float minLat;
-    private final float minLon;
-    private final float maxLat;
-    private final float maxLon;
+    private final double minLat;
+    private final double minLon;
+    private final double maxLat;
+    private final double maxLon;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
@@ -44,7 +44,7 @@ public class OSMMap {
 
     private KdTree kdTree;
 
-    private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
+    private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;
@@ -75,16 +75,16 @@ public class OSMMap {
                         }
 
                         // Create a new map and flips and fixes the spherical orientation
-                        map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
-                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
+                        map = new OSMMap(-Double.parseDouble(xmlReader.getAttributeValue(null, "maxlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "minlon")),
+                                -Double.parseDouble(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-                        float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
-                        float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
+                        double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
+                        double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
@@ -335,19 +335,19 @@ public class OSMMap {
         return newFile;
     }
 
-    public float getMinLat() {
+    public double getMinLat() {
         return minLat;
     }
 
-    public float getMinLon() {
+    public double getMinLon() {
         return minLon;
     }
 
-    public float getMaxLat() {
+    public double getMaxLat() {
         return maxLat;
     }
 
-    public float getMaxLon() {
+    public double getMaxLon() {
         return maxLon;
     }
 
