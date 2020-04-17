@@ -56,6 +56,7 @@ public class MapView {
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); //from the ControlsFX library
 
     private final Label zoomDisplay = new Label();
+    private final double initialZoom;
     
     private final Label closestRoad = new Label();
     private Point pointOfInterest = new Point();
@@ -111,13 +112,14 @@ public class MapView {
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
         rootPane.getChildren().add(toggles);
-
+        
+        zoomDisplay.setId("zoomDisplay");
         HBox zoomLevel = new HBox(zoomDisplay);
         zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
         zoomLevel.setPickOnBounds(false);
         rootPane.getChildren().add(zoomLevel);
         
-        closestRoad.setText("Adresse");
+        closestRoad.setId("closestRoad");
         HBox roadBox = new HBox(closestRoad);
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
@@ -163,6 +165,9 @@ public class MapView {
         resetPanZoom();
 
         paintMap();
+
+        initialZoom = transform.getMxx();
+        zoomDisplay.setText(String.format("x" + "%.1f", 1.0)); // Makes sure only 1 decimal is shown
         
         // Remove focus from search field on startup
         canvas.requestFocus();
@@ -219,7 +224,7 @@ public class MapView {
 
     void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
-        zoomDisplay.setText("Zoom niveau: " + transform.getMxx());
+        zoomDisplay.setText(String.format("x" + "%.1f", transform.getMxx() / initialZoom));
         paintMap();
     }
 
@@ -365,9 +370,5 @@ public class MapView {
     
     public Affine getTransform() {
         return transform;
-    }
-    
-    public GraphicsContext getContext() {
-        return context;
     }
 }
