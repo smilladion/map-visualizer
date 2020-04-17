@@ -36,6 +36,7 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
 
+import javax.swing.tree.DefaultTreeCellRenderer;
 import java.util.*;
 
 public class MapView {
@@ -119,7 +120,7 @@ public class MapView {
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
-        fromSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
         saveToSearch.setOnAction(controller.getSavePointOfInterestTo());
         saveFromSearch.setOnAction(controller.getSavePointOfInterestFrom());
         canvas.setOnMouseClicked(controller.getPanClickAction());
@@ -317,6 +318,19 @@ public class MapView {
 
     public void paintSavedAddresses() {
         for (Drawable drawable : myPointsTemp) {
+            drawable.draw(context);
+        }
+    }
+
+    public void paintRoute(OSMWay way) {
+
+        context.setTransform(transform);
+        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        LinePath path = new LinePath(way);
+        searchedDrawables.add(path);
+
+        for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
     }

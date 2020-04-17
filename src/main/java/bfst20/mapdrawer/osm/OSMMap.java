@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.Rutevejledning.Dijkstra;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
@@ -57,6 +58,7 @@ public class OSMMap {
     private int nodeNumber = 1;
 
     private Graph routeGraph;
+    private Dijkstra dijkstra;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
         this.minLat = minLat;
@@ -147,12 +149,6 @@ public class OSMMap {
             providers.addAll(map.relations);
 
             map.kdtree = new KdTree(providers);
-
-            for (OSMWay way : map.highways) {
-                for (OSMNode node : way.getNodes()) {
-                    System.out.println(node.getNumberForGraph());
-                }
-            }
 
             map.routeGraph = new Graph(20000, map.highways);
         }

@@ -1,9 +1,15 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.Rutevejledning.Dijkstra;
+import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Stack;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -15,7 +21,9 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MapController {
@@ -43,7 +51,11 @@ public class MapController {
     private final EventHandler<MouseEvent> panClickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
+    private final EventHandler<ActionEvent> searchActionDijkstraTest;
+
     private Point2D lastMouse;
+
+    private Dijkstra dijkstra;
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
@@ -118,6 +130,32 @@ public class MapController {
 
             }
             view.setLastSearch(view.getToSearchText());
+        };
+
+        searchActionDijkstraTest = e -> {
+
+            String from = view.getFromSearchField().getText();
+            String to = view.getToSearchField().getText();
+
+            int from1 = Integer.parseInt(from);
+            int to2 = Integer.parseInt(to);
+
+            dijkstra = new Dijkstra(model.getRouteGraph(), from1);
+
+            List<OSMNode> list = new ArrayList<>();
+
+            Stack<DirectedEdge> route = dijkstra.pathTo(to2);
+            while (!route.isEmpty()) {
+                OSMNode x = model.getIntToNode().get(route.peek().to());
+                OSMNode y = model.getIntToNode().get(route.peek().from());
+                list.add(x);
+                list.add(y);
+                System.out.println(route.pop());
+            }
+            Type type = Type.SEARCHRESULT;
+
+            OSMWay searchedWay = new OSMWay(1, list, type.getColor(), type);
+            view.paintRoute(searchedWay);
         };
 
         // Resets the value of lastMouse before the next pan/drag occurs
@@ -263,5 +301,9 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<ActionEvent> getSearchActionDijkstraTest() {
+        return searchActionDijkstraTest;
     }
 }

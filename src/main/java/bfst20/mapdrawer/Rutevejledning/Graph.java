@@ -2,6 +2,7 @@ package bfst20.mapdrawer.Rutevejledning;
 
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Bag;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ public class Graph {
                 int to = way.getNodes().get(i + 1).getNumberForGraph();
 
                 addEdge(from, to, weight, bike, walk, car);
+                addEdge(to, from, weight, bike, walk, car);
             }
         }
     }
@@ -40,6 +42,20 @@ public class Graph {
           } else {
               adj[from].add(edge);
           }
+    }
+
+    public Iterable<DirectedEdge> adja(int v) {
+        return adj[v];
+    }
+
+    public Iterable<DirectedEdge> edges() {
+        Bag<DirectedEdge> bag = new Bag<>();
+        for (int v = 0; v < vertices; v++) {
+            for (DirectedEdge edge : adj[v]) {
+                bag.add(edge);
+            }
+        }
+        return bag;
     }
 
     public int getVertices() {

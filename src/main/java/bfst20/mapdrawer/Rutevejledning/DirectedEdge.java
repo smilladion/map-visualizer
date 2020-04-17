@@ -18,4 +18,20 @@ public class DirectedEdge {
         this.car = car;
     }
 
+    public int from() {
+        return from;
+    }
+
+    public int to() {
+        return to;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+   public String toString() {
+        return String.format("from: " + from + ", to: " + to);
+   }
+
 }

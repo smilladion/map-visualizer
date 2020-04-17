@@ -25,6 +25,7 @@ public class LinePath implements Drawable {
 
     @Override
     public void draw(GraphicsContext gc) {
+
         gc.setStroke(color);
         gc.beginPath();
         trace(gc);
