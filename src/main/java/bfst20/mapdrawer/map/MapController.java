@@ -194,7 +194,9 @@ public class MapController {
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
                 OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
-                view.setClosestRoad(result.getRoad());
+                if (result.getRoad() != null) {
+                    view.setClosestRoad(result.getRoad());
+                }
             } catch (NonInvertibleTransformException ex) {
                 ex.printStackTrace();
             }
