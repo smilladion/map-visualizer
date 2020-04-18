@@ -22,22 +22,22 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     private final long id;
     private final List<OSMNode> nodes;
-    private final Paint color;
     private final Drawable drawable;
     private final Type type;
+    private final String road; // null if way is not a highway or there is no <name> tag
 
-    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
         this.id = id;
         this.nodes = nodes;
-        this.color = color;
         this.type = type;
+        this.road = road;
 
         if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
             drawable = null;
         } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, color);
+            drawable = new Polygon(this, type.getColor());
         } else {
             // If it should not, draw a line
             drawable = new LinePath(this);
@@ -47,9 +47,9 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        color = Type.UNKNOWN.getColor();
         drawable = null;
         type = Type.UNKNOWN;
+        road = null;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -119,9 +119,9 @@ public class OSMWay implements LongSupplier, NodeProvider {
     public List<OSMNode> getNodes() {
         return nodes;
     }
-
-    public Paint getColor() {
-        return color;
+    
+    public String getRoad() {
+        return road;
     }
 
     @Override
@@ -151,6 +151,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        // Ordinal returns a number representing the type's order/position in the enum class, from 0 and up
+        return type.ordinal() - that.getType().ordinal();
     }
 }
