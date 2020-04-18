@@ -145,6 +145,7 @@ public class MapController {
             List<OSMNode> list = new ArrayList<>();
 
             Stack<DirectedEdge> route = dijkstra.pathTo(to2);
+
             while (!route.isEmpty()) {
                 OSMNode x = model.getIntToNode().get(route.peek().to());
                 OSMNode y = model.getIntToNode().get(route.peek().from());
