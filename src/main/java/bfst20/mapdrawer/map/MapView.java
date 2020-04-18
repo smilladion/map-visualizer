@@ -382,7 +382,7 @@ public class MapView {
         return transform;
     }
 
-    // Method used to add 
+    // Method used to add all NodeProviders to the list of drawables. This should only happen once (in OSMMap fromFile())
     public static void addNodeProviders(List<NodeProvider> providers) {
         drawables.addAll(providers);
         Collections.sort(drawables);
