@@ -5,6 +5,7 @@ import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.map.MapView;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -130,6 +131,8 @@ public class OSMMap {
 
             providers.addAll(map.ways);
             providers.addAll(map.relations);
+
+            MapView.addNodeProviders(providers);
 
             map.kdTree = new KdTree(providers);
         }

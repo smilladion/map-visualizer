@@ -20,4 +20,6 @@ public interface NodeProvider extends Comparable<NodeProvider> {
     Type getType();
 
     int compareTo(NodeProvider that);
+
+    long getAsLong();
 }

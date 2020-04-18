@@ -5,6 +5,8 @@ import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -49,10 +51,11 @@ public class KdTree {
         return new KdNode(median, vLeft, vRight);
     }
     
-    /** Searches the tree with the specified range, returns a list of providers (ways/relations) in the range. */
-    public void search(List<NodeProvider> results, KdNode node, Rectangle range, double mxx) {
-        if(node.provider.getType().shouldPaint(mxx))
-            results.add(node.provider);
+    /** Searches the tree with the specified range, returns a set of provider IDs (ways/relations) in the range. */
+    public void search(HashSet<Long> results, KdNode node, Rectangle range, double mxx) {
+        if(node.provider.getType().shouldPaint(mxx)){
+            results.add(node.provider.getAsLong());
+        }
 
         if (node.left != null && range.intersects(node.left.boundingBox)) {
             search(results, node.left, range, mxx);

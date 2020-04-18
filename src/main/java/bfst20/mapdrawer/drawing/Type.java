@@ -140,6 +140,6 @@ public enum Type {
 
     // If the type's zoom < transform.getMxx() returns true, draw
     public boolean shouldPaint(double mxx) {
-        return zoom < mxx;
+        return zoom <= mxx;
     }
 }
