@@ -7,12 +7,12 @@ import javafx.scene.paint.Paint;
 public class LinePath implements Drawable {
 
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
-    private final float[] coords;
+    private final double[] coords;
     private final Paint color;
 
     public LinePath(OSMWay way) {
         // Each point has an X and a Y (number of slots we need)
-        coords = new float[2 * way.getNodes().size()];
+        coords = new double[2 * way.getNodes().size()];
 
         // For each point in this path, add the coordinate to our list
         for (int i = 0; i < way.getNodes().size(); i++) {
@@ -20,7 +20,7 @@ public class LinePath implements Drawable {
             coords[i * 2 + 1] = way.getNodes().get(i).getLat();
         }
 
-        this.color = way.getColor();
+        this.color = way.getType().getColor();
     }
 
     @Override

@@ -14,21 +14,19 @@ public class OSMRelation implements LongSupplier, NodeProvider {
 
     private final long id;
     private final List<OSMWay> ways;
-    private final Paint color;
     private final Drawable drawable;
 
     private final Type type;
 
-    OSMRelation(long id, List<OSMWay> ways, Paint color, Type type) {
+    OSMRelation(long id, List<OSMWay> ways, Type type) {
         this.id = id;
         this.ways = ways;
-        this.color = color;
         this.type = type;
 
-        if (color == Type.NONE.getColor()) {
+        if (type.getColor() == Type.NONE.getColor()) {
             drawable = null;
         } else {
-            drawable = new Polygon(this, color);
+            drawable = new Polygon(this, type.getColor());
         }
     }
 
@@ -39,10 +37,6 @@ public class OSMRelation implements LongSupplier, NodeProvider {
 
     public List<OSMWay> getWays() {
         return ways;
-    }
-
-    public Paint getColor() {
-        return color;
     }
 
     @Override
@@ -84,6 +78,6 @@ public class OSMRelation implements LongSupplier, NodeProvider {
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        return type.ordinal() - that.getType().ordinal();
     }
 }
