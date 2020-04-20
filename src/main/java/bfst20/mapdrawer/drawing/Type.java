@@ -54,9 +54,9 @@ public enum Type {
 
     // roads
     HIGHWAY("highway", "highway", Color.GAINSBORO, false, 1, 80000),
-    MOTORWAY("highway", "motorway", Color.SALMON, false, 6, 1000),
-    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 5, 1000),
-    PRIMARY("highway", "primary", Color.LIGHTPINK, false, 5, 1000),
+    MOTORWAY("highway", "motorway", Color.SALMON, false, 4, 1000),
+    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 4, 1000),
+    PRIMARY("highway", "primary", Color.LIGHTPINK, false, 4, 1000),
     PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, false, 4, 1000),
     SECONDARY("highway", "secondary", Color.BISQUE, false, 4, 1000),
     SECONDAY_LINK("highway", "seconday", Color.BISQUE, false, 3, 1000),
