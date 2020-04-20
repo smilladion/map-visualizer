@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -175,7 +176,7 @@ public class MapView {
 
         initialZoom = transform.getMxx();
         zoomDisplay.setText(String.format("x" + "%.1f", 1.0)); // Makes sure only 1 decimal is shown
-
+        
         // Remove focus from search field on startup
         canvas.requestFocus();
     }

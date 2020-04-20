@@ -10,8 +10,8 @@ public enum Type {
 
     // First type (unknown) will be drawn first, bottom type will be last.
 
-    UNKNOWN(null, null, Color.TRANSPARENT, false, 0, 0),
-    COASTLINE("natural", "coastline", Color.TRANSPARENT, false, 0, 6000),
+    UNKNOWN(null, null, Color.LIGHTBLUE, false, 0, Integer.MAX_VALUE),
+    COASTLINE("natural", "coastline", Color.LIGHTBLUE, false, 0, 6000),
     //COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
     //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
     //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
@@ -27,7 +27,7 @@ public enum Type {
     // TODO: Scuffed grass relations
     //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
 
-    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 0),
+    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 6000),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, true, 0, 18000),
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, true, 0, 18000),
