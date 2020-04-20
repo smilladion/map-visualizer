@@ -26,7 +26,7 @@ public class OSMRelation implements LongSupplier, NodeProvider {
         if (type.getColor() == Type.NONE.getColor()) {
             drawable = null;
         } else {
-            drawable = new Polygon(this, type.getColor());
+            drawable = new Polygon(this);
         }
     }
 

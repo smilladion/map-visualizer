@@ -8,7 +8,6 @@ public class LinePath implements Drawable {
 
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
     private final double[] coords;
-    private final Paint color;
 
     public LinePath(OSMWay way) {
         // Each point has an X and a Y (number of slots we need)
@@ -19,13 +18,10 @@ public class LinePath implements Drawable {
             coords[i * 2] = way.getNodes().get(i).getLon();
             coords[i * 2 + 1] = way.getNodes().get(i).getLat();
         }
-
-        this.color = way.getType().getColor();
     }
 
     @Override
     public void draw(GraphicsContext gc) {
-        gc.setStroke(color);
         gc.beginPath();
         trace(gc);
         gc.stroke();

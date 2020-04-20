@@ -37,7 +37,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
             drawable = null;
         } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, type.getColor());
+            drawable = new Polygon(this);
         } else {
             // If it should not, draw a line
             drawable = new LinePath(this);

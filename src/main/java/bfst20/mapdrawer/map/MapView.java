@@ -219,6 +219,7 @@ public class MapView {
 
         // Draw islands
         for (Drawable island : model.getIslands()) {
+            context.setStroke(Color.LIGHTBLUE);
             island.draw(context);
             context.fill();
         }
@@ -249,10 +250,14 @@ public class MapView {
 
         for (Type type : Type.values()) {
             if (type.shouldPaint(transform.getMxx())) {
+                // Change the linewidth
+                context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
+                
+                // Change the color
+                context.setStroke(type.getColor());
+                context.setFill(type.getColor());
+                
                 if (model.getTypeToTree().containsKey(type)) {
-                    // Change linewidth for drawable objects
-                    context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
-                    
                     for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
                         p.getDrawable().draw(context);
                     }
