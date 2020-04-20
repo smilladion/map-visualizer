@@ -2,11 +2,13 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
+import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -32,6 +34,7 @@ import org.controlsfx.control.textfield.TextFields;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 public class MapView {
 
@@ -136,7 +139,9 @@ public class MapView {
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
-        fromSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
+
+        //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
         canvas.setOnMouseClicked(controller.getClickAction());
@@ -320,6 +325,19 @@ public class MapView {
 
     public void paintSavedAddresses() {
         for (Drawable drawable : savedPoints) {
+            drawable.draw(context);
+        }
+    }
+
+    public void paintRoute(OSMWay way) {
+
+        context.setTransform(transform);
+        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        LinePath path = new LinePath(way);
+        searchedDrawables.add(path);
+
+        for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
     }

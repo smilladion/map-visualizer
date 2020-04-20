@@ -119,6 +119,30 @@ public class KdTree implements Serializable{
         return bestDistance;
     }
 
+    public OSMNode nodeDistance(Point2D point, OSMWay way) {
+        if (way == null) {
+            System.out.println("way was null");
+            return null;
+        }
+
+        // Keeps track of the current best distance
+        double bestDistance = Double.MAX_VALUE;
+        OSMNode bestNode = null;
+
+        for (OSMNode node : way.getNodes()) {
+            double distance = node.distanceSq(point);
+
+            if (bestDistance > distance) {
+                bestDistance = distance;
+                bestNode = node;
+            }
+        }
+        if (bestNode == null) {
+            System.out.println("node was null");
+        }
+        return bestNode;
+    }
+
     public KdNode getRoot() {
         return root;
     }

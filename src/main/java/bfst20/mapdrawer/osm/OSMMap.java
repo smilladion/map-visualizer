@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.Rutevejledning.Dijkstra;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
@@ -18,6 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import bfst20.mapdrawer.Rutevejledning.Graph;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.LinePath;
+import edu.princeton.cs.algs4.DirectedEdge;
+import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 
 public class OSMMap implements Serializable{
 
@@ -48,7 +54,20 @@ public class OSMMap implements Serializable{
 
     private final List<Drawable> islands = new ArrayList<>();
 
+    private final List<OSMWay> highways = new ArrayList<>();
+
+    private final Map<String, OSMWay> addressToWay = new HashMap<>();
+
+    private final Map<OSMNode, Integer> nodeToInt = new HashMap<>();
+    private final Map<Integer, OSMNode> intToNode = new HashMap<>();
+    private int nodeNumber = 1;
+
+    private Graph routeGraph;
+    private Dijkstra dijkstra;
+
+
     private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
+
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;
@@ -92,7 +111,8 @@ public class OSMMap implements Serializable{
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
-                        map.idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
+
+                        map.idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat, -1));
                         map.addressToId.put(readAddress(map, xmlReader), id);
 
                         break;
@@ -140,6 +160,8 @@ public class OSMMap implements Serializable{
             providers.addAll(map.relations);
 
             map.kdTree = new KdTree(providers);
+
+            map.routeGraph = new Graph(20000, map.highways);
         }
 
         return map;
@@ -176,11 +198,15 @@ public class OSMMap implements Serializable{
 
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
+
+                            readTags(key, value, nodes, id, map);
+
                             if (Type.containsType(value)) type = Type.getType(value);
                             
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
-                            
+
+
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
@@ -212,15 +238,30 @@ public class OSMMap implements Serializable{
         }
 
         currentWay = new OSMWay(id, nodes, type, road);
-
+        
         if (!map.typeToProviders.containsKey(type)) {
             map.typeToProviders.put(type, new ArrayList<>());
         }
         map.typeToProviders.get(type).add(currentWay);
         
+        if (road != null) {
+            map.addressToWay.put(road.toLowerCase(), currentWay);
+        }
+        
         return currentWay;
     }
 
+    private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
+
+            for (OSMNode node : list) {
+                node.setNumberForGraph(map.nodeNumber);
+                map.intToNode.put(map.nodeNumber, node);
+                map.nodeToInt.put(node, map.nodeNumber);
+                map.nodeNumber++;
+            }
+            //TODO put road name in way constructor
+            map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, 1, true, true, true, null));
+    }
     /**
      * readRelation will continuously read XML tags until the end of the relation is
      * found This is a better, and less error-prone, design than reading in the main
@@ -413,6 +454,26 @@ public class OSMMap implements Serializable{
 
     public Map<String, Long> getAddressToId() {
         return addressToId;
+    }
+
+    public Map<OSMNode, Integer> getNodeToInt() {
+        return nodeToInt;
+    }
+
+    public Map<Integer, OSMNode> getIntToNode() {
+        return intToNode;
+    }
+
+    public List<OSMWay> getHighways() {
+        return highways;
+    }
+
+    public Map<String, OSMWay> getAddressToWay() {
+        return addressToWay;
+    }
+
+    public Graph getRouteGraph() {
+        return routeGraph;
     }
 
     // Can move this to its own file if needed

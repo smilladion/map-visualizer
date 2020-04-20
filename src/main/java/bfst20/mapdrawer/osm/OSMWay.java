@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -29,7 +30,14 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
+    private int weight;
+    private boolean bike;
+    private boolean walk;
+    private boolean car;
+
+
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
+
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -43,6 +51,27 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
             drawable = new Polygon(this);
         } else {
             // If it should not, draw a line
+            drawable = new LinePath(this);
+        }
+    }
+
+    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
+    public OSMWay(long id, List<OSMNode> nodes, Type type, int weight, boolean bike, boolean walk, boolean car, String road) {
+        this.id = id;
+        this.nodes = nodes;
+        this.type = type;
+
+        this.road = road;
+
+        this.weight = weight;
+        this.bike = bike;
+        this.walk = walk;
+        this.car = car;
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else {
             drawable = new LinePath(this);
         }
     }
@@ -125,6 +154,22 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     
     public String getRoad() {
         return road;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+
+    public boolean isWalk() {
+        return walk;
+    }
+
+    public boolean isCar() {
+        return car;
     }
 
     @Override
