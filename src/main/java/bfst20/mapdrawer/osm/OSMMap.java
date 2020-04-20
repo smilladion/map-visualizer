@@ -5,7 +5,6 @@ import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.map.MapView;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -36,14 +35,16 @@ public class OSMMap {
     private final double minLon;
     private final double maxLat;
     private final double maxLon;
+    
+    private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
+    private final HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+    private KdTree kdTree;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
 
     private final List<Drawable> islands = new ArrayList<>();
-
-    private KdTree kdTree;
 
     private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
         this.minLat = minLat;
@@ -107,7 +108,7 @@ public class OSMMap {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        map.idToRelation.put(id, readRelation(xmlReader, map.idToWay, id));
+                        map.idToRelation.put(id, readRelation(map, xmlReader, map.idToWay, id));
 
                         break;
                     }
@@ -126,13 +127,15 @@ public class OSMMap {
                     map.islands.add(new LinePath(entry.getValue()));
                 }
             }
+            
+            for (Map.Entry<Type, List<NodeProvider>> entry : map.typeToProviders.entrySet()) {
+                map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
+            }
 
             List<NodeProvider> providers = new ArrayList<>();
 
             providers.addAll(map.ways);
             providers.addAll(map.relations);
-
-            MapView.addNodeProviders(providers);
 
             map.kdTree = new KdTree(providers);
         }
@@ -144,8 +147,7 @@ public class OSMMap {
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
      */
-    private static OSMWay readWay(OSMMap map, XMLStreamReader xmlReader, long id)
-            throws XMLStreamException {
+    private static OSMWay readWay(OSMMap map, XMLStreamReader xmlReader, long id) throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -208,6 +210,11 @@ public class OSMMap {
         }
 
         currentWay = new OSMWay(id, nodes, type, road);
+
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentWay);
         
         return currentWay;
     }
@@ -217,7 +224,7 @@ public class OSMMap {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
+    private static OSMRelation readRelation(OSMMap map, XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -261,6 +268,12 @@ public class OSMMap {
         }
 
         currentRelation = new OSMRelation(id, ways, type);
+
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentRelation);
+        
         return currentRelation;
     }
 
@@ -374,6 +387,10 @@ public class OSMMap {
         return idToNode;
     }
 
+    public HashMap<Type, KdTree> getTypeToTree() {
+        return typeToTree;
+    }
+    
     public KdTree getKdTree() {
         return kdTree;
     }

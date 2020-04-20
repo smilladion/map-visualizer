@@ -3,6 +3,7 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
@@ -26,7 +27,10 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class MapView {
 
@@ -40,9 +44,7 @@ public class MapView {
     private final Canvas canvas;
     private final StackPane rootPane;
     private final GraphicsContext context;
-
-    private final static List<NodeProvider> drawables = new ArrayList<>(); // All map elements
-    private final HashSet<Long> kdSearchResults = new HashSet<>(); // IDs returned by kdTree search()
+    
     private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
 
@@ -178,45 +180,6 @@ public class MapView {
         canvas.requestFocus();
     }
 
-    public void populateDrawables(OSMMap model) {
-        kdSearchResults.clear();
-        drawableExtras.clear();
-
-        Point2D topLeft = null;
-        Point2D bottomRight = null;
-
-        try {
-            if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
-                double size = 325.0; // Use this offset to create a smaller range for searching (making the culling
-                                     // visible on screen)
-
-                // Gives coords for the current zoom/pan level
-                topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2,
-                        canvas.getHeight() / 2 - size / 2);
-                bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2,
-                        canvas.getHeight() / 2 + size / 2);
-
-                // Draws borders for where the culling happens
-                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
-                drawableExtras
-                        .add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
-                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
-                drawableExtras
-                        .add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
-            } else {
-                topLeft = transform.inverseTransform(0.0f, 0.0f);
-                bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
-            }
-        } catch (NonInvertibleTransformException e) {
-            e.printStackTrace();
-        }
-
-        model.getKdTree().search(kdSearchResults, model.getKdTree().getRoot(),
-                new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()),
-                transform.getMxx());
-
-    }
-
     void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
@@ -235,6 +198,8 @@ public class MapView {
 
     // Updates and repaints the whole map
     public void paintMap() {
+        drawableExtras.clear();
+        
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
@@ -252,8 +217,6 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
 
-        populateDrawables(model);
-
         // Draw islands
         for (Drawable island : model.getIslands()) {
             island.draw(context);
@@ -261,13 +224,12 @@ public class MapView {
         }
 
         // Draw OSMWays and relations
-        for (NodeProvider provider : drawables) {
-            if (provider.getDrawable() == null)
+        /*for (NodeProvider provider : drawables) {
+            if (provider.getDrawable() == null) {
                 continue;
-
-            // Only draw if the provider object is found in the kdTree search()
-            if (kdSearchResults.contains(provider.getAsLong())) {
-
+            }
+            
+            if (provider.getType().shouldPaint(transform.getMxx())) {
                 // Change linewidth for drawable objects where this is specified
                 int lineWidth = provider.getType().getLineWidth();
 
@@ -279,6 +241,40 @@ public class MapView {
 
                 // Change linewidth back to normal to ensure next element is drawn properly
                 context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+            }
+        }*/
+
+        Point2D topLeft = null;
+        Point2D bottomRight = null;
+
+        try {
+            if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
+                double size = 325.0; // Use this offset to create a smaller range for searching (making the culling visible on screen)
+
+                // Gives coords for the current zoom/pan level
+                topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2, canvas.getHeight() / 2 - size / 2);
+                bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
+
+                // Draws borders for where the culling happens
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
+            } else {
+                topLeft = transform.inverseTransform(0.0f, 0.0f);
+                bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
+            }
+        } catch (NonInvertibleTransformException e) {
+            e.printStackTrace();
+        }
+
+        for (Type type : Type.values()) {
+            if (type.shouldPaint(transform.getMxx())) {
+                if (model.getTypeToTree().containsKey(type)) {
+                    for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
+                        p.getDrawable().draw(context);
+                    }
+                }
             }
         }
 
@@ -378,11 +374,5 @@ public class MapView {
 
     public Affine getTransform() {
         return transform;
-    }
-
-    // Method used to add all NodeProviders to the list of drawables. This should only happen once (in OSMMap fromFile())
-    public static void addNodeProviders(List<NodeProvider> providers) {
-        drawables.addAll(providers);
-        Collections.sort(drawables);
     }
 }
