@@ -2,10 +2,12 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
+import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -14,7 +16,6 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -26,7 +27,13 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 
 public class MapView {
 
@@ -65,8 +72,6 @@ public class MapView {
     public MapView(OSMMap model, Stage window) {
 
         window.setTitle("Google Map'nt");
-
-        window.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
 
         this.model = model;
 
@@ -130,7 +135,9 @@ public class MapView {
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
-        fromSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
+
+        //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
         canvas.setOnMouseClicked(controller.getClickAction());
@@ -143,7 +150,7 @@ public class MapView {
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
         searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
-                                          // areas
+        // areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -188,7 +195,7 @@ public class MapView {
         try {
             if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
                 double size = 325.0; // Use this offset to create a smaller range for searching (making the culling
-                                     // visible on screen)
+                // visible on screen)
 
                 // Gives coords for the current zoom/pan level
                 topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2,
@@ -337,6 +344,19 @@ public class MapView {
         }
     }
 
+    public void paintRoute(OSMWay way) {
+
+        context.setTransform(transform);
+        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        LinePath path = new LinePath(way);
+        searchedDrawables.add(path);
+
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
+        }
+    }
+
     public void savePoint(String s) {
         long id = model.getAddressToId().get(s);
         getSavedPoints().add(new Point(model.getIdToNodeMap().get(id), transform));
@@ -380,7 +400,7 @@ public class MapView {
         return transform;
     }
 
-    // Method used to add all NodeProviders to the list of drawables. This should only happen once (in OSMMap fromFile())
+    // Method used to add
     public static void addNodeProviders(List<NodeProvider> providers) {
         drawables.addAll(providers);
         Collections.sort(drawables);

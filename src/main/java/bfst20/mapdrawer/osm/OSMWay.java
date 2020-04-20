@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
+
+import static java.lang.Math.pow;
 
 public class OSMWay implements LongSupplier, NodeProvider {
 
@@ -26,7 +29,19 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
+    private double weight;
+    private boolean bike;
+    private boolean walk;
+    private boolean car;
+
+    private float x1;
+    private float x2;
+    private float y1;
+    private float y2;
+
+
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
+
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -44,7 +59,28 @@ public class OSMWay implements LongSupplier, NodeProvider {
         }
     }
 
-    private OSMWay() {
+    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, String road) {
+        this.id = id;
+        this.nodes = nodes;
+        this.type = type;
+
+        this.road = road;
+
+        this.weight = weight;
+        this.bike = bike;
+        this.walk = walk;
+        this.car = car;
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else {
+            drawable = new LinePath(this);
+        }
+    }
+
+    public OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
         drawable = null;
@@ -119,9 +155,25 @@ public class OSMWay implements LongSupplier, NodeProvider {
     public List<OSMNode> getNodes() {
         return nodes;
     }
-    
+
     public String getRoad() {
         return road;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+
+    public boolean isWalk() {
+        return walk;
+    }
+
+    public boolean isCar() {
+        return car;
     }
 
     @Override
@@ -153,5 +205,42 @@ public class OSMWay implements LongSupplier, NodeProvider {
     public int compareTo(NodeProvider that) {
         // Ordinal returns a number representing the type's order/position in the enum class, from 0 and up
         return type.ordinal() - that.getType().ordinal();
+    }
+
+    public double calculateWeight(List<OSMWay> highways) {
+        //Full weight of a given way
+        List<Double> weightOfWay= new ArrayList<>();
+
+        double x1; // = way.first().getLat();
+        double x2; // = way.last().getLat();
+
+        double y1; // = way.first().getLon();
+        double y2; // = way.last().getLon();
+
+
+        for(OSMWay way : highways){
+            for(int i = 0; i < way.getNodes().size(); i++){
+                //Coordinates for "from"
+                x1 = way.getNodes().get(i).getLat();
+                y1 = way.getNodes().get(i).getLon();
+
+                //Coordinates for "to"
+                x2 = way.getNodes().get(i+1).getLat();
+                y2 = way.getNodes().get(i+1).getLon();
+
+                //Length between "from" and "to"
+                weight = Math.sqrt((pow((x2-x1), 2)) + (pow((y2-y1), 2)));      //skal måske være x1-x2/y1-y2?
+                weightOfWay.add(weight);
+            }
+        }
+
+        //Sum of a full way's length
+        double sum = 0;
+        for(int i = 0; i < weightOfWay.size(); i++){
+            sum = sum + weightOfWay.get(i);
+        }
+        weight = sum;
+
+        return weight;
     }
 }

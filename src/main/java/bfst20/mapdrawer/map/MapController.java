@@ -1,10 +1,22 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
+
+import bfst20.mapdrawer.Rutevejledning.Dijkstra;
+import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Stack;
+
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMWay;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -18,7 +30,9 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MapController {
@@ -43,9 +57,14 @@ public class MapController {
     private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
+    private final EventHandler<ActionEvent> searchActionDijkstraTest;
+
     private final EventHandler<MouseEvent> roadFinderAction;
 
+
     private Point2D lastMouse;
+
+    private Dijkstra dijkstra;
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
@@ -88,7 +107,6 @@ public class MapController {
             }
         };
 
-        // the toggle button.
         toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
                 if (view.getSavedPoints().isEmpty()) {
@@ -117,8 +135,50 @@ public class MapController {
             }
 
             view.paintPoints(addressTo, addressFrom);
+
         };
-        
+
+        searchActionDijkstraTest = e -> {
+
+            String addressTo = view.getToSearchField().getText().toLowerCase();
+            String addressFrom = view.getFromSearchField().getText().toLowerCase();
+
+            OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
+            OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
+
+            OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+            OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+            Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+            OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
+
+            Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+            OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
+
+            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), model.getHighways());
+
+            List<OSMNode> list = new ArrayList<>();
+
+            Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+
+            //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
+            //it check if its the last edge of the stack, and if it is it also adds the "to" node.
+            while (!route.isEmpty()) {
+                OSMNode y = model.getIntToNode().get(route.peek().from());
+                list.add(y);
+                if(route.size()==1) {
+                    OSMNode x = model.getIntToNode().get(route.peek().to());
+                    list.add(x);
+                }
+                System.out.println(route.pop());
+            }
+            Type type = Type.SEARCHRESULT;
+
+            OSMWay searchedWay = new OSMWay(1, list, type, null);
+            view.paintRoute(searchedWay);
+        };
+
+
         clickAction = e -> {
             // Resets the value of lastMouse before the next pan/drag occurs
             if (!e.isPrimaryButtonDown()) {
@@ -127,14 +187,14 @@ public class MapController {
 
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                
+
                 // Sets point of interest on right click
                 if (e.getButton() == MouseButton.SECONDARY) {
                     Point p = new Point(mousePoint.getX(), mousePoint.getY(), view.getTransform());
                     view.setPointOfInterest(p);
                     view.paintMap();
                 }
-                
+
             } catch (NonInvertibleTransformException ex) {
                 ex.printStackTrace();
             }
@@ -189,14 +249,12 @@ public class MapController {
                 }
             }
         };
-        
+
         roadFinderAction = e -> {
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
                 OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
-                if (result.getRoad() != null) {
-                    view.setClosestRoad(result.getRoad());
-                }
+                view.setClosestRoad(result.getRoad());
             } catch (NonInvertibleTransformException ex) {
                 ex.printStackTrace();
             }
@@ -251,6 +309,10 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<ActionEvent> getSearchActionDijkstraTest() {
+        return searchActionDijkstraTest;
     }
 
     public EventHandler<MouseEvent> getRoadFinderAction() {

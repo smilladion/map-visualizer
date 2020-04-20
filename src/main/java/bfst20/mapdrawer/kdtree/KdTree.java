@@ -10,10 +10,10 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
-The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
-This makes it possible to have both ways and relations in the KdTree.
-Comparisons are made not using splitting lines like normal, but bounding boxes around each element.
-Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
+ The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
+ This makes it possible to have both ways and relations in the KdTree.
+ Comparisons are made not using splitting lines like normal, but bounding boxes around each element.
+ Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
  */
 
 public class KdTree {
@@ -50,7 +50,7 @@ public class KdTree {
 
         return new KdNode(median, vLeft, vRight);
     }
-    
+
     /** Searches the tree with the specified range, returns a set of provider IDs (ways/relations) in the range. */
     public void search(HashSet<Long> results, KdNode node, Rectangle range, double mxx) {
         if(node.provider.getType().shouldPaint(mxx)){
@@ -70,12 +70,12 @@ public class KdTree {
     public OSMWay nearest(double x, double y) {
         return nearest(root, new Point2D(x, y), null);
     }
-    
+
     // Only returns/checks ways that contain a road name - will need another method if we want to include all nodeproviders
     private OSMWay nearest(KdNode node, Point2D point, OSMWay nearest) {
         if (node.provider instanceof OSMWay && ((OSMWay) node.provider).getRoad() != null) {
             OSMWay current = (OSMWay) node.provider;
-            
+
             if (distance(point, nearest) > distance(point, current)) {
                 nearest = current;
             }
@@ -96,19 +96,43 @@ public class KdTree {
         if (way == null) {
             return Double.MAX_VALUE; // Distance is so big anything it is compared to will be smaller
         }
-        
+
         // Keeps track of the current best distance
         double bestDistance = Double.MAX_VALUE;
-        
+
         for (OSMNode node : way.getNodes()) {
             double distance = node.distanceSq(point);
-            
+
             if (bestDistance > distance) {
                 bestDistance = distance;
             }
         }
 
         return bestDistance;
+    }
+
+    public OSMNode nodeDistance(Point2D point, OSMWay way) {
+        if (way == null) {
+            System.out.println("way was null");
+            return null;
+        }
+
+        // Keeps track of the current best distance
+        double bestDistance = Double.MAX_VALUE;
+        OSMNode bestNode = null;
+
+        for (OSMNode node : way.getNodes()) {
+            double distance = node.distanceSq(point);
+
+            if (bestDistance > distance) {
+                bestDistance = distance;
+                bestNode = node;
+            }
+        }
+        if (bestNode == null) {
+            System.out.println("node was null");
+        }
+        return bestNode;
     }
 
     public KdNode getRoot() {
