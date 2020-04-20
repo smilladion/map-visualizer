@@ -16,7 +16,7 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        File file = new File("src/main/resources/maps/samsoe.osm");
+        File file = new File("src/main/resources/maps/saved.bin");
         String fileName = file.getName();
         String fileExt = fileName.substring(fileName.lastIndexOf("."));
         switch (fileExt) {
@@ -31,6 +31,7 @@ public class Launcher extends Application {
                         primaryStage);
                 break;
             case ".bin":
+                new MapView(OSMMap.loadBinary(file), primaryStage);
                 break;
         }
     }

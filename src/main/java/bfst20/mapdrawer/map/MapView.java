@@ -86,6 +86,9 @@ public class MapView {
         MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
         loadFile.setOnAction(controller.getLoadFileAction());
         fileMenu.getItems().add(loadFile);
+        MenuItem saveFile = new MenuItem("Gem...                       (.bin)");
+        saveFile.setOnAction(controller.getSaveFileAction());
+        fileMenu.getItems().add(saveFile);
 
         optionsMenu.getItems().add(showKdTree);
         menuBar.getMenus().add(optionsMenu);

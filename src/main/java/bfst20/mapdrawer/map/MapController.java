@@ -9,6 +9,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -38,6 +39,7 @@ public class MapController {
     private final EventHandler<MouseEvent> toggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
+    private final EventHandler<ActionEvent> saveFileAction;
 
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> clickAction;
@@ -189,6 +191,28 @@ public class MapController {
                 }
             }
         };
+
+        saveFileAction = e -> {
+            File file = new FileChooser().showSaveDialog(stage);
+            if(file != null) try{
+                long time = -System.nanoTime();
+
+                if(file.getName().endsWith(".bin")) {
+                    try(var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))){
+                        out.writeObject(model);
+                    }
+
+                }else{
+                    new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                }
+
+                time += System.nanoTime();
+                System.out.println(time);
+
+            }catch(IOException exception){
+                new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
+            }
+        };
         
         roadFinderAction = e -> {
             try {
@@ -239,6 +263,10 @@ public class MapController {
 
     public EventHandler<ActionEvent> getLoadFileAction() {
         return loadFileAction;
+    }
+
+    public EventHandler<ActionEvent> getSaveFileAction() {
+        return saveFileAction;
     }
 
     public EventHandler<ActionEvent> getClearAction() {

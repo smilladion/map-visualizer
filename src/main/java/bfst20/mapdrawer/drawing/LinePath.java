@@ -1,10 +1,14 @@
 package bfst20.mapdrawer.drawing;
 
+import java.io.Serializable;
+
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
-public class LinePath implements Drawable {
+public class LinePath implements Drawable, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
     private final double[] coords;

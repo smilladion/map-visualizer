@@ -19,7 +19,9 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class OSMMap {
+public class OSMMap implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     private final Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
@@ -322,6 +324,16 @@ public class OSMMap {
         return address.toLowerCase();
     }
 
+    public static OSMMap loadBinary(File file) throws IOException {
+        OSMMap map = null;
+        try(var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))){
+            map = (OSMMap) in.readObject();
+        } catch (ClassNotFoundException e){
+            throw new RuntimeException(e);
+        }
+        return map;
+    }
+    
     public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
         File newFile = null;
         // Buffer for read and write data to file

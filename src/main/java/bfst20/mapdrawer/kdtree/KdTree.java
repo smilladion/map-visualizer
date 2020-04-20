@@ -4,6 +4,7 @@ import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -16,7 +17,9 @@ Comparisons are made not using splitting lines like normal, but bounding boxes a
 Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
  */
 
-public class KdTree {
+public class KdTree implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     private final KdNode root;
 
@@ -120,8 +123,10 @@ public class KdTree {
         return root;
     }
 
-    public static class KdNode {
+    public static class KdNode implements Serializable{
 
+        private static final long serialVersionUID = 1L;
+        
         private final NodeProvider provider;
         private final Rectangle boundingBox;
         private final KdNode left;

@@ -1,13 +1,17 @@
 package bfst20.mapdrawer.kdtree;
 
+import java.io.Serializable;
+
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 
-public class Rectangle implements Drawable {
+public class Rectangle implements Drawable, Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private final double xmin;
     private final double ymin;
     private final double xmax;

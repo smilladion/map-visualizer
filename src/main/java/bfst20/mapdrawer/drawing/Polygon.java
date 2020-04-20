@@ -1,11 +1,15 @@
 package bfst20.mapdrawer.drawing;
 
+import java.io.Serializable;
+
 import bfst20.mapdrawer.osm.OSMRelation;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Paint;
 
-public class Polygon implements Drawable {
+public class Polygon implements Drawable, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final Drawable shape; // Shape is either a LinePath or PolyLinePath
 

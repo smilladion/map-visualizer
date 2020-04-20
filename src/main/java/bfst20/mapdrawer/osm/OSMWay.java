@@ -8,13 +8,16 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMWay implements LongSupplier, NodeProvider {
+public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
     public static final OSMWay DUMMY_WAY = new OSMWay();
