@@ -7,6 +7,7 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
@@ -20,6 +21,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
@@ -28,6 +30,7 @@ import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -314,7 +317,11 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
         if (addressTo == null && addressFrom == null) {
-            paintMap();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Besked");
+            alert.setHeaderText(null);
+            alert.setContentText("Skriv noget i søgefeltet, for at søge på en adresse!");
+            alert.showAndWait();
         } else if ((addressFrom == null)) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().contains(addressTo)) {
@@ -335,6 +342,54 @@ public class MapView {
             for (Drawable drawable : searchedDrawables) {
                 drawable.draw(context);
             }
+        }
+    }
+
+    public void createRouteDescription(OSMWay way) {
+
+        for (int i = 0; i < way.getNodes().size()-2; i++) {
+            OSMNode from = way.getNodes().get(i);
+            OSMNode to = way.getNodes().get(i+1);
+            OSMNode last = way.getNodes().get(i+2);
+
+            Line line1 = new Line(from.getLon(), from.getLat(), to.getLon(), to.getLat());
+            Line line2 = new Line(to.getLon(), to.getLat(), last.getLon(), last.getLat());
+
+            double angle1 = Math.atan2(line1.getY1() - line1.getY2(),
+                    line1.getX1() - line1.getX2());
+            double angle2 = Math.atan2(line2.getY1() - line2.getY2(),
+                    line2.getX1() - line2.getX2());
+
+            double angle = angle1 - angle2;
+
+            String currentRoad = from.getRoad();
+            String s = to.getRoad();
+
+            if (!currentRoad.equals(s)) {
+                if (i == 0) {
+                    System.out.println("Fortsæt ligeud ad " + from.getRoad() + " imod " + to.getRoad());
+                }
+                if (to.getLon() > last.getLon()) {
+                    if (angle1 < angle2) {
+                        System.out.println("Drej til højre ad " + s);
+                    } else if (angle1 > angle2) {
+                        System.out.println("Drej til vestre ad " + s);
+                    } else {
+                        System.out.println("Fortsæt ligeud ad " + s);
+                    }
+                    //We are going right on the map
+                } else if (to.getLon() < last.getLon()) {
+                    if (angle1 < angle2) {
+                        System.out.println("Drej til venstre ad " + s);
+                    } else if (angle1 > angle2) {
+                        System.out.println("Drej til højre ad " + s);
+                    } else {
+                        System.out.println("Fortsæt ligeud ad " + s);
+                    }
+                }
+                currentRoad = s;
+            }
+
         }
     }
 

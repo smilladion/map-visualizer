@@ -33,4 +33,20 @@ public class Line implements Drawable {
         gc.lineTo(x2, y2);
         gc.stroke();
     }
+
+    public double getX1() {
+        return x1;
+    }
+
+    public double getX2() {
+        return x2;
+    }
+
+    public double getY1() {
+        return y1;
+    }
+
+    public double getY2() {
+        return y2;
+    }
 }

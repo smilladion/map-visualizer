@@ -66,6 +66,8 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
+    List<OSMNode> listForDijkstraOSMWay = new ArrayList<>();
+
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
@@ -125,7 +127,6 @@ public class MapController {
 
         searchAction = e -> {
             view.getSearchedDrawables().clear();
-            view.paintPoints(null, null);
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
@@ -156,25 +157,24 @@ public class MapController {
 
             dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
 
-            List<OSMNode> list = new ArrayList<>();
-
             Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
 
             //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
             //it check if its the last edge of the stack, and if it is it also adds the "to" node.
             while (!route.isEmpty()) {
                 OSMNode y = model.getIntToNode().get(route.peek().from());
-                list.add(y);
+                listForDijkstraOSMWay.add(y);
                 if(route.size()==1) {
                     OSMNode x = model.getIntToNode().get(route.peek().to());
-                    list.add(x);
+                    listForDijkstraOSMWay.add(x);
                 }
                 System.out.println(route.pop());
             }
             Type type = Type.SEARCHRESULT;
 
-            OSMWay searchedWay = new OSMWay(1, list, type, null);
+            OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
             view.paintRoute(searchedWay);
+            view.createRouteDescription(searchedWay);
         };
 
 

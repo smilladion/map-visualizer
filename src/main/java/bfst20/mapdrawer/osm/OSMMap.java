@@ -239,6 +239,9 @@ public class OSMMap {
 
         if (road != null) {
             map.addressToWay.put(road.toLowerCase(), currentWay);
+            for (OSMNode node : nodes) {
+                node.setRoad(road);
+            }
         }
 
         return currentWay;

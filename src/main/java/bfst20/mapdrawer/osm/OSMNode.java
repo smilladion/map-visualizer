@@ -9,6 +9,8 @@ public class OSMNode implements LongSupplier {
     private final double lon; // x
     private final double lat; // y
 
+    private String road;
+
     private int numberForGraph;
 
     public OSMNode(long id, double lon, double lat, int numberForGraph) {
@@ -40,6 +42,15 @@ public class OSMNode implements LongSupplier {
         if (numberForGraph < 0) {
             numberForGraph = number;
         }
+    }
+
+    public void setRoad(String road) {
+        this.road = road;
+
+    }
+
+    public String getRoad() {
+        return road;
     }
 
 
