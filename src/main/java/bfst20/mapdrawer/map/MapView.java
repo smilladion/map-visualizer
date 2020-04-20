@@ -223,27 +223,6 @@ public class MapView {
             context.fill();
         }
 
-        // Draw OSMWays and relations
-        /*for (NodeProvider provider : drawables) {
-            if (provider.getDrawable() == null) {
-                continue;
-            }
-            
-            if (provider.getType().shouldPaint(transform.getMxx())) {
-                // Change linewidth for drawable objects where this is specified
-                int lineWidth = provider.getType().getLineWidth();
-
-                if (lineWidth > 0) {
-                    context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
-                }
-
-                provider.getDrawable().draw(context);
-
-                // Change linewidth back to normal to ensure next element is drawn properly
-                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-            }
-        }*/
-
         Point2D topLeft = null;
         Point2D bottomRight = null;
 
@@ -271,6 +250,9 @@ public class MapView {
         for (Type type : Type.values()) {
             if (type.shouldPaint(transform.getMxx())) {
                 if (model.getTypeToTree().containsKey(type)) {
+                    // Change linewidth for drawable objects
+                    context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
+                    
                     for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
                         p.getDrawable().draw(context);
                     }
