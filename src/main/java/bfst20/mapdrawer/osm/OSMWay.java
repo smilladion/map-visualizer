@@ -1,10 +1,5 @@
 package bfst20.mapdrawer.osm;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.LongSupplier;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -13,7 +8,12 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMWay implements LongSupplier, NodeProvider{
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.LongSupplier;
+
+public class OSMWay implements LongSupplier, NodeProvider {
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -22,22 +22,22 @@ public class OSMWay implements LongSupplier, NodeProvider{
 
     private final long id;
     private final List<OSMNode> nodes;
-    private final Paint color;
     private final Drawable drawable;
     private final Type type;
+    private final String road; // null if way is not a highway or there is no <name> tag
 
-    public OSMWay(long id, List<OSMNode> nodes, Paint color, Type type) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
         this.id = id;
         this.nodes = nodes;
-        this.color = color;
         this.type = type;
+        this.road = road;
 
-        if(nodes.isEmpty()){
+        if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
             drawable = null;
-        } else if(type.shouldBeFilled()){
+        } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, color);
+            drawable = new Polygon(this, type.getColor());
         } else {
             // If it should not, draw a line
             drawable = new LinePath(this);
@@ -47,9 +47,9 @@ public class OSMWay implements LongSupplier, NodeProvider{
     private OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        color = Type.UNKNOWN.getColor();
         drawable = null;
         type = Type.UNKNOWN;
+        road = null;
     }
 
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
@@ -119,9 +119,9 @@ public class OSMWay implements LongSupplier, NodeProvider{
     public List<OSMNode> getNodes() {
         return nodes;
     }
-
-    public Paint getColor() {
-        return color;
+    
+    public String getRoad() {
+        return road;
     }
 
     @Override
@@ -145,12 +145,13 @@ public class OSMWay implements LongSupplier, NodeProvider{
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         return type;
     }
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        // Ordinal returns a number representing the type's order/position in the enum class, from 0 and up
+        return type.ordinal() - that.getType().ordinal();
     }
 }

@@ -1,8 +1,5 @@
 package bfst20.mapdrawer.osm;
 
-import java.util.List;
-import java.util.function.LongSupplier;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.drawing.Type;
@@ -10,25 +7,26 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
-public class OSMRelation implements LongSupplier, NodeProvider{
+import java.util.List;
+import java.util.function.LongSupplier;
+
+public class OSMRelation implements LongSupplier, NodeProvider {
 
     private final long id;
     private final List<OSMWay> ways;
-    private final Paint color;
     private final Drawable drawable;
 
     private final Type type;
 
-    OSMRelation(long id, List<OSMWay> ways, Paint color, Type type) {
+    OSMRelation(long id, List<OSMWay> ways, Type type) {
         this.id = id;
         this.ways = ways;
-        this.color = color;
         this.type = type;
 
-        if (color == Type.NONE.getColor()) {
+        if (type.getColor() == Type.NONE.getColor()) {
             drawable = null;
         } else {
-            drawable = new Polygon(this, color);
+            drawable = new Polygon(this, type.getColor());
         }
     }
 
@@ -39,10 +37,6 @@ public class OSMRelation implements LongSupplier, NodeProvider{
 
     public List<OSMWay> getWays() {
         return ways;
-    }
-
-    public Paint getColor() {
-        return color;
     }
 
     @Override
@@ -78,12 +72,12 @@ public class OSMRelation implements LongSupplier, NodeProvider{
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         return type;
     }
 
     @Override
     public int compareTo(NodeProvider that) {
-        return this.type.compareTo(that.getType());
+        return type.ordinal() - that.getType().ordinal();
     }
 }

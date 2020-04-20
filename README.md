@@ -1,2 +1,2 @@
-# mikkels branch
-*dangerino zone no entrero por favoros*
+# 👩‍💻 Førsteårsprojekt: Danmarkskort 👨‍💻
+Repositoriet til Gruppe 19.

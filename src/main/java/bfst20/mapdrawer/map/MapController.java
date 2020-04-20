@@ -1,71 +1,56 @@
 package bfst20.mapdrawer.map;
 
-import java.io.*;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.security.spec.ECField;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import bfst20.mapdrawer.Launcher;
-import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.paint.Color;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
-import routefinding.OSMRoute;
+import javafx.stage.Stage;
 
-import javax.swing.*;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import static bfst20.mapdrawer.map.PathColor.UNKNOWN;
-import static routefinding.OSMRoute.printHighways;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MapController {
 
     private final OSMMap model;
-    private final MapView view;
+    private MapView view;
+    private final Stage stage;
 
     // HashSet provides O(1) time for lookups, but not as fast iteration
     // Street names are part of the model, but will only be set and accessed via controller
     private final Set<String> streetNames = new HashSet<>();
 
-    private final EventHandler<ActionEvent> editAction;
     private final EventHandler<ActionEvent> searchAction;
     private final EventHandler<ActionEvent> clearAction;
-    private final EventHandler<MouseEvent> clickOnMapAction;
 
-    private final EventHandler<ActionEvent> savePointOfInterestTo;
-    private final EventHandler<ActionEvent> savePointOfInterestFrom;
+    private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
 
-    private final EventHandler<ActionEvent> loadZipAction;
-    private final EventHandler<ActionEvent> loadOSMAction;
+    private final EventHandler<ActionEvent> loadFileAction;
 
     private final EventHandler<MouseEvent> panAction;
-    private final EventHandler<MouseEvent> panClickAction;
+    private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
-    private final EventHandler<ActionEvent> changeColors;
-    private int lettersTyped = 0;
+
+    private final EventHandler<MouseEvent> roadFinderAction;
 
     private Point2D lastMouse;
 
-    MapController(OSMMap model, MapView view) {
+    MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
+        this.stage = stage;
 
         try {
             populateStreets(streetNames);
@@ -73,75 +58,85 @@ public class MapController {
             e.printStackTrace();
         }
 
-        editAction = e -> view.setSearchText(view.getLastSearch());
-
         clearAction = e -> {
             view.getToSearchField().clear();
             view.getFromSearchField().clear();
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            view.paintOnMap(null, null);
-
+            view.setPointOfInterest(new Point());
+            view.paintPoints(null, null);
         };
 
-        // Saves the address from the "til..." search field to my list.
-        savePointOfInterestTo = e-> {
-            String s = view.getToSearchField().getText().toLowerCase();
-            savePoint(s);
-        };
+        // Saves the current address to my list.
+        saveAddressAction = e -> {
+            String to = view.getToSearchField().getText().toLowerCase();
+            String from = view.getFromSearchField().getText().toLowerCase();
 
-        // saves address from the "fra..." searchfield.
-        savePointOfInterestFrom = e-> {
-            String s = view.getFromSearchField().getText().toLowerCase();
-            savePoint(s);
+            if (to.isEmpty() && from.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(null);
+                alert.setTitle("Besked");
+                alert.setContentText("Du skal have valgt mindst én adresse for at gemme den!");
+                alert.showAndWait();
+            }
+            if (!to.isEmpty()) {
+                view.savePoint(to);
+            }
+            if (!from.isEmpty()) {
+                view.savePoint(from);
+            }
         };
 
         // the toggle button.
-        toggleAction = e-> {
+        toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
-                if (view.getMyPoints().isEmpty()) {
+                if (view.getSavedPoints().isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Besked");
                     alert.setHeaderText(null);
-                    alert.setContentText("You have no saved addresses");
+                    alert.setContentText("Du har ingen gemte adresser!");
                     alert.showAndWait();
                 } else {
-                    for (Drawable drawable : view.getMyPoints()) {
-                        view.getMyPointsTemp().add(drawable);
-                    }
                     view.paintSavedAddresses();
                 }
             } else {
-                view.getMyPointsTemp().clear();
-                view.paintOnMap(null, null);
+                view.paintPoints(null, null);
             }
         };
 
         searchAction = e -> {
+            view.getSearchedDrawables().clear();
+            view.paintPoints(null, null);
 
-            String address = view.getToSearchText().toLowerCase();
-            String address1 = view.getFromSearchField().getText().toLowerCase();
+            String addressTo = view.getToSearchField().getText().toLowerCase();
+            String addressFrom = view.getFromSearchField().getText().toLowerCase();
 
-            if (address1.trim().equals("")) {
-                address1 = null;
+            if (addressFrom.trim().equals("")) {
+                addressFrom = null;
             }
 
-            view.getFromSearchField().setVisible(true);
-            view.getSaveFromSearch().setVisible(true);
-
-            if (address1 != null) {
-                view.paintOnMap(address, address1);
-            } else if (address1 == null) {
-                view.paintOnMap(address, null);
-
-            }
-            view.setLastSearch(view.getToSearchText());
+            view.paintPoints(addressTo, addressFrom);
         };
-
-        // Resets the value of lastMouse before the next pan/drag occurs
-        panClickAction = e -> {
+        
+        clickAction = e -> {
+            // Resets the value of lastMouse before the next pan/drag occurs
             if (!e.isPrimaryButtonDown()) {
                 lastMouse = null;
+            }
+
+            try {
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                
+                // Sets point of interest on right click
+                if (e.getButton() == MouseButton.SECONDARY) {
+                    Point p = new Point(mousePoint.getX(), mousePoint.getY(), view.getTransform());
+                    view.setPointOfInterest(p);
+                    view.paintMap();
+                }
+                
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
             }
         };
 
@@ -158,54 +153,54 @@ public class MapController {
             view.zoom(factor, e.getX(), e.getY());
         };
 
-        loadZipAction = e -> {
+        loadFileAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            try {
-                MapView.updateMap(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")));
-            } catch (Exception exc){
-                exc.printStackTrace();
+
+            if (file != null) {
+                String fileName = file.getName();
+                String fileExt = fileName.substring(fileName.lastIndexOf("."));
+
+                switch (fileExt) {
+                    case ".osm":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".zip":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".bin":
+                        break;
+                    default:
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Fejlmeddelelse");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                        alert.showAndWait();
+                }
             }
         };
-
-        //TODO - doesn't work. Should probably be something else other than just clicking - maybe a double click?
-        changeColors = e -> {
-            printHighways();
-        };
-
-        clickOnMapAction = e -> {
-            /*double x1 = e.getX();
-            double y1 = e.getY();
-
+        
+        roadFinderAction = e -> {
             try {
-            Image pointImage = new Image(this.getClass().getClassLoader().getResourceAsStream("REDlogotrans.png"));
-            view.getContext().drawImage(pointImage, x1+(0.01 / 2), y1, -0.01, -0.01);
-            } catch (NullPointerException ex) {
-                System.err.println("Pin point image not found!");
-            }*/
-        };
-
-        loadOSMAction = e -> {
-            FileChooser fileChooser = new FileChooser();
-            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
-            try{
-                MapView.updateMap(OSMMap.fromFile(file));
-            } catch (Exception exc){
-                exc.printStackTrace();
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
+                if (result.getRoad() != null) {
+                    view.setClosestRoad(result.getRoad());
+                }
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
             }
         };
-    }
-
-    public void savePoint(String s) {
-        if (s.trim().equals("")) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText(null);
-            alert.setContentText("No address was found - please write an address to add it to your saved points");
-            alert.showAndWait();
-        } else {
-            long id = model.getAddressToId().get(s);
-            view.getMyPoints().add(new Point(model.getIdToNodeMap().get(id)));
-        }
     }
 
     // Can be moved to a separate model if needed (right now, it's only used in the controller)
@@ -217,17 +212,13 @@ public class MapController {
             return;
         }
 
-        //ISO-8859-1 makes sure you can read special characters, ex. ä
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
+        // UTF-8 makes sure you can read special characters, ex. ä
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
 
         String streetName;
         while ((streetName = br.readLine()) != null) {
             streetNames.add(streetName);
         }
-    }
-
-    public EventHandler<ActionEvent> getEditAction() {
-        return editAction;
     }
 
     public EventHandler<ActionEvent> getSearchAction() {
@@ -238,40 +229,31 @@ public class MapController {
         return panAction;
     }
 
-    public EventHandler<MouseEvent> getPanClickAction() {
-        return panClickAction;
+    public EventHandler<MouseEvent> getClickAction() {
+        return clickAction;
     }
 
     public EventHandler<ScrollEvent> getScrollAction() {
         return scrollAction;
     }
 
-    public EventHandler<ActionEvent> getLoadZipAction() {
-        return loadZipAction;
-    }
-
-    public EventHandler<ActionEvent> getLoadOSMAction() {
-        return loadOSMAction;
-    }
-
-    public EventHandler<MouseEvent> clickOnMapAction() {
-        return clickOnMapAction;
+    public EventHandler<ActionEvent> getLoadFileAction() {
+        return loadFileAction;
     }
 
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
     }
 
-    public EventHandler<ActionEvent> getSavePointOfInterestTo() {
-        return savePointOfInterestTo;
-    }
-    public EventHandler<ActionEvent> getSavePointOfInterestFrom() {
-        return savePointOfInterestFrom;
+    public EventHandler<ActionEvent> getSaveAddressAction() {
+        return saveAddressAction;
     }
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
     }
 
-    public EventHandler<ActionEvent> changeColors() { return changeColors; }
+    public EventHandler<MouseEvent> getRoadFinderAction() {
+        return roadFinderAction;
+    }
 }

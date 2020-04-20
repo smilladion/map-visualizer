@@ -2,21 +2,17 @@ package bfst20.mapdrawer.osm;
 
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.map.PathColor;
-import routefinding.EdgeWeightedDiGraph;
+import bfst20.mapdrawer.map.MapView;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,22 +22,20 @@ import java.util.zip.ZipInputStream;
 
 public class OSMMap {
 
-    private static Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
+    private final Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
-    private static Map<String, Long> addressToId = new HashMap<>();
-    private static List<String> addressList = new ArrayList<>();
-    private static List<OSMWay> highWays = new ArrayList<>();
-
+    private final Map<String, Long> addressToId = new HashMap<>();
+    private final List<String> addressList = new ArrayList<>();
 
     // Empty lookup maps (quickly find an OSM Node/Way/Relation from an ID)
-    private static Map<Long, OSMNode> idToNode = new HashMap<>();
-    private static Map<Long, OSMWay> idToWay = new HashMap<>();
-    private static Map<Long, OSMRelation> idToRelation = new HashMap<>();
+    private final Map<Long, OSMNode> idToNode = new HashMap<>();
+    private final Map<Long, OSMWay> idToWay = new HashMap<>();
+    private final Map<Long, OSMRelation> idToRelation = new HashMap<>();
 
-    private final float minLat;
-    private final float minLon;
-    private final float maxLat;
-    private final float maxLon;
+    private final double minLat;
+    private final double minLon;
+    private final double maxLat;
+    private final double maxLon;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
@@ -49,18 +43,18 @@ public class OSMMap {
 
     private final List<Drawable> islands = new ArrayList<>();
 
-    private KdTree kdtree;
-    private static EdgeWeightedDiGraph graph;
+    private KdTree kdTree;
 
-    public OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
+    private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;
         this.maxLon = maxLon;
     }
 
-    public static OSMMap fromFile(File file) throws XMLStreamException, FileNotFoundException, InvalidMapException {
-        XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file));
+    public static OSMMap fromFile(File file) throws XMLStreamException, IOException, InvalidMapException {
+        // Use charset encoding of UTF-8 (originally Windows-1252) to display ÆØÅ characters properly
+        XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file, StandardCharsets.UTF_8));
 
         OSMMap map = null;
 
@@ -82,21 +76,21 @@ public class OSMMap {
                         }
 
                         // Create a new map and flips and fixes the spherical orientation
-                        map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
-                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
-                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
+                        map = new OSMMap(-Double.parseDouble(xmlReader.getAttributeValue(null, "maxlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "minlon")),
+                                -Double.parseDouble(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-                        float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
-                        float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
+                        double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
+                        double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
-                        idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
-                        addressToId.put(readAddress(xmlReader), id);
+                        map.idToNode.put(id, new OSMNode(id, 0.56f * lon, -lat));
+                        map.addressToId.put(readAddress(map, xmlReader), id);
 
                         break;
                     }
@@ -105,7 +99,7 @@ public class OSMMap {
 
                         // Read id, and move to readWay method to read all nodes inside of way
                         // Store this OSM way into a map for fast lookups (used in readRelation)
-                        idToWay.put(id, readWay(xmlReader, idToNode, id));
+                        map.idToWay.put(id, readWay(map, xmlReader, id));
 
                         break;
                     }
@@ -113,7 +107,7 @@ public class OSMMap {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        idToRelation.put(id, readRelation(xmlReader, idToWay, id));
+                        map.idToRelation.put(id, readRelation(xmlReader, map.idToWay, id));
 
                         break;
                     }
@@ -123,11 +117,11 @@ public class OSMMap {
 
         // Map can be null if osm file is invalid (or no bounds found)
         if (map != null) {
-            map.nodes.addAll(idToNode.values());
-            map.ways.addAll(idToWay.values());
-            map.relations.addAll(idToRelation.values());
+            map.nodes.addAll(map.idToNode.values());
+            map.ways.addAll(map.idToWay.values());
+            map.relations.addAll(map.idToRelation.values());
 
-            for (var entry : nodeToCoastline.entrySet()) {
+            for (var entry : map.nodeToCoastline.entrySet()) {
                 if (entry.getKey() == entry.getValue().last()) {
                     map.islands.add(new LinePath(entry.getValue()));
                 }
@@ -138,69 +132,25 @@ public class OSMMap {
             providers.addAll(map.ways);
             providers.addAll(map.relations);
 
-            map.kdtree = new KdTree(providers);
-            for(int i = 0; i < highWays.size(); i++){
-                System.out.println("Highway:" + highWays.get(i).getAsLong());
-            }
+            MapView.addNodeProviders(providers);
 
-            //buildGraph();
+            map.kdTree = new KdTree(providers);
         }
 
         return map;
-    }
-
-    private static void buildGraph() {
-        graph = new EdgeWeightedDiGraph(highWays);
-    }
-
-    private static String readAddress(XMLStreamReader xmlReader) throws XMLStreamException {
-
-        String address = null;
-        String street = null;
-        String houseNumber = null;
-        String city = null;
-
-        while (xmlReader.hasNext()) {
-            int nextType = xmlReader.next();
-
-            if (nextType == XMLStreamReader.START_ELEMENT) {
-                switch (xmlReader.getLocalName()) {
-                    case "tag":
-                        // Found a property tag, read and set the correct boolean for this tag
-                        String key = xmlReader.getAttributeValue(null, "k");
-                        String value = xmlReader.getAttributeValue(null, "v");
-
-                        if (key.equals("addr:street")) {
-                            street = value;
-                        }
-                        if (key.equals("addr:housenumber")) {
-                            houseNumber = value;
-                        }
-                        if (key.equals("addr:city")) {
-                            city = value;
-                        }
-                }
-            } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
-                // Reached the end of the current way, break and return a new OSMWay object
-                break;
-            }
-        }
-
-        address = street + " " + houseNumber + " " + city;
-        addressList.add(address);
-        return address.toLowerCase();
     }
 
     /**
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
      */
-    private static OSMWay readWay(XMLStreamReader xmlReader, Map<Long, OSMNode> idToNode, long id)
+    private static OSMWay readWay(OSMMap map, XMLStreamReader xmlReader, long id)
             throws XMLStreamException {
         List<OSMNode> nodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMWay currentWay = new OSMWay(id, nodes, type.getColor(), type);
+        String road = null;
+        OSMWay currentWay;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -210,43 +160,42 @@ public class OSMMap {
                     case "nd":
                         // Found a nd tag within this way, fetch the OSMNode object and add it to the
                         // way
-                        nodes.add(idToNode.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
+                        nodes.add(map.idToNode.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
                         break;
                     case "tag":
                         // Found a property tag, read and set the correct boolean for this tag
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
 
-                        if(key.equals("highway")){
-                            highWays.add(new OSMWay(id, nodes, PathColor.HIGHWAY.getColor()));
-                        }
-
-                        setTag(key, value);
                         if (key.equals("building")) {
                             type = Type.BUILDING;
 
-                        } else if(key.equals("highway")){
+                        } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-
+                            if (Type.containsType(value)) type = Type.getType(value);
+                            
+                        } else if (key.equals("name") && "highway".equals(type.getKey())) {
+                            road = value;
+                            
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
-                                currentWay = new OSMWay(id, nodes, Type.COASTLINE.getColor(), type);
+                                currentWay = new OSMWay(id, nodes, type, road);
 
-                                var before = nodeToCoastline.remove(currentWay.first());
+                                var before = map.nodeToCoastline.remove(currentWay.first());
                                 if (before != null) {
-                                    nodeToCoastline.remove(before.first());
-                                    nodeToCoastline.remove(before.last());
+                                    map.nodeToCoastline.remove(before.first());
+                                    map.nodeToCoastline.remove(before.last());
                                 }
-                                var after = nodeToCoastline.remove(currentWay.last());
+                                var after = map.nodeToCoastline.remove(currentWay.last());
                                 if (after != null) {
-                                    nodeToCoastline.remove(after.first());
-                                    nodeToCoastline.remove(after.last());
+                                    map.nodeToCoastline.remove(after.first());
+                                    map.nodeToCoastline.remove(after.last());
                                 }
                                 currentWay = OSMWay.fromWays(OSMWay.fromWays(before, currentWay), after);
-                                nodeToCoastline.put(currentWay.first(), currentWay);
-                                nodeToCoastline.put(currentWay.last(), currentWay);
+                                map.nodeToCoastline.put(currentWay.first(), currentWay);
+                                map.nodeToCoastline.put(currentWay.last(), currentWay);
                             }
                         }
 
@@ -258,7 +207,8 @@ public class OSMMap {
             }
         }
 
-        currentWay = new OSMWay(id, nodes, type.getColor(), type);
+        currentWay = new OSMWay(id, nodes, type, road);
+        
         return currentWay;
     }
 
@@ -267,12 +217,11 @@ public class OSMMap {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id)
-            throws XMLStreamException {
+    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMRelation currentRelation = new OSMRelation(id, ways, type.getColor(), type);
+        OSMRelation currentRelation = new OSMRelation(id, ways, type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -294,10 +243,10 @@ public class OSMMap {
                         String key = xmlReader.getAttributeValue(null, "k");
                         String value = xmlReader.getAttributeValue(null, "v");
 
-                        if(key.equals("building")){
+                        if (key.equals("building")) {
                             type = Type.BUILDING;
 
-                        } else if(Type.containsType(value)){
+                        } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
                         }
@@ -311,36 +260,39 @@ public class OSMMap {
             }
         }
 
-        currentRelation = new OSMRelation(id, ways, type.getColor(), type);
+        currentRelation = new OSMRelation(id, ways, type);
         return currentRelation;
     }
 
-    private static String readAddress(XMLStreamReader xmlReader) throws XMLStreamException {
-
-        String address = null;
-        String street = null;
-        String houseNumber = null;
-        String city = null;
+    private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
+        String street = null, houseNumber = null, postcode = null, place = null, city = null;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
 
             if (nextType == XMLStreamReader.START_ELEMENT) {
-                switch (xmlReader.getLocalName()) {
-                    case "tag":
-                        // Found a property tag, read and set the correct boolean for this tag
-                        String key = xmlReader.getAttributeValue(null, "k");
-                        String value = xmlReader.getAttributeValue(null, "v");
+                if ("tag".equals(xmlReader.getLocalName())) {
 
-                        if (key.equals("addr:street")) {
+                    String key = xmlReader.getAttributeValue(null, "k");
+                    String value = xmlReader.getAttributeValue(null, "v");
+
+                    switch (key) {
+                        case "addr:street":
                             street = value;
-                        }
-                        if (key.equals("addr:housenumber")) {
+                            break;
+                        case "addr:housenumber":
                             houseNumber = value;
-                        }
-                        if (key.equals("addr:city")) {
+                            break;
+                        case "addr:postcode":
+                            postcode = value;
+                            break;
+                        case "addr:place":
+                            place = value;
+                            break;
+                        case "addr:city":
                             city = value;
-                        }
+                            break;
+                    }
                 }
             } else if (nextType == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals("node")) {
                 // Reached the end of the current way, break and return a new OSMWay object
@@ -348,8 +300,12 @@ public class OSMMap {
             }
         }
 
-        address = street + " " + houseNumber + " " + city;
-        addressList.add(address);
+        String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
+
+        if (!address.contains("null")) {
+            map.addressList.add(address);
+        }
+
         return address.toLowerCase();
     }
 
@@ -382,19 +338,19 @@ public class OSMMap {
         return newFile;
     }
 
-    public float getMinLat() {
+    public double getMinLat() {
         return minLat;
     }
 
-    public float getMinLon() {
+    public double getMinLon() {
         return minLon;
     }
 
-    public float getMaxLat() {
+    public double getMaxLat() {
         return maxLat;
     }
 
-    public float getMaxLon() {
+    public double getMaxLon() {
         return maxLon;
     }
 
@@ -419,7 +375,7 @@ public class OSMMap {
     }
 
     public KdTree getKdTree() {
-        return kdtree;
+        return kdTree;
     }
 
     public List<String> getAddressList() {

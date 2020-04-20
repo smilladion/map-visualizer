@@ -1,11 +1,11 @@
 package bfst20.mapdrawer;
 
-import java.io.File;
-
 import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.application.Application;
 import javafx.stage.Stage;
+
+import java.io.File;
 
 public class Launcher extends Application {
     private static Stage primaryStage;
@@ -17,26 +17,25 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         File file = new File("src/main/resources/maps/samsoe.osm");
-        String filename = file.getName();
-        String fileExt = filename.substring(filename.lastIndexOf("."));
-        switch(fileExt){
-        case ".osm":
-            new MapView(
-                OSMMap.fromFile(file),
-                primaryStage);
-            break;
-        case ".bin":
-            
-            break;
-        case ".zip":
-            new MapView(
-                OSMMap.fromFile(OSMMap.unZip(file.getPath(), "src/main/resources/")),
-                primaryStage);
-            break;
+        String fileName = file.getName();
+        String fileExt = fileName.substring(fileName.lastIndexOf("."));
+        switch (fileExt) {
+            case ".osm":
+                new MapView(
+                        OSMMap.fromFile(file),
+                        primaryStage);
+                break;
+            case ".zip":
+                new MapView(
+                        OSMMap.fromFile(OSMMap.unZip(file.getPath(), "src/main/resources/")),
+                        primaryStage);
+                break;
+            case ".bin":
+                break;
         }
     }
 
-    public static Stage getPrimaryStage(){
+    public static Stage getPrimaryStage() {
         return primaryStage;
     }
 }
