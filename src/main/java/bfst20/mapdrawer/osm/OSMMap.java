@@ -154,7 +154,7 @@ public class OSMMap {
 
             map.kdTree = new KdTree(providers);
 
-            map.routeGraph = new Graph(20000, map.highways);
+            map.routeGraph = new Graph(map.nodeNumber+1, map.highways);
 
             MapView.addNodeProviders(providers);
 

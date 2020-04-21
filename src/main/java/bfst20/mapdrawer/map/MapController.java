@@ -4,18 +4,12 @@ import bfst20.mapdrawer.Launcher;
 
 import bfst20.mapdrawer.Rutevejledning.Dijkstra;
 import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
-import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import edu.princeton.cs.algs4.Stack;
-
-import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMWay;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -45,7 +39,6 @@ public class MapController {
     // Street names are part of the model, but will only be set and accessed via controller
     private final Set<String> streetNames = new HashSet<>();
 
-    private final EventHandler<ActionEvent> searchAction;
     private final EventHandler<ActionEvent> clearAction;
 
     private final EventHandler<ActionEvent> saveAddressAction;
@@ -57,7 +50,7 @@ public class MapController {
     private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
-    private final EventHandler<ActionEvent> searchActionDijkstraTest;
+    private final EventHandler<ActionEvent> searchActionDijkstra;
 
     private final EventHandler<MouseEvent> roadFinderAction;
 
@@ -125,56 +118,62 @@ public class MapController {
             }
         };
 
-        searchAction = e -> {
+        searchActionDijkstra = e -> {
+
             view.getSearchedDrawables().clear();
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
 
-            if (addressFrom.trim().equals("")) {
+            if (addressTo.trim().equals("") && addressFrom.trim().equals("")) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(null);
+                alert.setTitle("Besked");
+                alert.setContentText("Skriv noget for at søge...");
+                alert.showAndWait();
+            } else if (addressTo.trim().equals("")) {
+                addressTo = null;
+                view.paintPoints(null, addressFrom);
+            } else if (addressFrom.trim().equals("")) {
                 addressFrom = null;
-            }
+                view.paintPoints(addressTo, null);
+            } else {
 
-            view.paintPoints(addressTo, addressFrom);
-        };
+                view.paintPoints(addressTo, addressFrom);
 
-        searchActionDijkstraTest = e -> {
+                OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
+                OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
 
-            String addressTo = view.getToSearchField().getText().toLowerCase();
-            String addressFrom = view.getFromSearchField().getText().toLowerCase();
+                OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+                OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
 
-            OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
-            OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
+                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+                OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
 
-            OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-            OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+                OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
 
-            Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-            OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
+                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
 
-            Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-            OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
+                Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
 
-            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
-
-            Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
-
-            //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
-            //it check if its the last edge of the stack, and if it is it also adds the "to" node.
-            while (!route.isEmpty()) {
-                OSMNode y = model.getIntToNode().get(route.peek().from());
-                listForDijkstraOSMWay.add(y);
-                if(route.size()==1) {
-                    OSMNode x = model.getIntToNode().get(route.peek().to());
-                    listForDijkstraOSMWay.add(x);
+                //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
+                //it check if its the last edge of the stack, and if it is it also adds the "to" node.
+                while (!route.isEmpty()) {
+                    OSMNode y = model.getIntToNode().get(route.peek().from());
+                    listForDijkstraOSMWay.add(y);
+                    if (route.size() == 1) {
+                        OSMNode x = model.getIntToNode().get(route.peek().to());
+                        listForDijkstraOSMWay.add(x);
+                    }
+                    System.out.println(route.pop());
                 }
-                System.out.println(route.pop());
-            }
-            Type type = Type.SEARCHRESULT;
+                Type type = Type.SEARCHRESULT;
 
-            OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
-            view.paintRoute(searchedWay);
-            view.createRouteDescription(searchedWay);
+                OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
+                view.paintRoute(searchedWay);
+                view.createRouteDescription(searchedWay);
+            }
         };
 
 
@@ -278,10 +277,6 @@ public class MapController {
         }
     }
 
-    public EventHandler<ActionEvent> getSearchAction() {
-        return searchAction;
-    }
-
     public EventHandler<MouseEvent> getPanAction() {
         return panAction;
     }
@@ -310,8 +305,8 @@ public class MapController {
         return toggleAction;
     }
 
-    public EventHandler<ActionEvent> getSearchActionDijkstraTest() {
-        return searchActionDijkstraTest;
+    public EventHandler<ActionEvent> getSearchActionDijkstra() {
+        return searchActionDijkstra;
     }
 
     public EventHandler<MouseEvent> getRoadFinderAction() {

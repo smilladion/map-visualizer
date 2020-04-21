@@ -21,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
@@ -30,7 +29,6 @@ import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -137,8 +135,8 @@ public class MapView {
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
-        toSearchField.setOnAction(controller.getSearchAction());
-        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
+        toSearchField.setOnAction(controller.getSearchActionDijkstra());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstra());
 
         //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
@@ -347,7 +345,7 @@ public class MapView {
 
     public void createRouteDescription(OSMWay way) {
 
-        for (int i = 0; i < way.getNodes().size()-2; i++) {
+        for (int i = 0; i < way.getNodes().size()-3; i++) {
             OSMNode from = way.getNodes().get(i);
             OSMNode to = way.getNodes().get(i+1);
             OSMNode last = way.getNodes().get(i+2);
@@ -363,7 +361,13 @@ public class MapView {
             double angle = angle1 - angle2;
 
             String currentRoad = from.getRoad();
+            if (currentRoad == null) {
+                currentRoad = "ukendt vej";
+            }
             String s = to.getRoad();
+            if (s == null) {
+                s = "ukendt vej";
+            }
 
             if (!currentRoad.equals(s)) {
                 if (i == 0) {
