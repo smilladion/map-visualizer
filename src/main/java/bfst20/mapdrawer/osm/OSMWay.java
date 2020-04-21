@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.osm;
 
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
@@ -8,13 +9,16 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMWay implements LongSupplier, NodeProvider {
+public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
     public static final OSMWay DUMMY_WAY = new OSMWay();
@@ -26,7 +30,14 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
+    private int weight;
+    private boolean bike;
+    private boolean walk;
+    private boolean car;
+
+
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
+
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -37,9 +48,30 @@ public class OSMWay implements LongSupplier, NodeProvider {
             drawable = null;
         } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, type.getColor());
+            drawable = new Polygon(this);
         } else {
             // If it should not, draw a line
+            drawable = new LinePath(this);
+        }
+    }
+
+    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
+    public OSMWay(long id, List<OSMNode> nodes, Type type, int weight, boolean bike, boolean walk, boolean car, String road) {
+        this.id = id;
+        this.nodes = nodes;
+        this.type = type;
+
+        this.road = road;
+
+        this.weight = weight;
+        this.bike = bike;
+        this.walk = walk;
+        this.car = car;
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else {
             drawable = new LinePath(this);
         }
     }
@@ -122,6 +154,22 @@ public class OSMWay implements LongSupplier, NodeProvider {
     
     public String getRoad() {
         return road;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+
+    public boolean isWalk() {
+        return walk;
+    }
+
+    public boolean isCar() {
+        return car;
     }
 
     @Override

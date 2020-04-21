@@ -31,6 +31,7 @@ public class Launcher extends Application {
                         primaryStage);
                 break;
             case ".bin":
+                new MapView(OSMMap.loadBinary(file), primaryStage);
                 break;
         }
     }

@@ -7,11 +7,14 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-public class OSMRelation implements LongSupplier, NodeProvider {
+public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private final long id;
     private final List<OSMWay> ways;
     private final Drawable drawable;
@@ -26,7 +29,7 @@ public class OSMRelation implements LongSupplier, NodeProvider {
         if (type.getColor() == Type.NONE.getColor()) {
             drawable = null;
         } else {
-            drawable = new Polygon(this, type.getColor());
+            drawable = new Polygon(this);
         }
     }
 

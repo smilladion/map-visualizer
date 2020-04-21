@@ -10,8 +10,8 @@ public enum Type {
 
     // First type (unknown) will be drawn first, bottom type will be last.
 
-    UNKNOWN(null, null, Color.TRANSPARENT, false, 0, 0),
-    COASTLINE("natural", "coastline", Color.TRANSPARENT, false, 0, 6000),
+    UNKNOWN(null, null, Color.LIGHTBLUE, false, 0, Integer.MAX_VALUE),
+    COASTLINE("natural", "coastline", Color.LIGHTBLUE, false, 0, 6000),
     //COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
     //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
     //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
@@ -27,11 +27,11 @@ public enum Type {
     // TODO: Scuffed grass relations
     //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
 
-    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 0),
+    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, true, 0, 6000),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, true, 0, 18000),
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, true, 0, 18000),
-    FOREST("landuse", "forest", Color.LIGHTGREEN, true, 0, 0),
+    FOREST("landuse", "forest", Color.LIGHTGREEN, true, 0, 6000),
     HEATH("natural", "heath", Color.WHEAT, true, 0, 18000),
     MEADOW("landuse", "meadow", Color.LIGHTGREEN, true, 0, 6000),
     QUARRY("landuse", "quarry", Color.LIGHTGREY, true, 0, 18000),
@@ -54,9 +54,9 @@ public enum Type {
 
     // roads
     HIGHWAY("highway", "highway", Color.GAINSBORO, false, 1, 80000),
-    MOTORWAY("highway", "motorway", Color.SALMON, false, 6, 1000),
-    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 5, 1000),
-    PRIMARY("highway", "primary", Color.LIGHTPINK, false, 5, 1000),
+    MOTORWAY("highway", "motorway", Color.SALMON, false, 4, 1000),
+    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, false, 4, 1000),
+    PRIMARY("highway", "primary", Color.LIGHTPINK, false, 4, 1000),
     PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, false, 4, 1000),
     SECONDARY("highway", "secondary", Color.BISQUE, false, 4, 1000),
     SECONDAY_LINK("highway", "seconday", Color.BISQUE, false, 3, 1000),
