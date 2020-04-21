@@ -1,12 +1,11 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.Rutevejledning.Dijkstra;
+import bfst20.mapdrawer.dijkstra.Dijkstra;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.map.MapView;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -20,13 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import bfst20.mapdrawer.Rutevejledning.Graph;
+import bfst20.mapdrawer.dijkstra.Graph;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import edu.princeton.cs.algs4.DirectedEdge;
 import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 
-public class OSMMap {
+public class OSMMap implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     private final Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
@@ -42,14 +43,16 @@ public class OSMMap {
     private final double minLon;
     private final double maxLat;
     private final double maxLon;
+    
+    private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
+    private final HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+    private KdTree kdTree;
 
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
 
     private final List<Drawable> islands = new ArrayList<>();
-
-    private KdTree kdTree;
 
     private final List<OSMWay> highways = new ArrayList<>();
 
@@ -61,6 +64,7 @@ public class OSMMap {
 
     private Graph routeGraph;
     private Dijkstra dijkstra;
+
 
     private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
 
@@ -126,7 +130,7 @@ public class OSMMap {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        map.idToRelation.put(id, readRelation(xmlReader, map.idToWay, id));
+                        map.idToRelation.put(id, readRelation(map, xmlReader, map.idToWay, id));
 
                         break;
                     }
@@ -145,20 +149,19 @@ public class OSMMap {
                     map.islands.add(new LinePath(entry.getValue()));
                 }
             }
+            
+            for (Map.Entry<Type, List<NodeProvider>> entry : map.typeToProviders.entrySet()) {
+                map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
+            }
 
             List<NodeProvider> providers = new ArrayList<>();
 
             providers.addAll(map.ways);
             providers.addAll(map.relations);
 
-
             map.kdTree = new KdTree(providers);
 
             map.routeGraph = new Graph(map.nodeNumber+1, map.highways);
-
-            MapView.addNodeProviders(providers);
-
-            map.kdTree = new KdTree(providers);
 
         }
 
@@ -236,14 +239,19 @@ public class OSMMap {
         }
 
         currentWay = new OSMWay(id, nodes, type, road);
-
+        
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentWay);
+        
         if (road != null) {
             map.addressToWay.put(road.toLowerCase(), currentWay);
             for (OSMNode node : nodes) {
                 node.setRoad(road);
             }
         }
-
+        
         return currentWay;
     }
 
@@ -263,7 +271,7 @@ public class OSMMap {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
+    private static OSMRelation readRelation(OSMMap map, XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -307,6 +315,12 @@ public class OSMMap {
         }
 
         currentRelation = new OSMRelation(id, ways, type);
+
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentRelation);
+        
         return currentRelation;
     }
 
@@ -355,6 +369,16 @@ public class OSMMap {
         return address.toLowerCase();
     }
 
+    public static OSMMap loadBinary(File file) throws IOException {
+        OSMMap map = null;
+        try(var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))){
+            map = (OSMMap) in.readObject();
+        } catch (ClassNotFoundException e){
+            throw new RuntimeException(e);
+        }
+        return map;
+    }
+    
     public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
         File newFile = null;
         // Buffer for read and write data to file
@@ -420,6 +444,10 @@ public class OSMMap {
         return idToNode;
     }
 
+    public HashMap<Type, KdTree> getTypeToTree() {
+        return typeToTree;
+    }
+    
     public KdTree getKdTree() {
         return kdTree;
     }

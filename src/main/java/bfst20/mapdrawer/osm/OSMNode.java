@@ -2,9 +2,13 @@ package bfst20.mapdrawer.osm;
 
 import javafx.geometry.Point2D;
 
+import java.io.Serializable;
 import java.util.function.LongSupplier;
 
-public class OSMNode implements LongSupplier {
+public class OSMNode implements LongSupplier, Serializable {
+    
+    private static final long serialVersionUID = 1L;
+
     private final long id;
     private final double lon; // x
     private final double lat; // y

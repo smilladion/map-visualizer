@@ -5,9 +5,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.awt.*;
+import java.io.Serializable;
 import java.util.Scanner;
 
-public class Line implements Drawable {
+public class Line implements Drawable, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final double x1;
     private final double y1;
