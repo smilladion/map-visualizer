@@ -1,4 +1,4 @@
-package bfst20.mapdrawer.rutevejledning;
+package bfst20.mapdrawer.dijkstra;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;

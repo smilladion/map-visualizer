@@ -1,6 +1,6 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.rutevejledning.Dijkstra;
+import bfst20.mapdrawer.dijkstra.Dijkstra;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import bfst20.mapdrawer.rutevejledning.Graph;
+import bfst20.mapdrawer.dijkstra.Graph;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import edu.princeton.cs.algs4.DirectedEdge;

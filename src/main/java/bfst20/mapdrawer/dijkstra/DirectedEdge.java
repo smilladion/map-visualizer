@@ -1,4 +1,4 @@
-package bfst20.mapdrawer.rutevejledning;
+package bfst20.mapdrawer.dijkstra;
 
 public class DirectedEdge {
 

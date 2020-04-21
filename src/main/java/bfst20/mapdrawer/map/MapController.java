@@ -2,8 +2,8 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
 
-import bfst20.mapdrawer.rutevejledning.Dijkstra;
-import bfst20.mapdrawer.rutevejledning.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.Dijkstra;
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;

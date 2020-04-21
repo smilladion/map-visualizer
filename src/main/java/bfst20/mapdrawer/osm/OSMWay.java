@@ -1,6 +1,6 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.rutevejledning.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
