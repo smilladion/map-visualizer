@@ -239,7 +239,11 @@ public class MapView {
 
         // Draw islands
         for (Drawable island : model.getIslands()) {
-            context.setStroke(Color.LIGHTBLUE);
+            if(colorToggle.isSelected()){
+                context.setStroke(Color.LIGHTGREY);
+            } else {
+                context.setStroke(Color.LIGHTBLUE);
+            }
             island.draw(context);
             context.fill();
         }
