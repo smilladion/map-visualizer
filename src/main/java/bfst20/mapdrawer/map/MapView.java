@@ -349,14 +349,14 @@ public class MapView {
             if (currentRoad == null) {
                 currentRoad = "ukendt vej";
             }
-            String s = to.getRoad();
+            String s = last.getRoad();
             if (s == null) {
                 s = "ukendt vej";
             }
 
             if (!currentRoad.equals(s)) {
                 if (i == 0) {
-                    System.out.println("Fortsæt ligeud ad " + from.getRoad() + " imod " + to.getRoad());
+                    System.out.println("Fortsæt ligeud ad " + currentRoad + " imod " + s);
                 }
                 if (to.getLon() > last.getLon()) {
                     if (angle1 < angle2) {
