@@ -262,7 +262,9 @@ public class MapController {
                     }
 
                 }else{
-                    new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                    Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                    alert.setHeaderText(null);
+                    alert.showAndWait();
                 }
 
                 time += System.nanoTime();
