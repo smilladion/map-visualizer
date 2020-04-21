@@ -7,7 +7,6 @@ import javafx.geometry.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 
 /**

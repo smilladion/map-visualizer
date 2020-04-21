@@ -144,8 +144,8 @@ public class MapController {
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
 
-            OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
-            OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
+            OSMNode nodeTo = model.getNodes().get(model.getAddressToId().get(addressTo));
+            OSMNode nodeFrom = model.getNodes().get(model.getAddressToId().get(addressFrom));
 
             OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
             OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());

@@ -303,7 +303,7 @@ public class MapView {
         } else if ((addressFrom == null)) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().contains(addressTo)) {
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform));
+                    searchedDrawables.add(new Point(model.getNodes().get(entry.getValue()), transform));
                 }
             }
 
@@ -313,7 +313,7 @@ public class MapView {
         } else if (addressTo != null) {
             for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
                 if (entry.getKey().equals(addressTo) || entry.getKey().equals(addressFrom)) {
-                    searchedDrawables.add(new Point(model.getIdToNodeMap().get(entry.getValue()), transform));
+                    searchedDrawables.add(new Point(model.getNodes().get(entry.getValue()), transform));
                 }
             }
 
@@ -344,7 +344,7 @@ public class MapView {
 
     public void savePoint(String s) {
         long id = model.getAddressToId().get(s);
-        getSavedPoints().add(new Point(model.getIdToNodeMap().get(id), transform));
+        getSavedPoints().add(new Point(model.getNodes().get(id), transform));
     }
 
     public void resetSearchField() {
