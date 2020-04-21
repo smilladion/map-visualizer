@@ -1,4 +1,4 @@
-package bfst20.mapdrawer.Rutevejledning;
+package bfst20.mapdrawer.rutevejledning;
 
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
