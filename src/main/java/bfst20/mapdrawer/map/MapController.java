@@ -51,6 +51,7 @@ public class MapController {
 
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
+    private final EventHandler<MouseEvent> colorToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
     private final EventHandler<ActionEvent> saveFileAction;
@@ -123,6 +124,10 @@ public class MapController {
             } else {
                 view.paintPoints(null, null);
             }
+        };
+
+        colorToggleAction = e -> {
+            view.paintMap();
         };
 
         searchAction = e -> {
@@ -340,6 +345,10 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<MouseEvent> getColorToggleAction() {
+        return colorToggleAction;
     }
 
     public EventHandler<ActionEvent> getSearchActionDijkstraTest() {

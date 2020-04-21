@@ -61,6 +61,7 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+    private final ToggleSwitch colorToggle = new ToggleSwitch(); 
 
     private final Label zoomDisplay = new Label();
     private final double initialZoom;
@@ -118,8 +119,9 @@ public class MapView {
         Button saveToSearch = new Button("Gem adresse");
 
         myPointsToggle.setText("Vis gemte adresser");
+        colorToggle.setText("Colorblind mode");
 
-        VBox toggles = new VBox(myPointsToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -138,6 +140,7 @@ public class MapView {
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
+        colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
 
@@ -213,14 +216,22 @@ public class MapView {
         context.setTransform(new Affine());
 
         // Paint background light blue
-        context.setFill(Color.LIGHTBLUE);
+        if(colorToggle.isSelected()){
+            context.setFill(Color.LIGHTGREY);
+        } else {
+            context.setFill(Color.LIGHTBLUE);
+        }
         context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Pan and scale all below
         context.setTransform(transform);
 
         // Paint using light yellow
-        context.setFill(Color.LIGHTYELLOW);
+        if(colorToggle.isSelected()){
+            context.setFill(Color.WHITE);
+        } else {
+            context.setFill(Color.LIGHTYELLOW);
+        }
 
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
@@ -263,8 +274,14 @@ public class MapView {
                 context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
                 
                 // Change the color
-                context.setStroke(type.getColor());
-                context.setFill(type.getColor());
+                if(colorToggle.isSelected()){
+                    context.setStroke(type.getAlternateColor());
+                    context.setFill(type.getAlternateColor());
+                } else {
+                    context.setStroke(type.getColor());
+                    context.setFill(type.getColor());
+                }
+                
                 
                 if (model.getTypeToTree().containsKey(type)) {
                     for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
@@ -379,6 +396,10 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
+    }
+
+    public ToggleSwitch getColorToggle() {
+        return colorToggle;
     }
 
     public Affine getTransform() {
