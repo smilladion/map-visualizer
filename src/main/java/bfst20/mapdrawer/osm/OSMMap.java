@@ -67,6 +67,8 @@ public class OSMMap implements Serializable {
         // Use charset encoding of UTF-8 (originally Windows-1252) to display ÆØÅ characters properly
         XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file, StandardCharsets.UTF_8));
 
+        System.out.println("IN");
+        
         OSMMap map = null;
 
         // While there are more tags in the XML file to be read
@@ -149,6 +151,8 @@ public class OSMMap implements Serializable {
 
             map.routeGraph = new Graph(20000, map.highways);
         }
+
+        System.out.println("OUT");
 
         return map;
     }
