@@ -76,7 +76,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
     }
 
-    private OSMWay() {
+    public OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
         drawable = null;
@@ -174,12 +174,24 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
     @Override
     public float getAvgX() {
-        return (float) getBoundingBox().getCenterPoint().getX();
+        float sumX = 0.0f;
+
+        for (OSMNode node : nodes) {
+            sumX += node.getLon();
+        }
+
+        return sumX / nodes.size();
     }
 
     @Override
     public float getAvgY() {
-        return (float) getBoundingBox().getCenterPoint().getY();
+        float sumY = 0.0f;
+
+        for (OSMNode node : nodes) {
+            sumY += node.getLat();
+        }
+        
+        return sumY / nodes.size();
     }
 
     @Override

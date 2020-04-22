@@ -7,7 +7,6 @@ import javafx.geometry.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -76,7 +75,7 @@ public class KdTree implements Serializable{
 
     /** Finds the nearest road to a specific point. */
     public OSMWay nearest(double x, double y) {
-        return nearest(root, new Point2D(x, y), null);
+        return nearest(root, new Point2D(x, y), new OSMWay());
     }
     
     // Only returns/checks ways that contain a road name - will need another method if we want to include all nodeproviders
@@ -89,11 +88,11 @@ public class KdTree implements Serializable{
             }
         }
 
-        if (node.left != null && node.left.boundingBox.containsPoint(point)) {
+        if (node.left != null) {
             nearest = nearest(node.left, point, nearest);
         }
 
-        if (node.right != null && node.right.boundingBox.containsPoint(point)) {
+        if (node.right != null) {
             nearest = nearest(node.right, point, nearest);
         }
 
