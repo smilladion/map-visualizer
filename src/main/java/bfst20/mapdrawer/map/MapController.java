@@ -4,9 +4,7 @@ import bfst20.mapdrawer.Launcher;
 
 import bfst20.mapdrawer.Rutevejledning.Dijkstra;
 import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.drawing.*;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
@@ -60,6 +58,11 @@ public class MapController {
     private final EventHandler<ActionEvent> searchActionDijkstraTest;
 
     private final EventHandler<MouseEvent> roadFinderAction;
+
+    private final EventHandler<ActionEvent> weightDebugging;
+    private final EventHandler<ActionEvent> showDijkstra;
+    private final EventHandler<ActionEvent> showAStar;
+
 
 
     private Point2D lastMouse;
@@ -178,6 +181,37 @@ public class MapController {
             view.paintRoute(searchedWay);
         };
 
+        weightDebugging = e -> {
+            OSMWay way = new OSMWay(775568774, model.getNodes(), Type.SEARCHRESULT, true, true, true, null);
+            model.getHighways().add(way);
+            System.out.println(way.calculateWeight(model.getHighways()));
+
+        };
+
+        showDijkstra = e -> {
+            String addressTo = view.getToSearchField().getText().toLowerCase();
+            String addressFrom = view.getFromSearchField().getText().toLowerCase();
+
+            OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
+            OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
+
+            OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+            OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+            Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+            OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
+
+            Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+            OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
+
+            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), model.getHighways());
+
+            new DrawRoute(dijkstra).draw(view.getContext());
+        };
+
+        showAStar = e -> {
+
+        };
 
         clickAction = e -> {
             // Resets the value of lastMouse before the next pan/drag occurs
@@ -318,4 +352,18 @@ public class MapController {
     public EventHandler<MouseEvent> getRoadFinderAction() {
         return roadFinderAction;
     }
+
+    public EventHandler<ActionEvent> getWeightDebugging() {
+        return weightDebugging;
+    }
+
+    public EventHandler<ActionEvent> getShowDijkstra() {
+        return showDijkstra;
+    }
+
+    public EventHandler<ActionEvent> getAStar() {
+        return showAStar;
+    }
+
+
 }

@@ -61,4 +61,9 @@ public class Graph {
     public int getVertices() {
         return vertices;
     }
+
+    public ArrayList<DirectedEdge>[] getAdj() {
+        return adj;
+    }
+
 }

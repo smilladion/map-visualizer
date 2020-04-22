@@ -8,13 +8,17 @@ import java.util.List;
 import static java.lang.Math.pow;
 
 public class DirectedEdge {
-
     int from;
     int to;
     double weight;
     boolean bike;
     boolean walk;
     boolean car;
+
+    public OSMWay getWay() {
+        return way;
+    }
+
     OSMWay way;
 
     public DirectedEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, OSMWay way) {
@@ -42,4 +46,11 @@ public class DirectedEdge {
     }
 
 
+    public int getFrom() {
+        return from;
+    }
+
+    public int getTo() {
+        return to;
+    }
 }

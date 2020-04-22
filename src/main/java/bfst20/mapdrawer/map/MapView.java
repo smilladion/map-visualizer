@@ -38,7 +38,8 @@ import java.util.Map;
 public class MapView {
 
     private final Affine transform = new Affine();
-
+    private final CheckMenuItem showDijktra = new CheckMenuItem("Vis Dijkstra");
+    private final CheckMenuItem showAStar = new CheckMenuItem("Vis A*");
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
     private final MapController controller;
@@ -46,6 +47,11 @@ public class MapView {
 
     private final Canvas canvas;
     private final StackPane rootPane;
+
+    public GraphicsContext getContext() {
+        return context;
+    }
+
     private final GraphicsContext context;
 
     private final static List<NodeProvider> drawables = new ArrayList<>(); // All map elements
@@ -58,6 +64,7 @@ public class MapView {
     private final MenuBar menuBar = new MenuBar();
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
+    private final Menu debugMenu = new Menu("Debug");
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
@@ -90,7 +97,15 @@ public class MapView {
         fileMenu.getItems().add(loadFile);
 
         optionsMenu.getItems().add(showKdTree);
+        optionsMenu.getItems().add(showDijktra);
+        optionsMenu.getItems().add(showAStar);
         menuBar.getMenus().add(optionsMenu);
+
+        menuBar.getMenus().add(debugMenu);
+        MenuItem debug = new MenuItem("debug");
+        debug.setOnAction(controller.getWeightDebugging());
+        debugMenu.getItems().add(debug);
+
 
         showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
 
@@ -136,6 +151,7 @@ public class MapView {
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
+
 
         //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());

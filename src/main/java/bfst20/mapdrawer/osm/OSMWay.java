@@ -34,6 +34,17 @@ public class OSMWay implements LongSupplier, NodeProvider {
     private boolean walk;
     private boolean car;
 
+    public int getFrom() {
+        return from;
+    }
+
+    public int getTo() {
+        return to;
+    }
+
+    int from;
+    int to;
+
     private float x1;
     private float x2;
     private float y1;
@@ -41,7 +52,6 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
 
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
-
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -60,14 +70,11 @@ public class OSMWay implements LongSupplier, NodeProvider {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, boolean bike, boolean walk, boolean car, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
-
         this.road = road;
-
-        this.weight = weight;
         this.bike = bike;
         this.walk = walk;
         this.car = car;
@@ -78,6 +85,16 @@ public class OSMWay implements LongSupplier, NodeProvider {
         } else {
             drawable = new LinePath(this);
         }
+    }
+
+    public OSMWay(int from, int to){
+        this.from = from;
+        this.to = to;
+        this.id = NO_ID;
+        this.nodes = new ArrayList<>();
+        drawable = null;
+        type = Type.UNKNOWN;
+        road = null;
     }
 
     public OSMWay() {
@@ -219,7 +236,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
 
         for(OSMWay way : highways){
-            for(int i = 0; i < way.getNodes().size(); i++){
+            for(int i = 0; i < way.getNodes().size()-1; i++){
                 //Coordinates for "from"
                 x1 = way.getNodes().get(i).getLat();
                 y1 = way.getNodes().get(i).getLon();

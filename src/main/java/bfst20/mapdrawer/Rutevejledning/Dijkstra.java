@@ -7,7 +7,6 @@ import edu.princeton.cs.algs4.Stack;
 import java.util.List;
 
 public class Dijkstra {
-
     private DirectedEdge[] edgeTo;
     private double[] distTo;
     private IndexMinPQ<Double> pq;
@@ -65,5 +64,7 @@ public class Dijkstra {
         }
     }
 
-
+    public DirectedEdge[] getEdgeTo() {
+        return edgeTo;
+    }
 }

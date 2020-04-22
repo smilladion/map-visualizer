@@ -259,7 +259,7 @@ public class OSMMap {
         for(OSMWay way : map.highways){
             double weight = way.calculateWeight(map.highways);
             System.out.println(weight);
-            map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, weight, true, true, true, null));
+            map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, true, true, true, null));
         }
     }
     /**
