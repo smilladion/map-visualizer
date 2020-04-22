@@ -116,10 +116,10 @@ public class MapView {
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
-        Button saveToSearch = new Button("Gem adresse");
+        Button saveToSearch = new Button("Gem punkt");
 
-        myPointsToggle.setText("Vis gemte adresser");
-        colorToggle.setText("Colorblind mode");
+        myPointsToggle.setText("Vis gemte punkter");
+        colorToggle.setText("Sort/hvid tema");
 
         VBox toggles = new VBox(myPointsToggle, colorToggle);
         toggles.setId("toggleBox");
@@ -143,8 +143,6 @@ public class MapView {
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
-
-        //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
         canvas.setOnMouseClicked(controller.getClickAction());
@@ -156,8 +154,7 @@ public class MapView {
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those
-                                          // areas
+        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);
 
@@ -363,11 +360,6 @@ public class MapView {
         }
     }
 
-    public void savePoint(String s) {
-        long id = model.getAddressToId().get(s);
-        getSavedPoints().add(new Point(model.getNodes().get(id), transform));
-    }
-
     public void resetSearchField() {
         toSearchField.clear();
         fromSearchField.clear();
@@ -380,6 +372,10 @@ public class MapView {
 
     public void setPointOfInterest(Point p) {
         pointOfInterest = p;
+    }
+    
+    public Point getPointOfInterest() {
+        return pointOfInterest;
     }
 
     public TextField getToSearchField() {

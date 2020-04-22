@@ -86,21 +86,14 @@ public class MapController {
 
         // Saves the current address to my list.
         saveAddressAction = e -> {
-            String to = view.getToSearchField().getText().toLowerCase();
-            String from = view.getFromSearchField().getText().toLowerCase();
-
-            if (to.isEmpty() && from.isEmpty()) {
+            if (!view.getPointOfInterest().isEmpty()) {
+                view.getSavedPoints().add(view.getPointOfInterest());
+            } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(null);
                 alert.setTitle("Besked");
-                alert.setContentText("Du skal have valgt mindst én adresse for at gemme den!");
+                alert.setHeaderText(null);
+                alert.setContentText("Du skal først sætte et punkt på kortet (via. højreklik) for at kunne gemme det!");
                 alert.showAndWait();
-            }
-            if (!to.isEmpty()) {
-                view.savePoint(to);
-            }
-            if (!from.isEmpty()) {
-                view.savePoint(from);
             }
         };
 
