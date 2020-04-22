@@ -1,10 +1,14 @@
 package bfst20.mapdrawer.dijkstra;
 
+import java.io.Serializable;
+
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;
 
-public class Dijkstra {
+public class Dijkstra implements Serializable{
 
+    private static final long serialVersionUID = 1L;
+    
     private DirectedEdge[] edgeTo;
     private double[] distTo;
     private IndexMinPQ<Double> pq;

@@ -245,6 +245,12 @@ public class MapController {
 
                         break;
                     case ".bin":
+                        try {
+                            this.view = new MapView(OSMMap.loadBinary(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
                         break;
                     default:
                         Alert alert = new Alert(Alert.AlertType.ERROR);

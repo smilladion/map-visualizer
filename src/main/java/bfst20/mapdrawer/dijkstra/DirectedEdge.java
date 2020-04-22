@@ -1,7 +1,11 @@
 package bfst20.mapdrawer.dijkstra;
 
-public class DirectedEdge {
+import java.io.Serializable;
 
+public class DirectedEdge implements Serializable{
+
+    private static final long serialVersionUID = 1L;
+    
     int from;
     int to;
     int weight;

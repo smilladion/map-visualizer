@@ -4,13 +4,16 @@ import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import edu.princeton.cs.algs4.Bag;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Graph {
+public class Graph implements Serializable{
 
-        int vertices;
+    private static final long serialVersionUID = 1L;
+    
+    int vertices;
         ArrayList<DirectedEdge>[] adj;
 
     public Graph(int vertices, List<OSMWay> highways) {
