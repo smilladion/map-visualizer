@@ -5,9 +5,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.transform.Affine;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Point implements Drawable {
+public class Point implements Drawable, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final double SIZE = 0.85;
 
@@ -70,3 +73,5 @@ public class Point implements Drawable {
         );
     }
 }
+
+

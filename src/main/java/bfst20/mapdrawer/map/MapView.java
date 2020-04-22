@@ -4,6 +4,7 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
@@ -16,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,6 +30,11 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,8 +62,6 @@ public class MapView {
 
     private final GraphicsContext context;
 
-    private final static List<NodeProvider> drawables = new ArrayList<>(); // All map elements
-    private final HashSet<Long> kdSearchResults = new HashSet<>(); // IDs returned by kdTree search()
     private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
 
@@ -69,6 +75,7 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+    private final ToggleSwitch colorToggle = new ToggleSwitch();
 
     private final Label zoomDisplay = new Label();
     private final double initialZoom;
@@ -95,6 +102,9 @@ public class MapView {
         MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
         loadFile.setOnAction(controller.getLoadFileAction());
         fileMenu.getItems().add(loadFile);
+        MenuItem saveFile = new MenuItem("Gem...                       (.bin)");
+        saveFile.setOnAction(controller.getSaveFileAction());
+        fileMenu.getItems().add(saveFile);
 
         optionsMenu.getItems().add(showKdTree);
         optionsMenu.getItems().add(showDijktra);
@@ -129,8 +139,9 @@ public class MapView {
         Button saveToSearch = new Button("Gem adresse");
 
         myPointsToggle.setText("Vis gemte adresser");
+        colorToggle.setText("Colorblind mode");
 
-        VBox toggles = new VBox(myPointsToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -149,9 +160,13 @@ public class MapView {
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
+        colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         toSearchField.setOnAction(controller.getSearchAction());
         fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
 
+
+        //fromSearchField.setOnAction(controller.getSearchAction());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
 
         //fromSearchField.setOnAction(controller.getSearchAction());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
@@ -258,50 +273,88 @@ public class MapView {
 
     // Updates and repaints the whole map
     public void paintMap() {
+        drawableExtras.clear();
+
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
         // Paint background light blue
-        context.setFill(Color.LIGHTBLUE);
+        if(colorToggle.isSelected()){
+            context.setFill(Color.LIGHTGREY);
+        } else {
+            context.setFill(Color.LIGHTBLUE);
+        }
         context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Pan and scale all below
         context.setTransform(transform);
 
         // Paint using light yellow
-        context.setFill(Color.LIGHTYELLOW);
+        if(colorToggle.isSelected()){
+            context.setFill(Color.WHITE);
+        } else {
+            context.setFill(Color.LIGHTYELLOW);
+        }
 
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
 
-        populateDrawables(model);
-
         // Draw islands
         for (Drawable island : model.getIslands()) {
+            if(colorToggle.isSelected()){
+                context.setStroke(Color.LIGHTGREY);
+            } else {
+                context.setStroke(Color.LIGHTBLUE);
+            }
             island.draw(context);
             context.fill();
         }
 
-        // Draw OSMWays and relations
-        for (NodeProvider provider : drawables) {
-            if (provider.getDrawable() == null)
-                continue;
+        Point2D topLeft = null;
+        Point2D bottomRight = null;
 
-            // Only draw if the provider object is found in the kdTree search()
-            if (kdSearchResults.contains(provider.getAsLong())) {
+        try {
+            if (showKdTree.isSelected()) { // If the "Show KD Tree" button has been pressed
+                double size = 325.0; // Use this offset to create a smaller range for searching (making the culling visible on screen)
 
-                // Change linewidth for drawable objects where this is specified
-                int lineWidth = provider.getType().getLineWidth();
+                // Gives coords for the current zoom/pan level
+                topLeft = transform.inverseTransform(canvas.getWidth() / 2 - size / 2, canvas.getHeight() / 2 - size / 2);
+                bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
 
-                if (lineWidth > 0) {
-                    context.setLineWidth(lineWidth / Math.sqrt(Math.abs(transform.determinant())));
+                // Draws borders for where the culling happens
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+                drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
+            } else {
+                topLeft = transform.inverseTransform(0.0f, 0.0f);
+                bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
+            }
+        } catch (NonInvertibleTransformException e) {
+            e.printStackTrace();
+        }
+
+        for (Type type : Type.values()) {
+            if (type.shouldPaint(transform.getMxx())) {
+                // Change the linewidth
+                context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
+
+                // Change the color
+                if(colorToggle.isSelected()){
+                    context.setStroke(type.getAlternateColor());
+                    context.setFill(type.getAlternateColor());
+                } else {
+                    context.setStroke(type.getColor());
+                    context.setFill(type.getColor());
                 }
 
-                provider.getDrawable().draw(context);
 
-                // Change linewidth back to normal to ensure next element is drawn properly
-                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
+                if (model.getTypeToTree().containsKey(type)) {
+                    for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
+                        p.getDrawable().draw(context);
+                    }
+                }
             }
         }
 
@@ -410,6 +463,10 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
+    }
+
+    public ToggleSwitch getColorToggle() {
+        return colorToggle;
     }
 
     public Affine getTransform() {

@@ -2,6 +2,17 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
 
+import bfst20.mapdrawer.dijkstra.Dijkstra;
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Stack;
+
+
 import bfst20.mapdrawer.Rutevejledning.Dijkstra;
 import bfst20.mapdrawer.Rutevejledning.DirectedEdge;
 import bfst20.mapdrawer.drawing.*;
@@ -19,6 +30,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -48,8 +60,10 @@ public class MapController {
 
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
+    private final EventHandler<MouseEvent> colorToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
+    private final EventHandler<ActionEvent> saveFileAction;
 
     private final EventHandler<MouseEvent> panAction;
     private final EventHandler<MouseEvent> clickAction;
@@ -58,6 +72,7 @@ public class MapController {
     private final EventHandler<ActionEvent> searchActionDijkstraTest;
 
     private final EventHandler<MouseEvent> roadFinderAction;
+
 
     private final EventHandler<ActionEvent> weightDebugging;
     private final EventHandler<ActionEvent> showDijkstra;
@@ -124,6 +139,10 @@ public class MapController {
             } else {
                 view.paintPoints(null, null);
             }
+        };
+
+        colorToggleAction = e -> {
+            view.paintMap();
         };
 
         searchAction = e -> {
@@ -213,6 +232,48 @@ public class MapController {
 
         };
 
+        searchActionDijkstraTest = e -> {
+
+            String addressTo = view.getToSearchField().getText().toLowerCase();
+            String addressFrom = view.getFromSearchField().getText().toLowerCase();
+
+            OSMNode nodeTo = model.getIdToNodeMap().get(model.getAddressToId().get(addressTo));
+            OSMNode nodeFrom = model.getIdToNodeMap().get(model.getAddressToId().get(addressFrom));
+
+            OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+            OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+            Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+            OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
+
+            Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+            OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
+
+            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
+
+            List<OSMNode> list = new ArrayList<>();
+
+            Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+
+            //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
+            //it check if its the last edge of the stack, and if it is it also adds the "to" node.
+            while (!route.isEmpty()) {
+                OSMNode y = model.getIntToNode().get(route.peek().from());
+                list.add(y);
+                if(route.size()==1) {
+                    OSMNode x = model.getIntToNode().get(route.peek().to());
+                    list.add(x);
+                }
+                System.out.println(route.pop());
+            }
+            Type type = Type.SEARCHRESULT;
+
+            OSMWay searchedWay = new OSMWay(1, list, type, null);
+            view.paintRoute(searchedWay);
+        };
+
+
+
         clickAction = e -> {
             // Resets the value of lastMouse before the next pan/drag occurs
             if (!e.isPrimaryButtonDown()) {
@@ -273,6 +334,12 @@ public class MapController {
 
                         break;
                     case ".bin":
+                        try {
+                            this.view = new MapView(OSMMap.loadBinary(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
                         break;
                     default:
                         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -283,6 +350,31 @@ public class MapController {
                 }
             }
         };
+
+        saveFileAction = e -> {
+            File file = new FileChooser().showSaveDialog(stage);
+            if(file != null) try{
+                long time = -System.nanoTime();
+
+                if(file.getName().endsWith(".bin")) {
+                    try(var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))){
+                        out.writeObject(model);
+                    }
+
+                }else{
+                    Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                    alert.setHeaderText(null);
+                    alert.showAndWait();
+                }
+
+                time += System.nanoTime();
+                System.out.println(time);
+
+            }catch(IOException exception){
+                new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
+            }
+        };
+
 
         roadFinderAction = e -> {
             try {
@@ -333,6 +425,10 @@ public class MapController {
         return loadFileAction;
     }
 
+    public EventHandler<ActionEvent> getSaveFileAction() {
+        return saveFileAction;
+    }
+
     public EventHandler<ActionEvent> getClearAction() {
         return clearAction;
     }
@@ -343,6 +439,14 @@ public class MapController {
 
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
+    }
+
+    public EventHandler<ActionEvent> getSearchActionDijkstraTest() {
+        return searchActionDijkstraTest;
+    }
+
+    public EventHandler<MouseEvent> getColorToggleAction() {
+        return colorToggleAction;
     }
 
     public EventHandler<ActionEvent> getSearchActionDijkstraTest() {

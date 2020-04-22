@@ -6,7 +6,6 @@ import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.map.MapView;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -27,8 +26,14 @@ import edu.princeton.cs.algs4.DirectedEdge;
 import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 
 import static java.lang.Math.pow;
+import bfst20.mapdrawer.drawing.Drawable;
+import bfst20.mapdrawer.drawing.LinePath;
+import edu.princeton.cs.algs4.DirectedEdge;
+import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 
-public class OSMMap {
+public class OSMMap implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     private final Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
 
@@ -45,13 +50,15 @@ public class OSMMap {
     private final double maxLat;
     private final double maxLon;
 
+    private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
+    private final HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+    private KdTree kdTree;
+
     private final List<OSMNode> nodes = new ArrayList<>();
     private final List<OSMWay> ways = new ArrayList<>();
     private final List<OSMRelation> relations = new ArrayList<>();
 
     private final List<Drawable> islands = new ArrayList<>();
-
-    private KdTree kdTree;
 
     private final List<OSMWay> highways = new ArrayList<>();
 
@@ -60,10 +67,12 @@ public class OSMMap {
     private final Map<OSMNode, Integer> nodeToInt = new HashMap<>();
     private final Map<Integer, OSMNode> intToNode = new HashMap<>();
     private int nodeNumber = 1;
-    double weight;
 
     private Graph routeGraph;
     private Dijkstra dijkstra;
+
+    double weight;
+
 
     private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
 
@@ -129,7 +138,7 @@ public class OSMMap {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        map.idToRelation.put(id, readRelation(xmlReader, map.idToWay, id));
+                        map.idToRelation.put(id, readRelation(map, xmlReader, map.idToWay, id));
 
                         break;
                     }
@@ -149,19 +158,18 @@ public class OSMMap {
                 }
             }
 
+            for (Map.Entry<Type, List<NodeProvider>> entry : map.typeToProviders.entrySet()) {
+                map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
+            }
+
             List<NodeProvider> providers = new ArrayList<>();
 
             providers.addAll(map.ways);
             providers.addAll(map.relations);
 
-
             map.kdTree = new KdTree(providers);
 
             map.routeGraph = new Graph(20000, map.highways);
-
-            MapView.addNodeProviders(providers);
-
-            map.kdTree = new KdTree(providers);
 
         }
 
@@ -240,6 +248,11 @@ public class OSMMap {
 
         currentWay = new OSMWay(id, nodes, type, road);
 
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentWay);
+
         if (road != null) {
             map.addressToWay.put(road.toLowerCase(), currentWay);
         }
@@ -247,6 +260,17 @@ public class OSMMap {
         return currentWay;
     }
 
+    private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
+
+            for (OSMNode node : list) {
+                node.setNumberForGraph(map.nodeNumber);
+                map.intToNode.put(map.nodeNumber, node);
+                map.nodeToInt.put(node, map.nodeNumber);
+                map.nodeNumber++;
+            }
+            //TODO put road name in way constructor
+            map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, 1, true, true, true, null));
+    }
     private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
 
         for (OSMNode node : list) {
@@ -267,7 +291,7 @@ public class OSMMap {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
+    private static OSMRelation readRelation(OSMMap map, XMLStreamReader xmlReader, Map<Long, OSMWay> idToWay, long id) throws XMLStreamException {
         List<OSMWay> ways = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -311,6 +335,12 @@ public class OSMMap {
         }
 
         currentRelation = new OSMRelation(id, ways, type);
+
+        if (!map.typeToProviders.containsKey(type)) {
+            map.typeToProviders.put(type, new ArrayList<>());
+        }
+        map.typeToProviders.get(type).add(currentRelation);
+
         return currentRelation;
     }
 
@@ -357,6 +387,16 @@ public class OSMMap {
         }
 
         return address.toLowerCase();
+    }
+
+    public static OSMMap loadBinary(File file) throws IOException {
+        OSMMap map = null;
+        try(var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))){
+            map = (OSMMap) in.readObject();
+        } catch (ClassNotFoundException e){
+            throw new RuntimeException(e);
+        }
+        return map;
     }
 
     public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
@@ -424,6 +464,10 @@ public class OSMMap {
         return idToNode;
     }
 
+    public HashMap<Type, KdTree> getTypeToTree() {
+        return typeToTree;
+    }
+
     public KdTree getKdTree() {
         return kdTree;
     }
@@ -459,6 +503,4 @@ public class OSMMap {
     // Can move this to its own file if needed
     public static final class InvalidMapException extends Exception {
     }
-
-
 }

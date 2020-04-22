@@ -9,14 +9,18 @@ import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.paint.Paint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
+public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 import static java.lang.Math.pow;
 
 public class OSMWay implements LongSupplier, NodeProvider {
+
+    private static final long serialVersionUID = 1L;
 
     // A dummy way is used to avoid error when a relation references an unknown way
     // This allows files to be loaded which would normally fail under stricter parsing
@@ -52,6 +56,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
 
 
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
+
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -62,13 +67,36 @@ public class OSMWay implements LongSupplier, NodeProvider {
             drawable = null;
         } else if (type.shouldBeFilled()) {
             // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this, type.getColor());
+            drawable = new Polygon(this);
         } else {
             // If it should not, draw a line
             drawable = new LinePath(this);
         }
     }
 
+    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
+    public OSMWay(long id, List<OSMNode> nodes, Type type, int weight, boolean bike, boolean walk, boolean car, String road) {
+        this.id = id;
+        this.nodes = nodes;
+        this.type = type;
+
+        this.road = road;
+
+        this.weight = weight;
+        this.bike = bike;
+        this.walk = walk;
+        this.car = car;
+
+        if (nodes.isEmpty()) {
+            // If a way has no nodes, do not draw
+            drawable = null;
+        } else {
+            drawable = new LinePath(this);
+        }
+    }
+
+
+    private OSMWay() {
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
     public OSMWay(long id, List<OSMNode> nodes, Type type, boolean bike, boolean walk, boolean car, String road) {
         this.id = id;
@@ -172,7 +200,7 @@ public class OSMWay implements LongSupplier, NodeProvider {
     public List<OSMNode> getNodes() {
         return nodes;
     }
-
+    
     public String getRoad() {
         return road;
     }
