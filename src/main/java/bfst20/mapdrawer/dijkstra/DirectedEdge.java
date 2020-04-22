@@ -1,5 +1,7 @@
 package bfst20.mapdrawer.dijkstra;
 
+import bfst20.mapdrawer.osm.OSMNode;
+
 public class DirectedEdge {
 
     int from;
@@ -13,8 +15,11 @@ public class DirectedEdge {
     double y1;
     double x2;
     double y2;
+    OSMNode nodeFrom;
+    OSMNode nodeTo;
 
-    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2) {
+
+    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
         this.from = from;
         this.to = to;
         this.weight = weight;
@@ -26,6 +31,8 @@ public class DirectedEdge {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.nodeFrom = nodeFrom;
+        this.nodeTo = nodeTo;
     }
 
     public int from() {
@@ -57,6 +64,14 @@ public class DirectedEdge {
 
     public double getY2() {
         return y1;
+    }
+
+    public OSMNode getNodeFrom() {
+        return nodeFrom;
+    }
+
+    public OSMNode getNodeTo() {
+        return nodeTo;
     }
 
 

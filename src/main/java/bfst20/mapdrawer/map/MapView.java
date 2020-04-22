@@ -360,18 +360,32 @@ public class MapView {
 
             if (!currentRoad.equals(nextRoad)) {
 
-                Point2D pointFrom = new Point2D(current.getX1(), current.getY1());
-                Point2D pointMid = new Point2D(current.getX2(), current.getY2());
-                Point2D pointTo = new Point2D(next.getX2(), next.getY2());
+                Point2D pointFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
+                Point2D pointTo = new Point2D(next.getX2() - next.getX1(), - (next.getY2() - next.getY1()));
 
-                int ccw = ccw(pointFrom, pointMid, pointTo);
-                if(ccw > 0) {
-                    System.out.println("Drej til højre ad " + nextRoad);
-                } else if (ccw < 0) {
-                    System.out.println("Drej til venstre ad " + nextRoad);
-                } else if (ccw == 0) {
-                    System.out.println("Fortsæt ligeud ad " + nextRoad);
+
+                System.out.println("x1: " + current.getX1());
+
+                double angleFrom = Math.atan2(pointFrom.getX(), pointFrom.getY());
+                double angleTo = Math.atan2(pointTo.getX(), pointTo.getY());
+                double angle = angleTo - angleFrom;
+
+                if (angle > Math.PI) {
+                    angle = - (angle - Math.PI);
+                } else if (angle < - Math.PI) {
+                    angle = - (angle + Math.PI);
                 }
+
+                angle *= 180 / Math.PI;
+
+                System.out.println(angle);
+
+                if (angle > 0) {
+                    System.out.println("Drej til højre ad " + nextRoad);
+                } else if (angle < 0) {
+                    System.out.println("Drej til venstre ad " + nextRoad);
+                }
+
             }
 
         }

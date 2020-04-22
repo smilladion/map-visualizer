@@ -32,14 +32,14 @@ public class Graph {
                 int from = node.getNumberForGraph();
                 int to = node1.getNumberForGraph();
 
-                addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
+                addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
             }
         }
     }
 
-    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2) {
-        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2);
+    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode node, OSMNode node1) {
+        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2, node, node1);
           if (adj[from] == null) {
               adj[from] = new ArrayList<>();
               adj[from].add(edge);

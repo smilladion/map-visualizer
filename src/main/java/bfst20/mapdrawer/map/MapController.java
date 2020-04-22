@@ -167,10 +167,11 @@ public class MapController {
                 //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
                 //it check if its the last edge of the stack, and if it is it also adds the "to" node.
                 while (!route.isEmpty()) {
-                    OSMNode y = model.getIntToNode().get(route.peek().from());
-                    listForDijkstraOSMWay.add(y);
+                    OSMNode u = route.peek().getNodeFrom();
+                    //OSMNode y = model.getIntToNode().get(route.peek().from());
+                    listForDijkstraOSMWay.add(u);
                     if (route.size() == 1) {
-                        OSMNode x = model.getIntToNode().get(route.peek().to());
+                        OSMNode x = route.peek().getNodeTo();
                         listForDijkstraOSMWay.add(x);
                     }
                     edgeList.add(route.pop());
