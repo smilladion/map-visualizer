@@ -19,23 +19,27 @@ public class Graph {
 
         for (OSMWay way : highways) {
 
+            String road = way.getRoad();
+
             boolean bike = way.isBike();
             boolean walk = way.isWalk();
             boolean car = way.isCar();
             int weight = way.getWeight();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
-                int from = way.getNodes().get(i).getNumberForGraph();
-                int to = way.getNodes().get(i + 1).getNumberForGraph();
+                OSMNode node = way.getNodes().get(i);
+                OSMNode node1 = way.getNodes().get(i+1);
+                int from = node.getNumberForGraph();
+                int to = node1.getNumberForGraph();
 
-                addEdge(from, to, weight, bike, walk, car);
-                addEdge(to, from, weight, bike, walk, car);
+                addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
             }
         }
     }
 
-    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car) {
-        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car);
+    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2) {
+        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2);
           if (adj[from] == null) {
               adj[from] = new ArrayList<>();
               adj[from].add(edge);

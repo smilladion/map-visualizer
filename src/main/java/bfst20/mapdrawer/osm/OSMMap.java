@@ -200,12 +200,18 @@ public class OSMMap implements Serializable{
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
 
-                            readTags(key, value, nodes, id, map);
-
                             if (Type.containsType(value)) type = Type.getType(value);
                             
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
+                            for (OSMNode node : nodes) {
+                                node.setNumberForGraph(map.nodeNumber);
+                                map.intToNode.put(map.nodeNumber, node);
+                                map.nodeToInt.put(node, map.nodeNumber);
+                                map.nodeNumber++;
+                            }
+
+                            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, 1, true, true, true, road));
 
 
                         } else if (Type.containsType(value)) {
@@ -255,7 +261,7 @@ public class OSMMap implements Serializable{
         return currentWay;
     }
 
-    private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
+    /*private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
 
             for (OSMNode node : list) {
                 node.setNumberForGraph(map.nodeNumber);
@@ -265,7 +271,7 @@ public class OSMMap implements Serializable{
             }
             //TODO put road name in way constructor
             map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, 1, true, true, true, null));
-    }
+    }*/
     /**
      * readRelation will continuously read XML tags until the end of the relation is
      * found This is a better, and less error-prone, design than reading in the main

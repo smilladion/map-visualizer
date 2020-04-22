@@ -81,6 +81,7 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
+            listForDijkstraOSMWay.clear();
             view.setPointOfInterest(new Point());
             view.paintPoints(null, null);
         };
@@ -124,6 +125,7 @@ public class MapController {
         searchActionDijkstra = e -> {
 
             view.getSearchedDrawables().clear();
+            listForDijkstraOSMWay.clear();
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
@@ -160,6 +162,8 @@ public class MapController {
 
                 Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
 
+                List<DirectedEdge> edgeList = new ArrayList<>();
+
                 //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
                 //it check if its the last edge of the stack, and if it is it also adds the "to" node.
                 while (!route.isEmpty()) {
@@ -169,13 +173,13 @@ public class MapController {
                         OSMNode x = model.getIntToNode().get(route.peek().to());
                         listForDijkstraOSMWay.add(x);
                     }
-                    System.out.println(route.pop());
+                    edgeList.add(route.pop());
                 }
                 Type type = Type.SEARCHRESULT;
 
                 OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
                 view.paintRoute(searchedWay);
-                view.createRouteDescription(searchedWay);
+                view.createRouteDescription(edgeList);
             }
         };
 

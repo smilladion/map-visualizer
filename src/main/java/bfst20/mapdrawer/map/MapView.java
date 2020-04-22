@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.map;
 
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
@@ -27,6 +28,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -328,55 +330,48 @@ public class MapView {
         }
     }
 
-    public void createRouteDescription(OSMWay way) {
+    public static int ccw(Point2D a, Point2D b, Point2D c) {
+        double area2 = (b.getX() - a.getX())*(c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
+        if      (area2 < 0) return -1;
+        else if (area2 > 0) return +1;
+        else                return  0;
+    }
 
-        for (int i = 0; i < way.getNodes().size()-3; i++) {
-            OSMNode from = way.getNodes().get(i);
-            OSMNode to = way.getNodes().get(i+1);
-            OSMNode last = way.getNodes().get(i+2);
+    public void createRouteDescription(List<DirectedEdge> edgeList) {
 
-            Line line1 = new Line(from.getLon(), from.getLat(), to.getLon(), to.getLat());
-            Line line2 = new Line(to.getLon(), to.getLat(), last.getLon(), last.getLat());
+        for (int i = 0; i < edgeList.size()-1; i++) {
 
-            double angle1 = Math.atan2(line1.getY1() - line1.getY2(),
-                    line1.getX1() - line1.getX2());
-            double angle2 = Math.atan2(line2.getY1() - line2.getY2(),
-                    line2.getX1() - line2.getX2());
+            DirectedEdge current = edgeList.get(i);
+            DirectedEdge next = edgeList.get(i+1);
 
-            double angle = angle1 - angle2;
+            String currentRoad = current.getRoad();
+            String nextRoad = next.getRoad();
 
-            String currentRoad = from.getRoad();
             if (currentRoad == null) {
                 currentRoad = "ukendt vej";
             }
-            String s = last.getRoad();
-            if (s == null) {
-                s = "ukendt vej";
+            if (nextRoad == null) {
+                nextRoad = "ukendt vej";
             }
 
-            if (!currentRoad.equals(s)) {
-                if (i == 0) {
-                    System.out.println("Fortsæt ligeud ad " + currentRoad + " imod " + s);
+            if (i == 0) {
+                System.out.println("Fortsæt ligeud ad " + currentRoad);
+            }
+
+            if (!currentRoad.equals(nextRoad)) {
+
+                Point2D pointFrom = new Point2D(current.getX1(), current.getY1());
+                Point2D pointMid = new Point2D(current.getX2(), current.getY2());
+                Point2D pointTo = new Point2D(next.getX2(), next.getY2());
+
+                int ccw = ccw(pointFrom, pointMid, pointTo);
+                if(ccw > 0) {
+                    System.out.println("Drej til højre ad " + nextRoad);
+                } else if (ccw < 0) {
+                    System.out.println("Drej til venstre ad " + nextRoad);
+                } else if (ccw == 0) {
+                    System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
-                if (to.getLon() > last.getLon()) {
-                    if (angle1 < angle2) {
-                        System.out.println("Drej til højre ad " + s);
-                    } else if (angle1 > angle2) {
-                        System.out.println("Drej til vestre ad " + s);
-                    } else {
-                        System.out.println("Fortsæt ligeud ad " + s);
-                    }
-                    //We are going right on the map
-                } else if (to.getLon() < last.getLon()) {
-                    if (angle1 < angle2) {
-                        System.out.println("Drej til venstre ad " + s);
-                    } else if (angle1 > angle2) {
-                        System.out.println("Drej til højre ad " + s);
-                    } else {
-                        System.out.println("Fortsæt ligeud ad " + s);
-                    }
-                }
-                currentRoad = s;
             }
 
         }
