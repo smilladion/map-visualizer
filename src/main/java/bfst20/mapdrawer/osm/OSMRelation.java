@@ -66,12 +66,24 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
 
     @Override
     public float getAvgX() {
-        return (float) getBoundingBox().getCenterPoint().getX();
+        float sumX = 0.0f;
+
+        for (OSMWay way : ways) {
+            sumX += way.getAvgX();
+        }
+
+        return sumX / ways.size();
     }
 
     @Override
     public float getAvgY() {
-        return (float) getBoundingBox().getCenterPoint().getY();
+        float sumY = 0.0f;
+
+        for (OSMWay way : ways) {
+            sumY += way.getAvgY();
+        }
+
+        return sumY / ways.size();
     }
 
     @Override
