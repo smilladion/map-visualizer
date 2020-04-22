@@ -76,7 +76,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
     }
 
-    private OSMWay() {
+    public OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
         drawable = null;

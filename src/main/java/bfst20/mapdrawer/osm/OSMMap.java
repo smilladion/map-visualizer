@@ -110,8 +110,10 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readWay method to read all nodes inside of way
-                        // Store this OSM way into a map for fast lookups (used in readRelation)
-                        map.ways.add(readWay(map, xmlReader, id));
+                        OSMWay currentWay = readWay(map, xmlReader, id);
+                        if (currentWay != null) {
+                            map.ways.add(currentWay);
+                        }
 
                         break;
                     }
@@ -119,7 +121,10 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        map.relations.add(readRelation(map, xmlReader, id));
+                        OSMRelation currentRelation = readRelation(map, xmlReader, id);
+                        if (currentRelation != null) {
+                            map.relations.add(currentRelation);
+                        }
 
                         break;
                     }
@@ -190,8 +195,7 @@ public class OSMMap implements Serializable {
                             
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
-
-
+                            
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
@@ -221,6 +225,10 @@ public class OSMMap implements Serializable {
                 break;
             }
         }
+        
+        if (type == Type.UNKNOWN || type == null) {
+            return null;
+        }
 
         currentWay = new OSMWay(id, nodes, type, road);
         
@@ -247,6 +255,7 @@ public class OSMMap implements Serializable {
             //TODO put road name in way constructor
             map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, 1, true, true, true, null));
     }
+    
     /**
      * readRelation will continuously read XML tags until the end of the relation is
      * found This is a better, and less error-prone, design than reading in the main
@@ -282,7 +291,6 @@ public class OSMMap implements Serializable {
 
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
-
                         }
 
                         break;
@@ -291,6 +299,10 @@ public class OSMMap implements Serializable {
                 // Once we have reached the end of the relation, break and return the OSM relation
                 break;
             }
+        }
+
+        if (type == Type.UNKNOWN || type == null) {
+            return null;
         }
 
         currentRelation = new OSMRelation(id, ways, type);
