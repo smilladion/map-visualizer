@@ -157,7 +157,7 @@ public class OSMMap implements Serializable {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
 
-            map.routeGraph = new Graph(20000, map.highways);
+            //map.routeGraph = new Graph(20000, map.highways);
         }
 
         return map;

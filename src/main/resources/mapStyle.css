@@ -50,17 +50,14 @@
 #closestRoad {
     -fx-font-size: 12px;
     -fx-background-color: white;
-    -fx-background-insets: 5;
     -fx-background-radius: 5px;
-    -fx-padding: 10 15 10;
+    -fx-padding: 5 10 5;
 }
 
 #zoomDisplay {
     -fx-font-size: 12px;
-    -fx-background-color: white;
-    -fx-background-insets: 5;
-    -fx-background-radius: 5px;
-    -fx-padding: 10 15 10;
+    -fx-font-weight: bold;
+    -fx-padding: 0 19 10;
 }
 
 .menu-bar {

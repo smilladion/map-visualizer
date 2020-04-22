@@ -17,7 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -49,7 +48,7 @@ public class MapView {
     private final StackPane rootPane;
     private final GraphicsContext context;
     
-    private final List<Drawable> drawableExtras = new ArrayList<>(); // Extra UI elements
+    private final List<Line> lineExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
 
     private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
@@ -64,7 +63,6 @@ public class MapView {
     private final ToggleSwitch colorToggle = new ToggleSwitch(); 
 
     private final Label zoomDisplay = new Label();
-    private final double initialZoom;
 
     private final Label closestRoad = new Label();
     private Point pointOfInterest = new Point();
@@ -135,6 +133,7 @@ public class MapView {
 
         closestRoad.setId("closestRoad");
         HBox roadBox = new HBox(closestRoad);
+        roadBox.setPadding(new Insets(0, 0, 13, 15));
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
         rootPane.getChildren().add(roadBox);
@@ -165,8 +164,7 @@ public class MapView {
         window.setScene(scene);
         window.show();
 
-        // Code below makes the canvas resizable when the window changes (responsive
-        // design)
+        // Code below makes the canvas resizable when the window changes (responsive design)
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
         canvas.widthProperty().addListener((a, b, c) -> {
@@ -181,9 +179,12 @@ public class MapView {
         resetPanZoom();
 
         paintMap();
-
-        initialZoom = transform.getMxx();
-        zoomDisplay.setText(String.format("x" + "%.1f", 1.0)); // Makes sure only 1 decimal is shown
+        
+        if (getMetersPerPixels(80) >= 1000) {
+            zoomDisplay.setText(String.format("%.2f", (getMetersPerPixels(80)) / 1000) + " km");
+        } else {
+            zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
+        }
         
         // Remove focus from search field on startup
         canvas.requestFocus();
@@ -196,7 +197,13 @@ public class MapView {
 
     void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
-        zoomDisplay.setText(String.format("x" + "%.1f", transform.getMxx() / initialZoom));
+        
+        if (getMetersPerPixels(80) >= 1000) {
+            zoomDisplay.setText(String.format("%.2f", (getMetersPerPixels(80)) / 1000) + " km");
+        } else {
+            zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
+        }
+        
         paintMap();
     }
 
@@ -207,7 +214,8 @@ public class MapView {
 
     // Updates and repaints the whole map
     public void paintMap() {
-        drawableExtras.clear();
+        clearCanvas();
+        lineExtras.clear();
         
         // Using identity matrix (no transform)
         context.setTransform(new Affine());
@@ -257,10 +265,10 @@ public class MapView {
                 bottomRight = transform.inverseTransform(canvas.getWidth() / 2 + size / 2, canvas.getHeight() / 2 + size / 2);
 
                 // Draws borders for where the culling happens
-                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
-                drawableExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
-                drawableExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
-                drawableExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
+                lineExtras.add(new Line(topLeft.getX(), topLeft.getY(), topLeft.getX(), bottomRight.getY()));
+                lineExtras.add(new Line(bottomRight.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()));
+                lineExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
+                lineExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
             } else {
                 topLeft = transform.inverseTransform(0.0f, 0.0f);
                 bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
@@ -289,6 +297,9 @@ public class MapView {
                         p.getDrawable().draw(context);
                     }
                 }
+                
+                // Set line width back to normal
+                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
         }
 
@@ -304,9 +315,24 @@ public class MapView {
             }
         }
 
+        // Drawing the three lines that make up the zoom scale
+        try {
+            lineExtras.add(new Line(
+                    transform.inverseTransform(canvas.getWidth() - 20, canvas.getHeight() -30),
+                    transform.inverseTransform(canvas.getWidth() - 100, canvas.getHeight() -30)));
+            
+            lineExtras.add(new Line(transform.inverseTransform(canvas.getWidth() - 100, canvas.getHeight() -30),
+                    transform.inverseTransform(canvas.getWidth() - 100, canvas.getHeight() -35)));
+            
+            lineExtras.add(new Line(transform.inverseTransform(canvas.getWidth() - 20, canvas.getHeight() -30),
+                    transform.inverseTransform(canvas.getWidth() - 20, canvas.getHeight() -35)));
+        } catch (NonInvertibleTransformException e) {
+            e.printStackTrace();
+        }
+
         // Draw extra UI elements
-        for (Drawable drawable : drawableExtras) {
-            drawable.draw(context);
+        for (Line line : lineExtras) {
+            line.drawAndSetWidth(context, 2.5 / Math.sqrt(Math.abs(transform.determinant())));
         }
 
         pointOfInterest.draw(context);
@@ -358,6 +384,17 @@ public class MapView {
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
+    }
+
+    private void clearCanvas() {
+        context.setTransform(new Affine());
+        context.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    }
+    
+    private double getMetersPerPixels(int pixels) {
+        double LatPerPixel = 1 / Math.sqrt(Math.abs(context.getTransform().determinant()));
+        double metersPerPixel = 111111 * LatPerPixel; // 111111 is roughly meters per 1 degree lat
+        return pixels * metersPerPixel;
     }
 
     public void resetSearchField() {
