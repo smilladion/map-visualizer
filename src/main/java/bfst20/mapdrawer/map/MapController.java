@@ -4,18 +4,12 @@ import bfst20.mapdrawer.Launcher;
 
 import bfst20.mapdrawer.dijkstra.Dijkstra;
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
-import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import edu.princeton.cs.algs4.Stack;
-
-import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMWay;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -152,14 +146,14 @@ public class MapController {
             OSMNode nodeTo = model.getNodes().get(model.getAddressToId().get(addressTo));
             OSMNode nodeFrom = model.getNodes().get(model.getAddressToId().get(addressFrom));
 
-            OSMWay nearestTo = model.getKdTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-            OSMWay nearestFrom = model.getKdTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+            OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+            OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
 
             Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-            OSMNode nearestToNode = model.getKdTree().nodeDistance(pointTo, nearestTo);
+            OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
 
             Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-            OSMNode nearestFromNode = model.getKdTree().nodeDistance(pointFrom, nearestFrom);
+            OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
             dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
 
@@ -283,7 +277,7 @@ public class MapController {
         roadFinderAction = e -> {
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                OSMWay result = model.getKdTree().nearest(mousePoint.getX(), mousePoint.getY());
+                OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
                 if (result.getRoad() != null) {
                     view.setClosestRoad(result.getRoad());
                 }

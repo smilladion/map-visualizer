@@ -39,7 +39,7 @@ public class OSMMap implements Serializable {
     
     private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
     private final HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
-    private KdTree kdTree;
+    private KdTree highwayTree;
 
     private final List<Drawable> islands = new ArrayList<>();
 
@@ -141,18 +141,25 @@ public class OSMMap implements Serializable {
                 }
             }
             
+            List<NodeProvider> highways = new ArrayList<>();
+            
+            // If the type has the highway key, add its list to the highways list (and make a kdtree from it below)
+            for (Type type : Type.values()) {
+                if (type.getKey() != null && type.getKey().equals("highway") && map.typeToProviders.containsKey(type)) {
+                    highways.addAll(map.typeToProviders.get(type));
+                }
+            }
+            
+            map.highwayTree = new KdTree(highways);
+            
+            // Create kdtree for each list mapped to types
             for (Map.Entry<Type, List<NodeProvider>> entry : map.typeToProviders.entrySet()) {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
 
             SortedList<NodeProvider> providers = new SortedList<>();
-            
-            providers.addAll(map.ways);
-            providers.addAll(map.relations);
 
-            map.kdTree = new KdTree(providers);
-
-            map.routeGraph = new Graph(20000, map.highways);
+            //map.routeGraph = new Graph(20000, map.highways);
         }
 
         return map;
@@ -435,8 +442,8 @@ public class OSMMap implements Serializable {
         return typeToTree;
     }
     
-    public KdTree getKdTree() {
-        return kdTree;
+    public KdTree getHighwayTree() {
+        return highwayTree;
     }
 
     public List<String> getAddressList() {
