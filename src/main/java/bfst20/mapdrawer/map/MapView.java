@@ -381,9 +381,6 @@ public class MapView {
 
             if (!currentRoad.equals(nextRoad)) {
 
-                System.out.println("current lon og lat: " + current.getX1() + " " +  current.getY1() + " " + current.getX2() + " " + current.getY2());
-                System.out.println("next lon og lat: " + next.getX1() + " " + next.getY1() + " " + next.getX2() + " " + next.getY2());
-
                 //making the two edges into direction vectors.
                 Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
                 Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
