@@ -299,9 +299,6 @@ public class MapView {
                         p.getDrawable().draw(context);
                     }
                 }
-                
-                // Set line width back to normal
-                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
         }
 
@@ -309,6 +306,9 @@ public class MapView {
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
+
+        // Set line width back to normal
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
         // Draws saved searches so they are updated on pan/zoom
         if (myPointsToggle.isSelected()) {
@@ -422,15 +422,12 @@ public class MapView {
         }
     }
 
-    public void paintRoute(OSMWay way) {
-        context.setTransform(transform);
-        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
-
-        LinePath path = new LinePath(way);
-        searchedDrawables.add(path);
-
-        for (Drawable drawable : searchedDrawables) {
-            drawable.draw(context);
+    public void paintRoute(List<DirectedEdge> edges) {
+        context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
+        
+        for (DirectedEdge edge : edges) {
+            searchedDrawables.add(edge);
+            edge.draw(context);
         }
     }
 

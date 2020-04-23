@@ -1,28 +1,29 @@
 package bfst20.mapdrawer.dijkstra;
 
 import java.io.Serializable;
-import bfst20.mapdrawer.osm.OSMNode;
 
-public class DirectedEdge implements Serializable {
+import bfst20.mapdrawer.drawing.Drawable;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
+public class DirectedEdge implements Serializable, Drawable {
 
     private static final long serialVersionUID = 1L;
     
-    int from;
-    int to;
-    int weight;
-    boolean bike;
-    boolean walk;
-    boolean car;
-    String road;
-    double x1;
-    double y1;
-    double x2;
-    double y2;
-    OSMNode nodeFrom;
-    OSMNode nodeTo;
+    private final int from;
+    private final int to;
+    private final int weight;
+    private final boolean bike;
+    private final boolean walk;
+    private final boolean car;
+    private final String road;
+    private final double x1;
+    private final double y1;
+    private final double x2;
+    private final double y2;
 
 
-    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
+    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2) {
         this.from = from;
         this.to = to;
         this.weight = weight;
@@ -34,8 +35,6 @@ public class DirectedEdge implements Serializable {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
-        this.nodeFrom = nodeFrom;
-        this.nodeTo = nodeTo;
     }
 
     public int from() {
@@ -70,15 +69,16 @@ public class DirectedEdge implements Serializable {
         return y1;
     }
 
-    public OSMNode getNodeFrom() {
-        return nodeFrom;
-    }
-
-    public OSMNode getNodeTo() {
-        return nodeTo;
-    }
-
     public String toString() {
         return String.format("from: " + from + ", to: " + to);
    }
+
+    @Override
+    public void draw(GraphicsContext gc) {
+        gc.setStroke(Color.BLACK);
+        gc.beginPath();
+        gc.moveTo(x1, y1);
+        gc.lineTo(x2, y2);
+        gc.stroke();
+    }
 }

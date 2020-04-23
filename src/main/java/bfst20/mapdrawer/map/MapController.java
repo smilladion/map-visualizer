@@ -24,11 +24,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MapController {
 
@@ -57,7 +54,7 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
-    List<OSMNode> listForDijkstraOSMWay = new ArrayList<>();
+    List<DirectedEdge> routeEdges = new ArrayList<>();
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
@@ -70,7 +67,7 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            listForDijkstraOSMWay.clear();
+            routeEdges.clear();
             view.setPointOfInterest(new Point());
             view.paintPoints(null, null);
         };
@@ -110,7 +107,7 @@ public class MapController {
         
         searchActionDijkstra = e -> {
             view.getSearchedDrawables().clear();
-            listForDijkstraOSMWay.clear();
+            routeEdges.clear();
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
@@ -142,29 +139,10 @@ public class MapController {
 
                 dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
 
-                List<OSMNode> list = new ArrayList<>();
-
-                Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
-
-                List<DirectedEdge> edgeList = new ArrayList<>();
-
-                //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
-                //it check if its the last edge of the stack, and if it is it also adds the "to" node.
-                while (!route.isEmpty()) {
-                    OSMNode u = route.peek().getNodeFrom();
-                    //OSMNode y = model.getIntToNode().get(route.peek().from());
-                    listForDijkstraOSMWay.add(u);
-                    if (route.size() == 1) {
-                        OSMNode x = route.peek().getNodeTo();
-                        listForDijkstraOSMWay.add(x);
-                    }
-                    edgeList.add(route.pop());
-                }
-                Type type = Type.SEARCHRESULT;
-
-                OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
-                view.paintRoute(searchedWay);
-                view.createRouteDescription(edgeList);
+                routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+                
+                view.paintRoute(routeEdges);
+                view.createRouteDescription(routeEdges);
             }
         };
 
