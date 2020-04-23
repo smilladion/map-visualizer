@@ -44,9 +44,7 @@ public class OSMMap implements Serializable {
     private final List<Drawable> islands = new ArrayList<>();
 
     private List<OSMWay> highways = new ArrayList<>();
-
-    private final Map<OSMNode, Integer> nodeToInt = new HashMap<>();
-    private final Map<Integer, OSMNode> intToNode = new HashMap<>();
+    
     private int nodeNumber = 1;
 
     private Graph routeGraph;
@@ -159,7 +157,7 @@ public class OSMMap implements Serializable {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
 
-            map.routeGraph = new Graph(20000, map.highways);
+            map.routeGraph = new Graph(map.nodeNumber+1, map.highways);
             
             map.nodes = null;
             map.ways = null;
@@ -203,12 +201,18 @@ public class OSMMap implements Serializable {
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
 
-                            readTags(key, value, nodes, id, map);
-
                             if (Type.containsType(value)) type = Type.getType(value);
                             
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
+
+                            for (OSMNode node : nodes) {
+                                node.setNumberForGraph(map.nodeNumber);
+                                map.nodeNumber++;
+                                node.setRoad(road);
+                            }
+
+                            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, 1, true, true, true, road));
                             
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
@@ -254,18 +258,6 @@ public class OSMMap implements Serializable {
         return currentWay;
     }
 
-    private static void readTags(String key, String value, List<OSMNode> list, long id, OSMMap map) {
-
-            for (OSMNode node : list) {
-                node.setNumberForGraph(map.nodeNumber);
-                map.intToNode.put(map.nodeNumber, node);
-                map.nodeToInt.put(node, map.nodeNumber);
-                map.nodeNumber++;
-            }
-            //TODO put road name in way constructor
-            map.highways.add(new OSMWay(id, list, Type.SEARCHRESULT, 1, true, true, true, null));
-    }
-    
     /**
      * readRelation will continuously read XML tags until the end of the relation is
      * found This is a better, and less error-prone, design than reading in the main
@@ -443,10 +435,6 @@ public class OSMMap implements Serializable {
     
     public List<OSMNode> getAddressNodes() {
         return addressNodes;
-    }
-
-    public Map<Integer, OSMNode> getIntToNode() {
-        return intToNode;
     }
 
     public Graph getRouteGraph() {

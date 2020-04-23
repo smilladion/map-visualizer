@@ -15,6 +15,8 @@ public class OSMNode implements LongSupplier, Serializable {
     
     private String address;
 
+    private String road;
+
     private int numberForGraph;
 
     public OSMNode(long id, double lon, double lat, int numberForGraph, String address) {
@@ -57,7 +59,7 @@ public class OSMNode implements LongSupplier, Serializable {
             numberForGraph = number;
         }
     }
-
+    
     /**
      * Calculates the distance between this node and another point.
      * NOTE: Square root has been removed because it is very slow to run, meaning it gives the wrong result,
@@ -68,6 +70,13 @@ public class OSMNode implements LongSupplier, Serializable {
         double dX = point.getX() - lon;
         double dY = point.getY() - lat;
         return dX * dX + dY * dY;
+    }
+    
+    public void setRoad(String road) {
+        this.road = road;
+    }
 
+    public String getRoad() {
+        return road;
     }
 }

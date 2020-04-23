@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.map;
 
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
@@ -26,6 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -356,6 +358,62 @@ public class MapView {
             }
         }
         paintMap();
+    }
+
+    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
+        double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
+        double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
+        double angle = angleTo - angleFrom;
+
+        if (angle > Math.PI) {
+            angle = -(angle - Math.PI);
+        } else if (angle < -Math.PI) {
+            angle = -(angle + Math.PI);
+        }
+
+        angle *= 180 / Math.PI;
+        
+        return angle;
+    }
+
+    public void createRouteDescription(List<DirectedEdge> edgeList) {
+
+        for (int i = 0; i < edgeList.size()-1; i++) {
+
+            DirectedEdge current = edgeList.get(i);
+            DirectedEdge next = edgeList.get(i+1);
+
+            String currentRoad = current.getRoad();
+            String nextRoad = next.getRoad();
+
+            if (currentRoad == null) {
+                currentRoad = "ukendt vej";
+            }
+            if (nextRoad == null) {
+                nextRoad = "ukendt vej";
+            }
+
+            if (i == 0) {
+                System.out.println("Fortsæt ligeud ad " + currentRoad);
+            }
+
+            if (!currentRoad.equals(nextRoad)) {
+
+                //making the two edges into direction vectors.
+                Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
+                Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
+
+                double angle = calculateAngle(vectorFrom, vectorTo);
+
+                if (angle > 20 && angle < 140) {
+                    System.out.println("Drej til højre ad " + nextRoad);
+                } else if (angle < -20 && angle > -140) {
+                    System.out.println("Drej til venstre ad " + nextRoad);
+                } else {
+                    System.out.println("Fortsæt ligeud ad " + nextRoad);
+                }
+            }
+        }
     }
 
     public void paintSavedAddresses() {

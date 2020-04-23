@@ -35,7 +35,7 @@ public class MapController {
     private final OSMMap model;
     private MapView view;
     private final Stage stage;
-
+    
     private final EventHandler<ActionEvent> clearAction;
 
     private final EventHandler<ActionEvent> saveAddressAction;
@@ -57,6 +57,8 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
+    List<OSMNode> listForDijkstraOSMWay = new ArrayList<>();
+
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
@@ -68,6 +70,7 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
+            listForDijkstraOSMWay.clear();
             view.setPointOfInterest(new Point());
             view.paintPoints(null, null);
         };
@@ -100,19 +103,18 @@ public class MapController {
                 view.paintPoints(null, null);
             }
         };
-
+        
         colorToggleAction = e -> {
             view.paintMap();
         };
-
+        
         searchActionDijkstra = e -> {
-
             view.getSearchedDrawables().clear();
-            view.paintPoints(null, null);
+            listForDijkstraOSMWay.clear();
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
-
+            
             view.paintPoints(addressTo, addressFrom);
             
             if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
@@ -144,24 +146,27 @@ public class MapController {
 
                 Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
 
+                List<DirectedEdge> edgeList = new ArrayList<>();
+
                 //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
                 //it check if its the last edge of the stack, and if it is it also adds the "to" node.
                 while (!route.isEmpty()) {
-                    OSMNode y = model.getIntToNode().get(route.peek().from());
-                    list.add(y);
-                    if(route.size()==1) {
-                        OSMNode x = model.getIntToNode().get(route.peek().to());
-                        list.add(x);
+                    OSMNode u = route.peek().getNodeFrom();
+                    //OSMNode y = model.getIntToNode().get(route.peek().from());
+                    listForDijkstraOSMWay.add(u);
+                    if (route.size() == 1) {
+                        OSMNode x = route.peek().getNodeTo();
+                        listForDijkstraOSMWay.add(x);
                     }
-                    route.pop();
+                    edgeList.add(route.pop());
                 }
                 Type type = Type.SEARCHRESULT;
 
-                OSMWay searchedWay = new OSMWay(1, list, type, null);
+                OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
                 view.paintRoute(searchedWay);
+                view.createRouteDescription(edgeList);
             }
         };
-
 
         clickAction = e -> {
             // Resets the value of lastMouse before the next pan/drag occurs
@@ -276,7 +281,7 @@ public class MapController {
             }
         };
     }
-
+    
     public EventHandler<MouseEvent> getPanAction() {
         return panAction;
     }
@@ -308,11 +313,11 @@ public class MapController {
     public EventHandler<MouseEvent> getToggleAction() {
         return toggleAction;
     }
-
+    
     public EventHandler<MouseEvent> getColorToggleAction() {
         return colorToggleAction;
     }
-
+    
     public EventHandler<ActionEvent> getSearchActionDijkstra() {
         return searchActionDijkstra;
     }
