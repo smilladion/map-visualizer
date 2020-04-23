@@ -68,7 +68,7 @@ public class Point implements Drawable, Serializable {
             return;
         }
         
-        double initialZoom = 5000.0; // Found to be the appropriate value
+        double initialZoom = 5000.0f; // Found to be the appropriate value
         double scale = transform.getMxx() / initialZoom;
 
         gc.drawImage(

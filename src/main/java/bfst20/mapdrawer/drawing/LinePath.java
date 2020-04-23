@@ -4,18 +4,17 @@ import java.io.Serializable;
 
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Paint;
 
 public class LinePath implements Drawable, Serializable {
 
     private static final long serialVersionUID = 1L;
 
     // Coords holds the X and Y coordinates (X1, Y1, X2, Y2, etc)
-    private final double[] coords;
+    private final float[] coords;
 
     public LinePath(OSMWay way) {
         // Each point has an X and a Y (number of slots we need)
-        coords = new double[2 * way.getNodes().size()];
+        coords = new float[2 * way.getNodes().size()];
 
         // For each point in this path, add the coordinate to our list
         for (int i = 0; i < way.getNodes().size(); i++) {

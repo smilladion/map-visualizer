@@ -293,9 +293,9 @@ public class MapView {
                     context.setFill(type.getColor());
                 }
                 
-                
                 if (model.getTypeToTree().containsKey(type)) {
-                    for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
+                    for (NodeProvider p : model.getTypeToTree().get(type).search(
+                            new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
                         p.getDrawable().draw(context);
                     }
                 }

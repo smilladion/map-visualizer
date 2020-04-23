@@ -49,10 +49,10 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
 
     @Override
     public Rectangle getBoundingBox() {
-        double xMin = Double.MAX_VALUE;
-        double xMax = -Double.MAX_VALUE;
-        double yMin = Double.MAX_VALUE;
-        double yMax = -Double.MAX_VALUE;
+        float xMin = Float.MAX_VALUE;
+        float xMax = -Float.MAX_VALUE;
+        float yMin = Float.MAX_VALUE;
+        float yMax = -Float.MAX_VALUE;
 
         for (OSMWay way : ways) {
             xMin = Math.min(xMin, way.getBoundingBox().getXmin());

@@ -32,10 +32,10 @@ public class OSMMap implements Serializable {
     private SortedList<OSMWay> ways = new SortedList<>();
     private SortedList<OSMRelation> relations = new SortedList<>();
 
-    private final double minLat;
-    private final double minLon;
-    private final double maxLat;
-    private final double maxLon;
+    private final float minLat;
+    private final float minLon;
+    private final float maxLat;
+    private final float maxLon;
     
     private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
     private HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
@@ -50,7 +50,7 @@ public class OSMMap implements Serializable {
     private Graph routeGraph;
     private Dijkstra dijkstra;
 
-    private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
+    private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
 
         this.minLat = minLat;
         this.minLon = minLon;
@@ -82,16 +82,16 @@ public class OSMMap implements Serializable {
                         }
 
                         // Create a new map and flips and fixes the spherical orientation
-                        map = new OSMMap(-Double.parseDouble(xmlReader.getAttributeValue(null, "maxlat")),
-                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "minlon")),
-                                -Double.parseDouble(xmlReader.getAttributeValue(null, "minlat")),
-                                0.56f * Double.parseDouble(xmlReader.getAttributeValue(null, "maxlon")));
+                        map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
+                                -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
+                                0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
 
                         break;
                     case "node": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-                        double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
-                        double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
+                        float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
+                        float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
                         OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
 
@@ -401,19 +401,19 @@ public class OSMMap implements Serializable {
         return newFile;
     }
 
-    public double getMinLat() {
+    public float getMinLat() {
         return minLat;
     }
 
-    public double getMinLon() {
+    public float getMinLon() {
         return minLon;
     }
 
-    public double getMaxLat() {
+    public float getMaxLat() {
         return maxLat;
     }
 
-    public double getMaxLon() {
+    public float getMaxLon() {
         return maxLon;
     }
 

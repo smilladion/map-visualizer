@@ -41,7 +41,7 @@ public class Graph implements Serializable{
         }
     }
 
-    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2) {
+    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
         DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2);
           if (adj[from] == null) {
               adj[from] = new ArrayList<>();
