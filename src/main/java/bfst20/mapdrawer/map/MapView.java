@@ -337,6 +337,27 @@ public class MapView {
         else                return  0;
     }
 
+    public double dot(Point2D point1, Point2D point2) {
+        return point1.getX() * point2.getX() + point1.getY() + point2.getY();
+    }
+
+    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
+        double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
+        double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
+        double angle = angleTo - angleFrom;
+
+        if (angle > Math.PI) {
+            angle = -(angle - Math.PI);
+        } else if (angle < -Math.PI) {
+            angle = -(angle + Math.PI);
+        }
+
+        angle *= 180 / Math.PI;
+
+        System.out.println(angle);
+        return angle;
+    }
+
     public void createRouteDescription(List<DirectedEdge> edgeList) {
 
         for (int i = 0; i < edgeList.size()-1; i++) {
@@ -360,30 +381,21 @@ public class MapView {
 
             if (!currentRoad.equals(nextRoad)) {
 
-                Point2D pointFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
-                Point2D pointTo = new Point2D(next.getX2() - next.getX1(), - (next.getY2() - next.getY1()));
+                System.out.println("current lon og lat: " + current.getX1() + " " +  current.getY1() + " " + current.getX2() + " " + current.getY2());
+                System.out.println("next lon og lat: " + next.getX1() + " " + next.getY1() + " " + next.getX2() + " " + next.getY2());
 
+                //making the two edges into direction vectors.
+                Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
+                Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
 
-                System.out.println("x1: " + current.getX1());
+                double angle = calculateAngle(vectorFrom, vectorTo);
 
-                double angleFrom = Math.atan2(pointFrom.getX(), pointFrom.getY());
-                double angleTo = Math.atan2(pointTo.getX(), pointTo.getY());
-                double angle = angleTo - angleFrom;
-
-                if (angle > Math.PI) {
-                    angle = - (angle - Math.PI);
-                } else if (angle < - Math.PI) {
-                    angle = - (angle + Math.PI);
-                }
-
-                angle *= 180 / Math.PI;
-
-                System.out.println(angle);
-
-                if (angle > 0) {
+                if (angle > 20 && angle < 140) {
                     System.out.println("Drej til højre ad " + nextRoad);
-                } else if (angle < 0) {
+                } else if (angle < -20 && angle > -140) {
                     System.out.println("Drej til venstre ad " + nextRoad);
+                } else {
+                    System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
 
             }
