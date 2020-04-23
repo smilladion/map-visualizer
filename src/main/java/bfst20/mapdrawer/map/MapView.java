@@ -8,6 +8,7 @@ import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
+import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
@@ -32,7 +33,6 @@ import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 public class MapView {
@@ -140,8 +140,8 @@ public class MapView {
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
-        toSearchField.setOnAction(controller.getSearchAction());
-        fromSearchField.setOnAction(controller.getSearchActionDijkstraTest());
+        toSearchField.setOnAction(controller.getSearchActionDijkstra());
+        fromSearchField.setOnAction(controller.getSearchActionDijkstra());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
 
         canvas.setOnMouseClicked(controller.getClickAction());
@@ -341,30 +341,21 @@ public class MapView {
     public void paintPoints(String addressTo, String addressFrom) {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-
-        if (addressTo == null && addressFrom == null) {
-            paintMap();
-        } else if ((addressFrom == null)) {
-            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().contains(addressTo)) {
-                    searchedDrawables.add(new Point(model.getNodes().get(entry.getValue()), transform));
+        
+        if (addressFrom == null && addressTo != null) {
+            for (OSMNode node : model.getAddressNodes()) {
+                if (node.getAddress().contains(addressTo)) {
+                    searchedDrawables.add(new Point(node, transform));
                 }
-            }
-
-            for (Drawable drawable : searchedDrawables) {
-                drawable.draw(context);
             }
         } else if (addressTo != null) {
-            for (Map.Entry<String, Long> entry : model.getAddressToId().entrySet()) {
-                if (entry.getKey().equals(addressTo) || entry.getKey().equals(addressFrom)) {
-                    searchedDrawables.add(new Point(model.getNodes().get(entry.getValue()), transform));
+            for (OSMNode node : model.getAddressNodes()) {
+                if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
+                    searchedDrawables.add(new Point(node, transform));
                 }
             }
-
-            for (Drawable drawable : searchedDrawables) {
-                drawable.draw(context);
-            }
         }
+        paintMap();
     }
 
     public void paintSavedAddresses() {
@@ -374,7 +365,6 @@ public class MapView {
     }
 
     public void paintRoute(OSMWay way) {
-
         context.setTransform(transform);
         context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
 

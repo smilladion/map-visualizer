@@ -36,11 +36,6 @@ public class MapController {
     private MapView view;
     private final Stage stage;
 
-    // HashSet provides O(1) time for lookups, but not as fast iteration
-    // Street names are part of the model, but will only be set and accessed via controller
-    private final Set<String> streetNames = new HashSet<>();
-
-    private final EventHandler<ActionEvent> searchAction;
     private final EventHandler<ActionEvent> clearAction;
 
     private final EventHandler<ActionEvent> saveAddressAction;
@@ -54,10 +49,9 @@ public class MapController {
     private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
-    private final EventHandler<ActionEvent> searchActionDijkstraTest;
+    private final EventHandler<ActionEvent> searchActionDijkstra;
 
     private final EventHandler<MouseEvent> roadFinderAction;
-
 
     private Point2D lastMouse;
 
@@ -67,12 +61,6 @@ public class MapController {
         this.model = model;
         this.view = view;
         this.stage = stage;
-
-        try {
-            populateStreets(streetNames);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         clearAction = e -> {
             view.getToSearchField().clear();
@@ -117,58 +105,61 @@ public class MapController {
             view.paintMap();
         };
 
-        searchAction = e -> {
+        searchActionDijkstra = e -> {
+
             view.getSearchedDrawables().clear();
             view.paintPoints(null, null);
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
 
-            if (addressFrom.trim().equals("")) {
-                addressFrom = null;
-            }
-
             view.paintPoints(addressTo, addressFrom);
-        };
+            
+            if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
+                
+                OSMNode nodeTo = new OSMNode();
+                OSMNode nodeFrom = new OSMNode();
 
-        searchActionDijkstraTest = e -> {
-
-            String addressTo = view.getToSearchField().getText().toLowerCase();
-            String addressFrom = view.getFromSearchField().getText().toLowerCase();
-
-            OSMNode nodeTo = model.getNodes().get(model.getAddressToId().get(addressTo));
-            OSMNode nodeFrom = model.getNodes().get(model.getAddressToId().get(addressFrom));
-
-            OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-            OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
-
-            Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-            OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
-
-            Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-            OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-
-            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
-
-            List<OSMNode> list = new ArrayList<>();
-
-            Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
-
-            //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
-            //it check if its the last edge of the stack, and if it is it also adds the "to" node.
-            while (!route.isEmpty()) {
-                OSMNode y = model.getIntToNode().get(route.peek().from());
-                list.add(y);
-                if(route.size()==1) {
-                    OSMNode x = model.getIntToNode().get(route.peek().to());
-                    list.add(x);
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().equals(addressTo)) {
+                        nodeTo = node;
+                    }
+                    if (node.getAddress().equals(addressFrom)) {
+                        nodeFrom = node;
+                    }
                 }
-                System.out.println(route.pop());
-            }
-            Type type = Type.SEARCHRESULT;
 
-            OSMWay searchedWay = new OSMWay(1, list, type, null);
-            view.paintRoute(searchedWay);
+                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+                OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
+
+                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+                OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
+
+                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
+
+                List<OSMNode> list = new ArrayList<>();
+
+                Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+
+                //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
+                //it check if its the last edge of the stack, and if it is it also adds the "to" node.
+                while (!route.isEmpty()) {
+                    OSMNode y = model.getIntToNode().get(route.peek().from());
+                    list.add(y);
+                    if(route.size()==1) {
+                        OSMNode x = model.getIntToNode().get(route.peek().to());
+                        list.add(x);
+                    }
+                    route.pop();
+                }
+                Type type = Type.SEARCHRESULT;
+
+                OSMWay searchedWay = new OSMWay(1, list, type, null);
+                view.paintRoute(searchedWay);
+            }
         };
 
 
@@ -286,28 +277,6 @@ public class MapController {
         };
     }
 
-    // Can be moved to a separate model if needed (right now, it's only used in the controller)
-    private static void populateStreets(Set<String> streetNames) throws IOException {
-        InputStream in = MapController.class.getClassLoader().getResourceAsStream("streetnames.txt");
-
-        // If the file does not exist, do nothing
-        if (in == null) {
-            return;
-        }
-
-        // UTF-8 makes sure you can read special characters, ex. ä
-        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-
-        String streetName;
-        while ((streetName = br.readLine()) != null) {
-            streetNames.add(streetName);
-        }
-    }
-
-    public EventHandler<ActionEvent> getSearchAction() {
-        return searchAction;
-    }
-
     public EventHandler<MouseEvent> getPanAction() {
         return panAction;
     }
@@ -344,8 +313,8 @@ public class MapController {
         return colorToggleAction;
     }
 
-    public EventHandler<ActionEvent> getSearchActionDijkstraTest() {
-        return searchActionDijkstraTest;
+    public EventHandler<ActionEvent> getSearchActionDijkstra() {
+        return searchActionDijkstra;
     }
 
     public EventHandler<MouseEvent> getRoadFinderAction() {

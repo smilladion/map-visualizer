@@ -23,14 +23,14 @@ public class OSMMap implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
-
-    private final Map<String, Long> addressToId = new HashMap<>();
-    private final List<String> addressList = new ArrayList<>();
+    private Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
     
-    private final SortedList<OSMNode> nodes = new SortedList<>();
-    private final SortedList<OSMWay> ways = new SortedList<>();
-    private final SortedList<OSMRelation> relations = new SortedList<>();
+    private final List<String> addressList = new ArrayList<>();
+    private final List<OSMNode> addressNodes = new ArrayList<>();
+    
+    private SortedList<OSMNode> nodes = new SortedList<>();
+    private SortedList<OSMWay> ways = new SortedList<>();
+    private SortedList<OSMRelation> relations = new SortedList<>();
 
     private final double minLat;
     private final double minLon;
@@ -38,14 +38,12 @@ public class OSMMap implements Serializable {
     private final double maxLon;
     
     private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
-    private final HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+    private HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
     private KdTree highwayTree;
 
     private final List<Drawable> islands = new ArrayList<>();
 
-    private final List<OSMWay> highways = new ArrayList<>();
-
-    private final Map<String, OSMWay> addressToWay = new HashMap<>();
+    private List<OSMWay> highways = new ArrayList<>();
 
     private final Map<OSMNode, Integer> nodeToInt = new HashMap<>();
     private final Map<Integer, OSMNode> intToNode = new HashMap<>();
@@ -53,7 +51,6 @@ public class OSMMap implements Serializable {
 
     private Graph routeGraph;
     private Dijkstra dijkstra;
-
 
     private OSMMap(double minLat, double minLon, double maxLat, double maxLon) {
 
@@ -97,12 +94,17 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
                         double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
                         double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
+                        String address = readAddress(map, xmlReader);
+                        OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
                         
-                        map.nodes.add(new OSMNode(id, 0.56f * lon, -lat, -1));
-                        map.addressToId.put(readAddress(map, xmlReader), id);
+                        map.nodes.add(node);
+                        
+                        if (!address.contains("null") && !address.isEmpty()) {
+                            map.addressNodes.add(node);
+                        }
 
                         break;
                     }
@@ -157,7 +159,14 @@ public class OSMMap implements Serializable {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
 
-            //map.routeGraph = new Graph(20000, map.highways);
+            map.routeGraph = new Graph(20000, map.highways);
+            
+            map.nodes = null;
+            map.ways = null;
+            map.relations = null;
+            map.nodeToCoastline = null;
+            map.typeToProviders = null;
+            map.highways = null;
         }
 
         return map;
@@ -241,10 +250,6 @@ public class OSMMap implements Serializable {
             map.typeToProviders.put(type, new ArrayList<>());
         }
         map.typeToProviders.get(type).add(currentWay);
-        
-        if (road != null) {
-            map.addressToWay.put(road.toLowerCase(), currentWay);
-        }
         
         return currentWay;
     }
@@ -420,18 +425,6 @@ public class OSMMap implements Serializable {
         return maxLon;
     }
 
-    public SortedList<OSMNode> getNodes() {
-        return nodes;
-    }
-
-    public SortedList<OSMWay> getWays() {
-        return ways;
-    }
-
-    public SortedList<OSMRelation> getRelations() {
-        return relations;
-    }
-
     public List<Drawable> getIslands() {
         return islands;
     }
@@ -447,25 +440,13 @@ public class OSMMap implements Serializable {
     public List<String> getAddressList() {
         return addressList;
     }
-
-    public Map<String, Long> getAddressToId() {
-        return addressToId;
-    }
-
-    public Map<OSMNode, Integer> getNodeToInt() {
-        return nodeToInt;
+    
+    public List<OSMNode> getAddressNodes() {
+        return addressNodes;
     }
 
     public Map<Integer, OSMNode> getIntToNode() {
         return intToNode;
-    }
-
-    public List<OSMWay> getHighways() {
-        return highways;
-    }
-
-    public Map<String, OSMWay> getAddressToWay() {
-        return addressToWay;
     }
 
     public Graph getRouteGraph() {

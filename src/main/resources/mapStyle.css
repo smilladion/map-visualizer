@@ -13,6 +13,7 @@
 }
 
 .text-field {
+    -fx-min-width: 200;
     -fx-padding: 5 5 5 5;
     -fx-border-color: #ffc857;
     -fx-border-width: 0 0 3 0;
