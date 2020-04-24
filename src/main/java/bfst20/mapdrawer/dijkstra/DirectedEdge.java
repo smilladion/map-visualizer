@@ -67,7 +67,7 @@ public class DirectedEdge implements Serializable {
     }
 
     public double getY2() {
-        return y1;
+        return y2;
     }
 
     public OSMNode getNodeFrom() {
