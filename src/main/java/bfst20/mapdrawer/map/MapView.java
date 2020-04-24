@@ -444,9 +444,9 @@ public class MapView {
                     }
                 } else if (angle > 150) {
                     if (ccw > 0) {
-                        System.out.println("Drej blødt til højre ad " + nextRoad);
+                        System.out.println("FOrtsæt ligeud ad " + nextRoad);
                     } else if (ccw < 0) {
-                        System.out.println("Drej blødt til venstre ad " + nextRoad);
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
 
                     }
                 } else if (angle < 20) {

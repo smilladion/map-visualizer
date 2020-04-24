@@ -1,13 +1,11 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
-import javafx.scene.paint.Paint;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,7 +28,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
-    private double weight;
+    private double speed;
     private boolean bike;
     private boolean walk;
     private boolean car;
@@ -63,7 +61,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
         this.road = road;
 
-        this.weight = weight;
+        this.speed = weight;
         this.bike = bike;
         this.walk = walk;
         this.car = car;
@@ -156,8 +154,8 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         return road;
     }
 
-    public double getWeight() {
-        return weight;
+    public double getSpeed() {
+        return speed;
     }
 
     public boolean isBike() {

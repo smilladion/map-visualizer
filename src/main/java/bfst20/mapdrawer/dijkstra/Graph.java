@@ -6,7 +6,6 @@ import edu.princeton.cs.algs4.Bag;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Graph implements Serializable{
@@ -27,7 +26,7 @@ public class Graph implements Serializable{
             boolean bike = way.isBike();
             boolean walk = way.isWalk();
             boolean car = way.isCar();
-            double speed = way.getWeight();
+            double speed = way.getSpeed();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 OSMNode node = way.getNodes().get(i);
