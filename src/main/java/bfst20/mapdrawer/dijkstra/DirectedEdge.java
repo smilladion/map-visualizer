@@ -9,7 +9,7 @@ public class DirectedEdge implements Serializable {
     
     int from;
     int to;
-    int weight;
+    double weight;
     boolean bike;
     boolean walk;
     boolean car;
@@ -22,7 +22,7 @@ public class DirectedEdge implements Serializable {
     OSMNode nodeTo;
 
 
-    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
+    public DirectedEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
         this.from = from;
         this.to = to;
         this.weight = weight;
@@ -46,7 +46,7 @@ public class DirectedEdge implements Serializable {
         return to;
     }
 
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 

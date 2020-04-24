@@ -30,7 +30,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
-    private int weight;
+    private double weight;
     private boolean bike;
     private boolean walk;
     private boolean car;
@@ -56,7 +56,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, int weight, boolean bike, boolean walk, boolean car, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -156,7 +156,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         return road;
     }
 
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 

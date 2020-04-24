@@ -429,9 +429,6 @@ public class MapView {
                 Point2D c = new Point2D(next.getX2(), next.getY2());
 
                 int ccw = ccw(a, b, c);
-                System.out.println(ccw);
-
-                System.out.println(current.getX1() + " " + current.getY1() + " " + current.getX2() + " " + current.getY2() + " " + next.getX2() + " " + next.getY2());
 
                 //making the two edges into direction vectors.
                 Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));

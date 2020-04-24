@@ -27,7 +27,7 @@ public class Graph implements Serializable{
             boolean bike = way.isBike();
             boolean walk = way.isWalk();
             boolean car = way.isCar();
-            int weight = way.getWeight();
+            double speed = way.getWeight();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 OSMNode node = way.getNodes().get(i);
@@ -35,13 +35,21 @@ public class Graph implements Serializable{
                 int from = node.getNumberForGraph();
                 int to = node1.getNumberForGraph();
 
+                double x1 = node.getLon();
+                double y1 = node.getLat();
+                double x2 = node1.getLon();
+                double y2 = node1.getLat();
+
+                double tempWeight = (Math.sqrt(((x2-x1)*(x2-x1)) + ((y2-y1)*(y2-y1))));
+                double weight = tempWeight / speed;
+
                 addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
                 addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
             }
         }
     }
 
-    public void addEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode node, OSMNode node1) {
+    public void addEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode node, OSMNode node1) {
         DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2, node, node1);
           if (adj[from] == null) {
               adj[from] = new ArrayList<>();
