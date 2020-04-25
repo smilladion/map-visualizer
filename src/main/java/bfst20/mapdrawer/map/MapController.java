@@ -1,16 +1,12 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
-
 import bfst20.mapdrawer.dijkstra.Dijkstra;
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
-import edu.princeton.cs.algs4.Stack;
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -225,16 +221,20 @@ public class MapController {
         };
 
         saveFileAction = e -> {
-            File file = new FileChooser().showSaveDialog(stage);
-            if(file != null) try{
+            FileChooser chooser = new FileChooser();
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BIN files (*.bin)", "*.bin");
+            chooser.getExtensionFilters().add(extFilter);
+            File file = chooser.showSaveDialog(stage);
+            
+            if (file != null) try {
                 long time = -System.nanoTime();
 
-                if(file.getName().endsWith(".bin")) {
-                    try(var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))){
+                if (file.getName().endsWith(".bin")) {
+                    try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
                         out.writeObject(model);
                     }
 
-                }else{
+                } else {
                     Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
                     alert.setHeaderText(null);
                     alert.showAndWait();
@@ -243,7 +243,7 @@ public class MapController {
                 time += System.nanoTime();
                 System.out.println(time);
 
-            }catch(IOException exception){
+            } catch (IOException exception) {
                 new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
             }
         };
