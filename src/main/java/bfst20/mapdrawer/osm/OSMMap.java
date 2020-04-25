@@ -1,11 +1,12 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.dijkstra.Dijkstra;
+import bfst20.mapdrawer.dijkstra.Graph;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.util.SortedList;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -16,42 +17,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import bfst20.mapdrawer.dijkstra.Graph;
-import bfst20.mapdrawer.util.SortedList;
 
 public class OSMMap implements Serializable {
-
+    
     private static final long serialVersionUID = 1L;
 
-    private Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
-    
     private final List<String> addressList = new ArrayList<>();
     private final List<OSMNode> addressNodes = new ArrayList<>();
-    
-    private SortedList<OSMNode> nodes = new SortedList<>();
-    private SortedList<OSMWay> ways = new SortedList<>();
-    private SortedList<OSMRelation> relations = new SortedList<>();
 
     private final float minLat;
     private final float minLon;
     private final float maxLat;
     private final float maxLon;
-    
+
     private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
-    private HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
-    private KdTree highwayTree;
-
     private final List<Drawable> islands = new ArrayList<>();
-
-    private List<OSMWay> highways = new ArrayList<>();
-    
+    private KdTree highwayTree;
     private int nodeNumber = 1;
 
     private Graph routeGraph;
-    private Dijkstra dijkstra;
 
     private OSMMap(float minLat, float minLon, float maxLat, float maxLon) {
-
         this.minLat = minLat;
         this.minLon = minLon;
         this.maxLat = maxLat;
@@ -61,8 +47,16 @@ public class OSMMap implements Serializable {
     public static OSMMap fromFile(File file) throws XMLStreamException, IOException, InvalidMapException {
         // Use charset encoding of UTF-8 (originally Windows-1252) to display ÆØÅ characters properly
         XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file, StandardCharsets.UTF_8));
-        
+
         OSMMap map = null;
+
+        SortedList<OSMNode> nodes = new SortedList<>();
+        SortedList<OSMWay> ways = new SortedList<>();
+        SortedList<OSMRelation> relations = new SortedList<>();
+
+        Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
+        HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+        List<OSMWay> highways = new ArrayList<>();
 
         // While there are more tags in the XML file to be read
         while (xmlReader.hasNext()) {
@@ -97,9 +91,9 @@ public class OSMMap implements Serializable {
 
                         // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
                         // Store this OSM node into a map for fast lookups (used in readWay method)
-                        
-                        map.nodes.add(node);
-                        
+
+                        nodes.add(node);
+
                         if (!address.contains("null") && !address.isEmpty()) {
                             map.addressNodes.add(node);
                         }
@@ -110,9 +104,9 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readWay method to read all nodes inside of way
-                        OSMWay currentWay = readWay(map, xmlReader, id);
+                        OSMWay currentWay = readWay(map, nodes, highways, nodeToCoastline, typeToProviders, xmlReader, id);
                         if (currentWay != null) {
-                            map.ways.add(currentWay);
+                            ways.add(currentWay);
                         }
 
                         break;
@@ -121,9 +115,9 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        OSMRelation currentRelation = readRelation(map, xmlReader, id);
+                        OSMRelation currentRelation = readRelation(map, ways, typeToProviders, xmlReader, id);
                         if (currentRelation != null) {
-                            map.relations.add(currentRelation);
+                            relations.add(currentRelation);
                         }
 
                         break;
@@ -135,36 +129,29 @@ public class OSMMap implements Serializable {
         // Map can be null if osm file is invalid (or no bounds found)
         if (map != null) {
 
-            for (var entry : map.nodeToCoastline.entrySet()) {
+            for (var entry : nodeToCoastline.entrySet()) {
                 if (entry.getKey() == entry.getValue().last()) {
                     map.islands.add(new LinePath(entry.getValue()));
                 }
             }
-            
-            List<NodeProvider> highways = new ArrayList<>();
-            
+
+            List<NodeProvider> providers = new ArrayList<>();
+
             // If the type has the highway key, add its list to the highways list (and make a kdtree from it below)
             for (Type type : Type.values()) {
-                if (type.getKey() != null && type.getKey().equals("highway") && map.typeToProviders.containsKey(type)) {
-                    highways.addAll(map.typeToProviders.get(type));
+                if (type.getKey() != null && type.getKey().equals("highway") && typeToProviders.containsKey(type)) {
+                    providers.addAll(typeToProviders.get(type));
                 }
             }
-            
-            map.highwayTree = new KdTree(highways);
-            
+
+            map.highwayTree = new KdTree(providers);
+
             // Create kdtree for each list mapped to types
-            for (Map.Entry<Type, List<NodeProvider>> entry : map.typeToProviders.entrySet()) {
+            for (Map.Entry<Type, List<NodeProvider>> entry : typeToProviders.entrySet()) {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
 
-            map.routeGraph = new Graph(map.nodeNumber+1, map.highways);
-            
-            map.nodes = null;
-            map.ways = null;
-            map.relations = null;
-            map.nodeToCoastline = null;
-            map.typeToProviders = null;
-            map.highways = null;
+            map.routeGraph = new Graph(map.nodeNumber + 1, highways);
         }
 
         return map;
@@ -174,8 +161,9 @@ public class OSMMap implements Serializable {
      * readWay will continuously read XML tags until the end of the way is found
      * This is a better, and less error-prone, design than reading in the main loop
      */
-    private static OSMWay readWay(OSMMap map, XMLStreamReader xmlReader, long id) throws XMLStreamException {
-        List<OSMNode> nodes = new ArrayList<>();
+    private static OSMWay readWay(OSMMap map, SortedList<OSMNode> nodes, List<OSMWay> highways, Map<OSMNode, OSMWay> nodeToCoastline,
+                                  HashMap<Type, List<NodeProvider>> typeToProviders, XMLStreamReader xmlReader, long id) throws XMLStreamException {
+        List<OSMNode> localNodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
         String road = null;
@@ -188,7 +176,7 @@ public class OSMMap implements Serializable {
                 switch (xmlReader.getLocalName()) {
                     case "nd":
                         // Found a nd tag within this way, fetch the OSMNode object and add it to the way
-                        nodes.add(map.nodes.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
+                        localNodes.add(nodes.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref"))));
                         break;
                     case "tag":
                         // Found a property tag, read and set the correct boolean for this tag
@@ -202,37 +190,37 @@ public class OSMMap implements Serializable {
                             type = Type.HIGHWAY;
 
                             if (Type.containsType(value)) type = Type.getType(value);
-                            
+
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
 
-                            for (OSMNode node : nodes) {
+                            for (OSMNode node : localNodes) {
                                 node.setNumberForGraph(map.nodeNumber);
                                 map.nodeNumber++;
                                 node.setRoad(road);
                             }
 
-                            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, 1, true, true, true, road));
-                            
+                            highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, 1, true, true, true, road));
+
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
-                                currentWay = new OSMWay(id, nodes, type, road);
+                                currentWay = new OSMWay(id, localNodes, type, road);
 
-                                var before = map.nodeToCoastline.remove(currentWay.first());
+                                var before = nodeToCoastline.remove(currentWay.first());
                                 if (before != null) {
-                                    map.nodeToCoastline.remove(before.first());
-                                    map.nodeToCoastline.remove(before.last());
+                                    nodeToCoastline.remove(before.first());
+                                    nodeToCoastline.remove(before.last());
                                 }
-                                var after = map.nodeToCoastline.remove(currentWay.last());
+                                var after = nodeToCoastline.remove(currentWay.last());
                                 if (after != null) {
-                                    map.nodeToCoastline.remove(after.first());
-                                    map.nodeToCoastline.remove(after.last());
+                                    nodeToCoastline.remove(after.first());
+                                    nodeToCoastline.remove(after.last());
                                 }
                                 currentWay = OSMWay.fromWays(OSMWay.fromWays(before, currentWay), after);
-                                map.nodeToCoastline.put(currentWay.first(), currentWay);
-                                map.nodeToCoastline.put(currentWay.last(), currentWay);
+                                nodeToCoastline.put(currentWay.first(), currentWay);
+                                nodeToCoastline.put(currentWay.last(), currentWay);
                             }
                         }
 
@@ -243,18 +231,19 @@ public class OSMMap implements Serializable {
                 break;
             }
         }
-        
+
         if (type == Type.UNKNOWN || type == null) {
             return null;
         }
 
-        currentWay = new OSMWay(id, nodes, type, road);
-        
-        if (!map.typeToProviders.containsKey(type)) {
-            map.typeToProviders.put(type, new ArrayList<>());
+        currentWay = new OSMWay(id, localNodes, type, road);
+
+        if (!typeToProviders.containsKey(type)) {
+            typeToProviders.put(type, new ArrayList<>());
         }
-        map.typeToProviders.get(type).add(currentWay);
-        
+
+        typeToProviders.get(type).add(currentWay);
+
         return currentWay;
     }
 
@@ -263,11 +252,12 @@ public class OSMMap implements Serializable {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(OSMMap map, XMLStreamReader xmlReader, long id) throws XMLStreamException {
-        List<OSMWay> ways = new ArrayList<>();
+    private static OSMRelation readRelation(OSMMap map, SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
+                                            XMLStreamReader xmlReader, long id) throws XMLStreamException {
+        List<OSMWay> localWays = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMRelation currentRelation = new OSMRelation(id, ways, type);
+        OSMRelation currentRelation = new OSMRelation(id, localWays, type);
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -278,8 +268,8 @@ public class OSMMap implements Serializable {
                     case "member":
                         if (xmlReader.getAttributeValue(null, "type").equals("way")) {
                             // If we have found a way member type, fetch the OSMWay object and add to ways list
-                            OSMWay way = map.ways.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref")));
-                            ways.add(Objects.requireNonNullElse(way, OSMWay.DUMMY_WAY));
+                            OSMWay way = ways.get(Long.parseLong(xmlReader.getAttributeValue(null, "ref")));
+                            localWays.add(Objects.requireNonNullElse(way, OSMWay.DUMMY_WAY));
                         }
 
                         break;
@@ -307,13 +297,13 @@ public class OSMMap implements Serializable {
             return null;
         }
 
-        currentRelation = new OSMRelation(id, ways, type);
+        currentRelation = new OSMRelation(id, localWays, type);
 
-        if (!map.typeToProviders.containsKey(type)) {
-            map.typeToProviders.put(type, new ArrayList<>());
+        if (!typeToProviders.containsKey(type)) {
+            typeToProviders.put(type, new ArrayList<>());
         }
-        map.typeToProviders.get(type).add(currentRelation);
-        
+        typeToProviders.get(type).add(currentRelation);
+
         return currentRelation;
     }
 
@@ -364,14 +354,14 @@ public class OSMMap implements Serializable {
 
     public static OSMMap loadBinary(File file) throws IOException {
         OSMMap map = null;
-        try(var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))){
+        try (var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             map = (OSMMap) in.readObject();
-        } catch (ClassNotFoundException e){
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
         return map;
     }
-    
+
     public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
         File newFile = null;
         // Buffer for read and write data to file
@@ -424,7 +414,7 @@ public class OSMMap implements Serializable {
     public HashMap<Type, KdTree> getTypeToTree() {
         return typeToTree;
     }
-    
+
     public KdTree getHighwayTree() {
         return highwayTree;
     }
@@ -432,7 +422,7 @@ public class OSMMap implements Serializable {
     public List<String> getAddressList() {
         return addressList;
     }
-    
+
     public List<OSMNode> getAddressNodes() {
         return addressNodes;
     }
