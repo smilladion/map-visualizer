@@ -7,6 +7,7 @@ import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.util.SortedList;
+import javafx.scene.control.Alert;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -15,7 +16,6 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class OSMMap implements Serializable {
@@ -47,6 +47,28 @@ public class OSMMap implements Serializable {
     public static OSMMap fromFile(File file) throws XMLStreamException, IOException, InvalidMapException {
         // Use charset encoding of UTF-8 (originally Windows-1252) to display ÆØÅ characters properly
         XMLStreamReader xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new FileReader(file, StandardCharsets.UTF_8));
+
+        String fileName = file.getName();
+        String fileExt = fileName.substring(file.getName().lastIndexOf("."));
+
+        if (fileExt.equals(".zip")) {
+            FileInputStream in = new FileInputStream(file.getAbsolutePath());
+            ZipInputStream zipIn = new ZipInputStream(in);
+            String zipFileName = zipIn.getNextEntry().getName(); // Points at the first file in the zip, gets its name
+
+            String zipFileExt = zipFileName.substring(zipFileName.lastIndexOf("."));
+            
+            if (!zipFileExt.equals(".osm")) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Fejlmeddelelse");
+                alert.setHeaderText(null);
+                alert.setContentText("ZIP-filen skal indeholde én OSM-fil, ingen andre filer eller filtyper tilladt.");
+                alert.showAndWait();
+                return null;
+            }
+            
+            xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new InputStreamReader(zipIn, StandardCharsets.UTF_8));
+        }
 
         OSMMap map = null;
 
@@ -115,7 +137,7 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        OSMRelation currentRelation = readRelation(map, ways, typeToProviders, xmlReader, id);
+                        OSMRelation currentRelation = readRelation(ways, typeToProviders, xmlReader, id);
                         if (currentRelation != null) {
                             relations.add(currentRelation);
                         }
@@ -253,12 +275,12 @@ public class OSMMap implements Serializable {
      * found This is a better, and less error-prone, design than reading in the main
      * loop
      */
-    private static OSMRelation readRelation(OSMMap map, SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
+    private static OSMRelation readRelation(SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
                                             XMLStreamReader xmlReader, long id) throws XMLStreamException {
         List<OSMWay> localWays = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
-        OSMRelation currentRelation = new OSMRelation(id, localWays, type);
+        OSMRelation currentRelation;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -361,35 +383,6 @@ public class OSMMap implements Serializable {
             throw new RuntimeException(e);
         }
         return map;
-    }
-
-    public static File unZip(String zipFilePath, String destDir) throws FileNotFoundException {
-        File newFile = null;
-        // Buffer for read and write data to file
-        byte[] buffer = new byte[1024];
-        try {
-            FileInputStream in = new FileInputStream(zipFilePath);
-            ZipInputStream zipIn = new ZipInputStream(in);
-            ZipEntry zippedFile = zipIn.getNextEntry(); // Removing this variable crashes the program
-            newFile = new File(destDir + File.separator + "unzippedMap.osm");
-            FileOutputStream out = new FileOutputStream(newFile);
-            int herp;
-            while ((herp = zipIn.read(buffer)) > 0)
-                out.write(buffer, 0, herp);
-            out.close();
-            // Close this ZipEntry
-            zipIn.closeEntry();
-            zippedFile = zipIn.getNextEntry();
-            // Close last ZipEntry
-            zipIn.closeEntry();
-            zipIn.close();
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (newFile == null)
-            throw new FileNotFoundException();
-        return newFile;
     }
 
     public float getMinLat() {

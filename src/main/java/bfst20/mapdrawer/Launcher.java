@@ -19,20 +19,13 @@ public class Launcher extends Application {
         File file = new File("src/main/resources/maps/samsoe.osm");
         String fileName = file.getName();
         String fileExt = fileName.substring(fileName.lastIndexOf("."));
-        switch (fileExt) {
-            case ".osm":
-                new MapView(
-                        OSMMap.fromFile(file),
-                        primaryStage);
-                break;
-            case ".zip":
-                new MapView(
-                        OSMMap.fromFile(OSMMap.unZip(file.getPath(), "src/main/resources/")),
-                        primaryStage);
-                break;
-            case ".bin":
-                new MapView(OSMMap.loadBinary(file), primaryStage);
-                break;
+
+        if (fileExt.equals(".osm") || fileExt.equals(".zip")) {
+            if (OSMMap.fromFile(file) != null) {
+                new MapView(OSMMap.fromFile(file), primaryStage);
+            }
+        } else if (fileExt.equals(".bin")) {
+            new MapView(OSMMap.loadBinary(file), primaryStage);
         }
     }
 
