@@ -152,6 +152,7 @@ public class OSMMap implements Serializable {
             }
 
             map.routeGraph = new Graph(map.nodeNumber + 1, highways);
+            
         }
 
         return map;

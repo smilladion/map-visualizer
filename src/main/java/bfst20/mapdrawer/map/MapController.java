@@ -38,6 +38,7 @@ public class MapController {
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
     private final EventHandler<MouseEvent> colorToggleAction;
+    private final EventHandler<MouseEvent> nearestToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
     private final EventHandler<ActionEvent> saveFileAction;
@@ -91,7 +92,7 @@ public class MapController {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Besked");
                     alert.setHeaderText(null);
-                    alert.setContentText("Du har ingen gemte adresser!");
+                    alert.setContentText("Du har ingen gemte punkter!");
                     alert.showAndWait();
                 } else {
                     view.paintSavedAddresses();
@@ -248,14 +249,24 @@ public class MapController {
         };
         
         roadFinderAction = e -> {
-            try {
-                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
-                if (result.getRoad() != null) {
-                    view.setClosestRoad(result.getRoad());
+            if (view.getNearestToggle().isSelected()) {
+                try {
+                    Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                    OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
+                    if (result.getRoad() != null) {
+                        view.setClosestRoad(result.getRoad());
+                    }
+                } catch (NonInvertibleTransformException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (NonInvertibleTransformException ex) {
-                ex.printStackTrace();
+            }
+        };
+        
+        nearestToggleAction = e -> {
+            if (view.getNearestToggle().isSelected()) {
+                view.getClosestRoad().setVisible(true);
+            } else {
+                view.getClosestRoad().setVisible(false);
             }
         };
     }
@@ -294,6 +305,10 @@ public class MapController {
     
     public EventHandler<MouseEvent> getColorToggleAction() {
         return colorToggleAction;
+    }
+
+    public EventHandler<MouseEvent> getNearestToggleAction() {
+        return nearestToggleAction;
     }
     
     public EventHandler<ActionEvent> getSearchActionDijkstra() {

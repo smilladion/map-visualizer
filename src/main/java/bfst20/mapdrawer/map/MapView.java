@@ -63,6 +63,7 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch(); 
+    private final ToggleSwitch nearestToggle = new ToggleSwitch();
 
     private final Label zoomDisplay = new Label();
 
@@ -120,8 +121,9 @@ public class MapView {
 
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
+        nearestToggle.setText("Nærmeste vej til mus");
 
-        VBox toggles = new VBox(myPointsToggle, colorToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle, nearestToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -138,10 +140,12 @@ public class MapView {
         roadBox.setPadding(new Insets(0, 0, 13, 15));
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
+        closestRoad.setVisible(false);
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
+        nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
         toSearchField.setOnAction(controller.getSearchActionDijkstra());
         fromSearchField.setOnAction(controller.getSearchActionDijkstra());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
@@ -482,6 +486,14 @@ public class MapView {
 
     public ToggleSwitch getColorToggle() {
         return colorToggle;
+    }
+    
+    public ToggleSwitch getNearestToggle() {
+        return nearestToggle;
+    }
+    
+    public Label getClosestRoad() {
+        return closestRoad;
     }
 
     public Affine getTransform() {
