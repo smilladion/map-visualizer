@@ -1,4 +1,4 @@
-package bfst20.mapdrawer.Rutevejledning;
+package bfst20.mapdrawer.dijkstra;
 
 public class Bike implements Vehicle {
 
@@ -6,4 +6,8 @@ public class Bike implements Vehicle {
     public boolean isCar() {
         return false;
     }
+
+    public boolean isBike() {return true;}
+
+    public boolean isWalk() {return false;}
 }

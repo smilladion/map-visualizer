@@ -10,9 +10,9 @@ public class DirectedEdge implements Serializable {
     int from;
     int to;
     double weight;
-    boolean bike;
-    boolean walk;
-    boolean car;
+    boolean onlyBike;
+    boolean onlyWalk;
+    boolean onlyCar;
     String road;
     double x1;
     double y1;
@@ -22,13 +22,13 @@ public class DirectedEdge implements Serializable {
     OSMNode nodeTo;
 
 
-    public DirectedEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
+    public DirectedEdge(int from, int to, double weight, boolean onlyCar, boolean onlyBike, boolean onlyWalk, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
         this.from = from;
         this.to = to;
         this.weight = weight;
-        this.bike = bike;
-        this.walk = walk;
-        this.car = car;
+        this.onlyBike = onlyBike;
+        this.onlyWalk = onlyWalk;
+        this.onlyCar = onlyCar;
         this.road = road;
         this.x1 = x1;
         this.y1 = y1;
@@ -76,6 +76,18 @@ public class DirectedEdge implements Serializable {
 
     public OSMNode getNodeTo() {
         return nodeTo;
+    }
+
+    public boolean isOnlyCar() {
+        return onlyCar;
+    }
+
+    public boolean isOnlyBike() {
+        return onlyBike;
+    }
+
+    public boolean isOnlyWalk() {
+        return onlyWalk;
     }
 
     public String toString() {

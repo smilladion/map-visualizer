@@ -181,6 +181,7 @@ public class OSMMap implements Serializable {
         String road = null;
         OSMWay currentWay;
         int speed = 40;
+        boolean oneway = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -216,8 +217,10 @@ public class OSMMap implements Serializable {
                                 node.setRoad(road);
                             }
 
-                            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, true, true, true, road));
-                            
+                        } else if (key.equals("oneway") && "highway".equals(type.getKey())) {
+                            if (value.equals("yes")) {
+                                oneway = true;
+                            }
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
@@ -258,6 +261,11 @@ public class OSMMap implements Serializable {
             map.typeToProviders.put(type, new ArrayList<>());
         }
         map.typeToProviders.get(type).add(currentWay);
+
+        if (road != null) {
+            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, true, true, true, oneway, road));
+
+        }
         
         return currentWay;
     }

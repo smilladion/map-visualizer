@@ -62,7 +62,11 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
-    private final ToggleSwitch colorToggle = new ToggleSwitch(); 
+    private final ToggleSwitch colorToggle = new ToggleSwitch();
+
+    private final RadioButton car;
+    private final RadioButton bike;
+    private final RadioButton walk;
 
     private final Label zoomDisplay = new Label();
 
@@ -113,6 +117,16 @@ public class MapView {
         autoFrom.setVisibleRowCount(5);
         autoFrom.setMinWidth(300);
 
+        //togglegroup ensures you can only choose one button at a time.
+        ToggleGroup radioGroup = new ToggleGroup();
+        car = new RadioButton("Bil");
+        bike = new RadioButton("Cykel");
+        walk = new RadioButton("Gå");
+        car.setToggleGroup(radioGroup);
+        bike.setToggleGroup(radioGroup);
+        walk.setToggleGroup(radioGroup);
+        car.setSelected(true);
+
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
@@ -151,7 +165,7 @@ public class MapView {
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
+        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -531,6 +545,16 @@ public class MapView {
 
     public ToggleSwitch getColorToggle() {
         return colorToggle;
+    }
+
+    public RadioButton getCar() {
+        return car;
+    }
+    public RadioButton getBike() {
+        return bike;
+    }
+    public RadioButton getWalk() {
+        return walk;
     }
 
     public Affine getTransform() {

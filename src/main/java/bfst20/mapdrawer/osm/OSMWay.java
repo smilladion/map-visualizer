@@ -32,6 +32,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private boolean bike;
     private boolean walk;
     private boolean car;
+    private boolean oneway;
 
 
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
@@ -54,7 +55,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, boolean oneway, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -65,6 +66,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.bike = bike;
         this.walk = walk;
         this.car = car;
+        this.oneway = oneway;
 
         if (nodes.isEmpty()) {
             // If a way has no nodes, do not draw
@@ -190,6 +192,10 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
         
         return sumY / nodes.size();
+    }
+
+    public boolean isOneway() {
+        return oneway;
     }
 
     @Override
