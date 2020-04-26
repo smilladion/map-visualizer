@@ -7,7 +7,6 @@ import javafx.geometry.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -76,7 +75,7 @@ public class KdTree implements Serializable{
 
     /** Finds the nearest road to a specific point. */
     public OSMWay nearest(double x, double y) {
-        return nearest(root, new Point2D(x, y), null);
+        return nearest(root, new Point2D(x, y), new OSMWay());
     }
     
     // Only returns/checks ways that contain a road name - will need another method if we want to include all nodeproviders
@@ -89,27 +88,27 @@ public class KdTree implements Serializable{
             }
         }
 
-        if (node.left != null && node.left.boundingBox.containsPoint(point)) {
+        if (node.left != null) {
             nearest = nearest(node.left, point, nearest);
         }
 
-        if (node.right != null && node.right.boundingBox.containsPoint(point)) {
+        if (node.right != null) {
             nearest = nearest(node.right, point, nearest);
         }
 
         return nearest;
     }
 
-    private double distance(Point2D point, OSMWay way) {
+    private float distance(Point2D point, OSMWay way) {
         if (way == null) {
-            return Double.MAX_VALUE; // Distance is so big anything it is compared to will be smaller
+            return Float.MAX_VALUE; // Distance is so big anything it is compared to will be smaller
         }
         
         // Keeps track of the current best distance
-        double bestDistance = Double.MAX_VALUE;
+        float bestDistance = Float.MAX_VALUE;
         
         for (OSMNode node : way.getNodes()) {
-            double distance = node.distanceSq(point);
+            float distance = node.distanceSq(point);
             
             if (bestDistance > distance) {
                 bestDistance = distance;
@@ -126,11 +125,11 @@ public class KdTree implements Serializable{
         }
 
         // Keeps track of the current best distance
-        double bestDistance = Double.MAX_VALUE;
+        float bestDistance = Float.MAX_VALUE;
         OSMNode bestNode = null;
 
         for (OSMNode node : way.getNodes()) {
-            double distance = node.distanceSq(point);
+            float distance = node.distanceSq(point);
 
             if (bestDistance > distance) {
                 bestDistance = distance;
@@ -176,10 +175,10 @@ public class KdTree implements Serializable{
             Rectangle rightBox = node.right == null ? midBox : node.right.boundingBox;
 
             // Compares all 3 boxes to each other and grabs the coordinates that will contain them all within
-            double xmin = Math.min(midBox.getXmin(), Math.min(leftBox.getXmin(), rightBox.getXmin()));
-            double xmax = Math.max(midBox.getXmax(), Math.max(leftBox.getXmax(), rightBox.getXmax()));
-            double ymin = Math.min(midBox.getYmin(), Math.min(leftBox.getYmin(), rightBox.getYmin()));
-            double ymax = Math.max(midBox.getYmax(), Math.max(leftBox.getYmax(), rightBox.getYmax()));
+            float xmin = Math.min(midBox.getXmin(), Math.min(leftBox.getXmin(), rightBox.getXmin()));
+            float xmax = Math.max(midBox.getXmax(), Math.max(leftBox.getXmax(), rightBox.getXmax()));
+            float ymin = Math.min(midBox.getYmin(), Math.min(leftBox.getYmin(), rightBox.getYmin()));
+            float ymax = Math.max(midBox.getYmax(), Math.max(leftBox.getYmax(), rightBox.getYmax()));
 
             return new Rectangle(xmin, ymin, xmax, ymax);
         }

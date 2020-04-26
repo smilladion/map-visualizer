@@ -12,12 +12,12 @@ public class Rectangle implements Drawable, Serializable {
 
     private static final long serialVersionUID = 1L;
     
-    private final double xmin;
-    private final double ymin;
-    private final double xmax;
-    private final double ymax;
+    private final float xmin;
+    private final float ymin;
+    private final float xmax;
+    private final float ymax;
 
-    public Rectangle(double xmin, double ymin, double xmax, double ymax) {
+    public Rectangle(float xmin, float ymin, float xmax, float ymax) {
         this.xmin = xmin;
         this.ymin = ymin;
         this.xmax = xmax;
@@ -26,10 +26,10 @@ public class Rectangle implements Drawable, Serializable {
 
     // Creates a bounding box for a way
     public Rectangle(OSMWay way) {
-        double xMin = Double.MAX_VALUE;
-        double xMax = -Double.MAX_VALUE;
-        double yMin = Double.MAX_VALUE;
-        double yMax = -Double.MAX_VALUE;
+        float xMin = Float.MAX_VALUE;
+        float xMax = -Float.MAX_VALUE;
+        float yMin = Float.MAX_VALUE;
+        float yMax = -Float.MAX_VALUE;
 
         for (OSMNode node : way.getNodes()) {
             xMin = Math.min(xMin, node.getLon());
@@ -63,19 +63,19 @@ public class Rectangle implements Drawable, Serializable {
         gc.strokeRect(xmin, ymin, xmax - xmin, ymax - ymin);
     }
 
-    public double getXmin() {
+    public float getXmin() {
         return xmin;
     }
 
-    public double getYmin() {
+    public float getYmin() {
         return ymin;
     }
 
-    public double getXmax() {
+    public float getXmax() {
         return xmax;
     }
 
-    public double getYmax() {
+    public float getYmax() {
         return ymax;
     }
 }

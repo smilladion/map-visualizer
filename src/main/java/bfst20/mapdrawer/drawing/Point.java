@@ -19,6 +19,7 @@ public class Point implements Drawable, Serializable {
     private final OSMNode node;
     private final Affine transform;
     private final Image image;
+    private boolean isEmpty = true;
 
     // To be used when you want to mark a single point with an address.
     public Point(OSMNode node, Affine transform) {
@@ -32,6 +33,8 @@ public class Point implements Drawable, Serializable {
                 getClass().getClassLoader().getResourceAsStream("point_a.png"),
                 "Point image not found!"
         ));
+        
+        isEmpty = false;
     }
     
     // To be used for user-made point of interest.
@@ -45,6 +48,8 @@ public class Point implements Drawable, Serializable {
                 getClass().getClassLoader().getResourceAsStream("point_b.png"),
                 "Point image not found!"
         ));
+        
+        isEmpty = false;
     }
     
     // Empty point for initialization.
@@ -63,7 +68,7 @@ public class Point implements Drawable, Serializable {
             return;
         }
         
-        double initialZoom = 5000.0; // Found to be the appropriate value
+        double initialZoom = 5000.0f; // Found to be the appropriate value
         double scale = transform.getMxx() / initialZoom;
 
         gc.drawImage(
@@ -71,6 +76,10 @@ public class Point implements Drawable, Serializable {
                 x + SIZE * 0.01 / (2 * scale), y,
                 SIZE * -0.01 / scale, SIZE * -0.01 / scale
         );
+    }
+    
+    public boolean isEmpty() {
+        return isEmpty;
     }
 }
 
