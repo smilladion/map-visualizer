@@ -74,7 +74,6 @@ public class OSMMap implements Serializable {
 
         SortedList<OSMNode> nodes = new SortedList<>();
         SortedList<OSMWay> ways = new SortedList<>();
-        SortedList<OSMRelation> relations = new SortedList<>();
 
         Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
         HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
@@ -109,10 +108,8 @@ public class OSMMap implements Serializable {
                         float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
                         float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
-                        OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
-
-                        // Read id, lat, and lon and add a new OSM node (0.56 fixes curvature)
-                        // Store this OSM node into a map for fast lookups (used in readWay method)
+                        
+                        OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address.intern());
 
                         nodes.add(node);
 
@@ -137,10 +134,7 @@ public class OSMMap implements Serializable {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
 
                         // Read id, and move to readRelation method to read all ways inside of relation
-                        OSMRelation currentRelation = readRelation(ways, typeToProviders, xmlReader, id);
-                        if (currentRelation != null) {
-                            relations.add(currentRelation);
-                        }
+                        readRelation(ways, typeToProviders, xmlReader, id);
 
                         break;
                     }
@@ -174,7 +168,6 @@ public class OSMMap implements Serializable {
             }
 
             map.routeGraph = new Graph(map.nodeNumber + 1, highways);
-            
         }
 
         return map;
@@ -258,8 +251,12 @@ public class OSMMap implements Serializable {
         if (type == Type.UNKNOWN || type == null) {
             return null;
         }
-
-        currentWay = new OSMWay(id, localNodes, type, road);
+        
+        if (road != null) {
+            currentWay = new OSMWay(id, localNodes, type, road.intern());
+        } else {
+            currentWay = new OSMWay(id, localNodes, type, road);
+        }
 
         if (!typeToProviders.containsKey(type)) {
             typeToProviders.put(type, new ArrayList<>());
@@ -271,12 +268,11 @@ public class OSMMap implements Serializable {
     }
 
     /**
-     * readRelation will continuously read XML tags until the end of the relation is
-     * found This is a better, and less error-prone, design than reading in the main
-     * loop
+     * readRelation will continuously read XML tags until the end of the relation is found.
+     * This is a better, and less error-prone, design than reading in the main loop.
      */
-    private static OSMRelation readRelation(SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
-                                            XMLStreamReader xmlReader, long id) throws XMLStreamException {
+    private static void readRelation(SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
+                                     XMLStreamReader xmlReader, long id) throws XMLStreamException {
         List<OSMWay> localWays = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -317,7 +313,7 @@ public class OSMMap implements Serializable {
         }
 
         if (type == Type.UNKNOWN || type == null) {
-            return null;
+            return;
         }
 
         currentRelation = new OSMRelation(id, localWays, type);
@@ -327,7 +323,6 @@ public class OSMMap implements Serializable {
         }
         typeToProviders.get(type).add(currentRelation);
 
-        return currentRelation;
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
@@ -369,7 +364,7 @@ public class OSMMap implements Serializable {
         String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
 
         if (!address.contains("null")) {
-            map.addressList.add(address);
+            map.addressList.add(address.intern());
         }
 
         return address.toLowerCase();
