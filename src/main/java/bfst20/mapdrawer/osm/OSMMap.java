@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.zip.ZipInputStream;
 
 public class OSMMap implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
     private final List<String> addressList = new ArrayList<>();
@@ -27,9 +27,9 @@ public class OSMMap implements Serializable {
     private final float maxLat;
     private final float maxLon;
 
-    private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
+    private final Map<Type, KdTree> typeToTree = new EnumMap<>(Type.class); // TODO: 80% MEMORY
     private final List<OSMWay> islands = new ArrayList<>();
-    private KdTree highwayTree;
+    private KdTree highwayTree; // TODO: 10% MEMORY
     private int nodeNumber = 1;
 
     private Graph routeGraph;
@@ -54,7 +54,7 @@ public class OSMMap implements Serializable {
             String zipFileName = zipIn.getNextEntry().getName(); // Points at the first file in the zip, gets its name
 
             String zipFileExt = zipFileName.substring(zipFileName.lastIndexOf("."));
-            
+
             if (!zipFileExt.equals(".osm")) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Fejlmeddelelse");
@@ -63,7 +63,7 @@ public class OSMMap implements Serializable {
                 alert.showAndWait();
                 return null;
             }
-            
+
             xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(new InputStreamReader(zipIn, StandardCharsets.UTF_8));
         }
 
@@ -73,7 +73,7 @@ public class OSMMap implements Serializable {
         SortedList<OSMWay> ways = new SortedList<>();
 
         Map<OSMNode, OSMWay> nodeToCoastline = new HashMap<>();
-        HashMap<Type, List<NodeProvider>> typeToProviders = new HashMap<>();
+        EnumMap<Type, List<NodeProvider>> typeToProviders = new EnumMap<>(Type.class);
         List<OSMWay> highways = new ArrayList<>();
 
         // While there are more tags in the XML file to be read
@@ -105,7 +105,7 @@ public class OSMMap implements Serializable {
                         float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
                         float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
-                        
+
                         OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address.intern());
 
                         nodes.add(node);
@@ -175,7 +175,7 @@ public class OSMMap implements Serializable {
      * This is a better, and less error-prone, design than reading in the main loop
      */
     private static OSMWay readWay(OSMMap map, SortedList<OSMNode> nodes, List<OSMWay> highways, Map<OSMNode, OSMWay> nodeToCoastline,
-                                  HashMap<Type, List<NodeProvider>> typeToProviders, XMLStreamReader xmlReader, long id) throws XMLStreamException {
+                                  Map<Type, List<NodeProvider>> typeToProviders, XMLStreamReader xmlReader, long id) throws XMLStreamException {
         List<OSMNode> localNodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
@@ -248,7 +248,7 @@ public class OSMMap implements Serializable {
         if (type == Type.UNKNOWN || type == null) {
             return null;
         }
-        
+
         if (road != null) {
             currentWay = new OSMWay(id, localNodes, type, road.intern());
         } else {
@@ -268,7 +268,7 @@ public class OSMMap implements Serializable {
      * readRelation will continuously read XML tags until the end of the relation is found.
      * This is a better, and less error-prone, design than reading in the main loop.
      */
-    private static void readRelation(SortedList<OSMWay> ways, HashMap<Type, List<NodeProvider>> typeToProviders,
+    private static void readRelation(SortedList<OSMWay> ways, Map<Type, List<NodeProvider>> typeToProviders,
                                      XMLStreamReader xmlReader, long id) throws XMLStreamException {
         List<OSMWay> localWays = new ArrayList<>();
 
@@ -397,7 +397,7 @@ public class OSMMap implements Serializable {
         return islands;
     }
 
-    public HashMap<Type, KdTree> getTypeToTree() {
+    public Map<Type, KdTree> getTypeToTree() {
         return typeToTree;
     }
 
