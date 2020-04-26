@@ -20,7 +20,7 @@ public class Graph {
             boolean bike = way.isBike();
             boolean walk = way.isWalk();
             boolean car = way.isCar();
-            double weight = way.calculateWeight(highways);
+            double weight = way.getWeight();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 int from = way.getNodes().get(i).getNumberForGraph();

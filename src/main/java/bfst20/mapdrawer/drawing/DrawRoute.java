@@ -15,7 +15,7 @@ public class DrawRoute implements Drawable {
 
     public DrawRoute(Dijkstra dijkstra) {
         for(DirectedEdge edge : dijkstra.getEdgeTo()){
-            OSMWay way = new OSMWay(edge.getFrom(), edge.getTo());
+            OSMWay way = new OSMWay();
             LinePath linePath = new LinePath(way);
             routeDrawables.add(linePath);
         }

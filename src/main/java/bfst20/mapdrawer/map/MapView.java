@@ -42,6 +42,7 @@ public class MapView {
     private final Affine transform = new Affine();
 
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
+    private final MenuItem showRouteFindingToggleMenu = new MenuItem("Åben Rutefindings Menu");
 
     private final MapController controller;
     private OSMMap model;
@@ -95,6 +96,9 @@ public class MapView {
         saveFile.setOnAction(controller.getSaveFileAction());
         fileMenu.getItems().add(saveFile);
 
+        showRouteFindingToggleMenu.setOnAction(controller.getShowRouteFindingToggleMenu());
+
+        optionsMenu.getItems().add(showRouteFindingToggleMenu);
         optionsMenu.getItems().add(showKdTree);
         menuBar.getMenus().add(optionsMenu);
 

@@ -23,6 +23,7 @@ public class LinePath implements Drawable, Serializable {
         }
     }
 
+
     @Override
     public void draw(GraphicsContext gc) {
         gc.beginPath();
