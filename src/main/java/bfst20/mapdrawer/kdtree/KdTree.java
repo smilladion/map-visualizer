@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.kdtree;
 
+import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;

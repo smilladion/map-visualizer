@@ -1,11 +1,8 @@
 package bfst20.mapdrawer.osm;
 
 import bfst20.mapdrawer.dijkstra.Graph;
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
-import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.util.SortedList;
 import javafx.scene.control.Alert;
 
@@ -31,7 +28,7 @@ public class OSMMap implements Serializable {
     private final float maxLon;
 
     private final HashMap<Type, KdTree> typeToTree = new HashMap<>();
-    private final List<Drawable> islands = new ArrayList<>();
+    private final List<OSMWay> islands = new ArrayList<>();
     private KdTree highwayTree;
     private int nodeNumber = 1;
 
@@ -147,7 +144,7 @@ public class OSMMap implements Serializable {
 
             for (var entry : nodeToCoastline.entrySet()) {
                 if (entry.getKey() == entry.getValue().last()) {
-                    map.islands.add(new LinePath(entry.getValue()));
+                    map.islands.add(entry.getValue());
                 }
             }
 
@@ -396,7 +393,7 @@ public class OSMMap implements Serializable {
         return maxLon;
     }
 
-    public List<Drawable> getIslands() {
+    public List<OSMWay> getIslands() {
         return islands;
     }
 

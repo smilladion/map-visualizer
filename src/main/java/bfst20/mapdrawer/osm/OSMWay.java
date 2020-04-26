@@ -1,13 +1,8 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.dijkstra.DirectedEdge;
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.LinePath;
-import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
-import javafx.scene.paint.Paint;
+import javafx.scene.canvas.GraphicsContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,7 +21,6 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
     private final long id;
     private final List<OSMNode> nodes;
-    private final Drawable drawable;
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
@@ -42,17 +36,6 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.nodes = nodes;
         this.type = type;
         this.road = road;
-
-        if (nodes.isEmpty()) {
-            // If a way has no nodes, do not draw
-            drawable = null;
-        } else if (type.shouldBeFilled()) {
-            // If a way should be filled with colour, make a polygon
-            drawable = new Polygon(this);
-        } else {
-            // If it should not, draw a line
-            drawable = new LinePath(this);
-        }
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
@@ -67,19 +50,11 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.bike = bike;
         this.walk = walk;
         this.car = car;
-
-        if (nodes.isEmpty()) {
-            // If a way has no nodes, do not draw
-            drawable = null;
-        } else {
-            drawable = new LinePath(this);
-        }
     }
 
     public OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
-        drawable = null;
         type = Type.UNKNOWN;
         road = null;
     }
@@ -173,6 +148,28 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     @Override
+    public void draw(GraphicsContext gc) {
+        if (nodes.size() > 1) {
+            trace(gc);
+
+            if (type.shouldBeFilled()) {
+                gc.fill();
+            }
+        }
+    }
+    
+    public void trace(GraphicsContext gc) {
+        gc.beginPath();
+        gc.moveTo(nodes.get(0).getLon(), nodes.get(0).getLat());
+
+        for (OSMNode node : nodes.subList(1, nodes.size())) {
+            gc.lineTo(node.getLon(), node.getLat());
+        }
+
+        gc.stroke();
+    }
+
+    @Override
     public float getAvgX() {
         float sumX = 0.0f;
 
@@ -192,11 +189,6 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
         
         return sumY / nodes.size();
-    }
-
-    @Override
-    public Drawable getDrawable() {
-        return drawable;
     }
 
     @Override

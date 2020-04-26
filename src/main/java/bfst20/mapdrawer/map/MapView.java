@@ -3,14 +3,12 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
-import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.kdtree.NodeProvider;
+import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -27,7 +25,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -300,7 +297,7 @@ public class MapView {
                 if (model.getTypeToTree().containsKey(type)) {
                     for (NodeProvider p : model.getTypeToTree().get(type).search(
                             new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
-                        p.getDrawable().draw(context);
+                        p.draw(context);
                     }
                 }
             }
