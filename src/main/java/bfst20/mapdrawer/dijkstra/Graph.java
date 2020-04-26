@@ -27,7 +27,8 @@ public class Graph implements Serializable{
             boolean walk = way.isWalk();
             boolean car = way.isCar();
             double speed = way.getSpeed();
-            boolean oneway = way.isOneway();
+            boolean onewayCar = way.isOnewayCar();
+            boolean onewayAll = way.isOnewayAll();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 OSMNode node = way.getNodes().get(i);
@@ -43,12 +44,12 @@ public class Graph implements Serializable{
                 double tempWeight = (Math.sqrt(((x2-x1)*(x2-x1)) + ((y2-y1)*(y2-y1))));
                 double weight = tempWeight / speed;
 
-                if (!oneway) {
+                if (!onewayAll) {
                     addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
                     addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
-                } else {
+                } else if (onewayCar){
                     addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
-
+                    addEdge(from, to, weight, bike, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
                 }
             }
         }

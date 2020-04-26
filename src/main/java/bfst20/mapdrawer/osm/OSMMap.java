@@ -181,7 +181,12 @@ public class OSMMap implements Serializable {
         String road = null;
         OSMWay currentWay;
         int speed = 40;
-        boolean oneway = false;
+        boolean onewayCar = false;
+        boolean onewayAll = false;
+        boolean car = true;
+        boolean bike = true;
+        boolean walk = true;
+        float durationFerry = 0;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -200,26 +205,75 @@ public class OSMMap implements Serializable {
                         if (key.equals("building")) {
                             type = Type.BUILDING;
 
-                        } else if (key.equals("highway")) {
+                        } else if(key.equals("access")) {
+                            if (value.equals("no")) {
+                                car = false;
+                                bike = false;
+                                walk = false;
+                                break;
+                            }
+                        }else if(key.equals("bicycle")) {
+                            if (value.equals("yes")) {
+                                bike = true;
+                            } else if (value.equals("no")) {
+                                bike = false;
+                            }
+                        } else if(key.equals("foot")) {
+                            if (value.equals("yes")) {
+                                walk = true;
+                            } else if (value.equals("no")) {
+                                walk = false;
+                            }
+                        } else if (key.equals("motor-vehicle")) {
+                            if (value.equals("yes")) {
+                                car = true;
+                            } else if (value.equals("no")) {
+                                car = false;
+                            }
+                        }else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-
+                            if (value.equals("residential")) {
+                                speed = 30;
+                            }
+                            if (value.equals("footway")) {
+                                car = false;
+                                bike = false;
+                            }
+                            if (value.equals("motorway")) {
+                                bike = false;
+                                walk = false;
+                            }
                             if (Type.containsType(value)) type = Type.getType(value);
                             
                         }  else if (key.equals("maxspeed")) {
-                            speed = Integer.parseInt(value);
+                            if (value.equals("DK:urban")) {
+                                speed = speed;
+                            } else if (value.equals("signal")) {
+                                speed = speed;
+                            } else {
+                                try {
+                                    speed = Integer.parseInt(value);
+                                } catch (Exception e) {
+                                    System.out.println("Kunne ikke parse int");
+                                    speed = speed;
+                                }
+                            }
 
                         }else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
 
-                            for (OSMNode node : nodes) {
-                                node.setNumberForGraph(map.nodeNumber);
-                                map.nodeNumber++;
-                                node.setRoad(road);
+                        } else if (key.equals("route")) {
+                            if (value.equals("ferry")) {
+                                speed = 80;
                             }
-
+                        }else if (key.equals("surface")) {
+                            if (value.equals("gravel") || value.equals("unpaved")) {
+                                speed = 20;
+                            }
                         } else if (key.equals("oneway") && "highway".equals(type.getKey())) {
                             if (value.equals("yes")) {
-                                oneway = true;
+                                onewayAll = true;
+                                onewayCar = true;
                             }
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
@@ -262,8 +316,14 @@ public class OSMMap implements Serializable {
         }
         map.typeToProviders.get(type).add(currentWay);
 
-        if (road != null) {
-            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, true, true, true, oneway, road));
+        if ((road != null) || ("highway".equals(type.getKey()))) {
+
+            for (OSMNode node : nodes) {
+                node.setNumberForGraph(map.nodeNumber);
+                map.nodeNumber++;
+                node.setRoad(road);
+            }
+            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayAll, road));
 
         }
         

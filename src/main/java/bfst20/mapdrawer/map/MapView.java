@@ -458,7 +458,7 @@ public class MapView {
                     }
                 } else if (angle > 150) {
                     if (ccw > 0) {
-                        System.out.println("FOrtsæt ligeud ad " + nextRoad);
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
                     } else if (ccw < 0) {
                         System.out.println("Fortsæt ligeud ad " + nextRoad);
 

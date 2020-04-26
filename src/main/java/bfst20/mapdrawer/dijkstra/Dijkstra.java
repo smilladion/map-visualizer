@@ -51,16 +51,16 @@ public class Dijkstra implements Serializable{
 
     private void relax(Graph g, int v, Vehicle vehicle) {
         //Taking an int v, it checks all vertices that you can go to from v.
-        for (DirectedEdge edge : g.adja(v)) {
+        if (g.adja(v) != null) {
+            for (DirectedEdge edge : g.adja(v)) {
 
-            if (edge.isOnlyCar() && vehicle.isCar()) {
-                relaxMethod(v, edge);
-            } else if(edge.isOnlyBike() && vehicle.isBike()) {
-                relaxMethod(v, edge);
-            } else if (edge.isOnlyWalk() && vehicle.isWalk()) {
-                relaxMethod(v, edge);
-            } else {
-                relaxMethod(v, edge);
+                if (edge.isCar() && vehicle.isCar()) {
+                    relaxMethod(v, edge);
+                } else if (edge.isBike() && vehicle.isBike()) {
+                    relaxMethod(v, edge);
+                } else if (edge.isWalk() && vehicle.isWalk()) {
+                    relaxMethod(v, edge);
+                }
             }
         }
     }
