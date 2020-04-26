@@ -275,7 +275,6 @@ public class OSMMap implements Serializable {
                             if (value.equals("yes")) {
                                 onewayBike = true;
                                 onewayCar = true;
-                                onewayWalk = true;
                             }
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
@@ -392,7 +391,8 @@ public class OSMMap implements Serializable {
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
-        String street = null, houseNumber = null, postcode = null, place = null, city = null;
+        String street = "", houseNumber = "", postcode = "", place = "", city = "";
+        boolean addressCheck = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -406,6 +406,7 @@ public class OSMMap implements Serializable {
                     switch (key) {
                         case "addr:street":
                             street = value;
+                            addressCheck = true;
                             break;
                         case "addr:housenumber":
                             houseNumber = value;
@@ -415,9 +416,11 @@ public class OSMMap implements Serializable {
                             break;
                         case "addr:place":
                             place = value;
+                            addressCheck = true;
                             break;
                         case "addr:city":
                             city = value;
+                            addressCheck = true;
                             break;
                     }
                 }
@@ -429,7 +432,7 @@ public class OSMMap implements Serializable {
 
         String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
 
-        if (!address.contains("null")) {
+        if (addressCheck) {
             map.addressList.add(address);
         }
 
