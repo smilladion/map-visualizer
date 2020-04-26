@@ -11,7 +11,7 @@ public enum Type {
     // First type (unknown) will be drawn first, bottom type will be last.
 
     UNKNOWN(null, null, Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, Integer.MAX_VALUE),
-    COASTLINE("natural", "coastline", Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, 6000),
+    COASTLINE("natural", "coastline", Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, Integer.MAX_VALUE),
     //COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
     //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
     //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
