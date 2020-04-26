@@ -106,11 +106,11 @@ public class OSMMap implements Serializable {
                         float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
 
-                        OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address.intern());
+                        OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
 
                         nodes.add(node);
 
-                        if (!address.contains("null") && !address.isEmpty()) {
+                        if (address != null && !address.isBlank()) {
                             map.addressNodes.add(node);
                         }
 
@@ -361,10 +361,12 @@ public class OSMMap implements Serializable {
         String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
 
         if (!address.contains("null")) {
-            map.addressList.add(address.intern());
+            String uniqueString = address.intern();
+            map.addressList.add(uniqueString);
+            return uniqueString;
+        } else {
+            return null;
         }
-
-        return address.toLowerCase();
     }
 
     public static OSMMap loadBinary(File file) throws IOException {
