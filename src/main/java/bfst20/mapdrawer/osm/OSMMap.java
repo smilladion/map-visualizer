@@ -182,7 +182,8 @@ public class OSMMap implements Serializable {
         OSMWay currentWay;
         int speed = 40;
         boolean onewayCar = false;
-        boolean onewayAll = false;
+        boolean onewayBike = false;
+        boolean onewayWalk = false;
         boolean car = true;
         boolean bike = true;
         boolean walk = true;
@@ -272,8 +273,9 @@ public class OSMMap implements Serializable {
                             }
                         } else if (key.equals("oneway") && "highway".equals(type.getKey())) {
                             if (value.equals("yes")) {
-                                onewayAll = true;
+                                onewayBike = true;
                                 onewayCar = true;
+                                onewayWalk = true;
                             }
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
@@ -323,7 +325,7 @@ public class OSMMap implements Serializable {
                 map.nodeNumber++;
                 node.setRoad(road);
             }
-            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayAll, road));
+            map.highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
 
         }
         
