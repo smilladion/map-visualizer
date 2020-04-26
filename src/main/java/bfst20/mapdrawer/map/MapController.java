@@ -106,8 +106,8 @@ public class MapController {
             view.getSearchedDrawables().clear();
             routeEdges.clear();
 
-            String addressTo = view.getToSearchField().getText().toLowerCase();
-            String addressFrom = view.getFromSearchField().getText().toLowerCase();
+            String addressTo = view.getToSearchField().getText();
+            String addressFrom = view.getFromSearchField().getText();
             
             view.paintPoints(addressTo, addressFrom);
             
