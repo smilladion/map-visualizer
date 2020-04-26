@@ -3,7 +3,6 @@ package bfst20.mapdrawer.osm;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.canvas.GraphicsContext;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,14 +23,15 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private final Type type;
     private final String road; // null if way is not a highway or there is no <name> tag
 
-    private int weight;
+    private double speed;
     private boolean bike;
     private boolean walk;
     private boolean car;
-
+    private boolean onewayCar;
+    private boolean onewayBike;
+    private boolean onewayWalk;
 
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
-
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -39,17 +39,18 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, int weight, boolean bike, boolean walk, boolean car, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
-
         this.road = road;
-
-        this.weight = weight;
+        this.speed = weight;
         this.bike = bike;
         this.walk = walk;
         this.car = car;
+        this.onewayCar = onewayCar;
+        this.onewayBike = onewayBike;
+        this.onewayWalk = onewayWalk;
     }
 
     public OSMWay() {
@@ -131,8 +132,8 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         return road;
     }
 
-    public int getWeight() {
-        return weight;
+    public double getSpeed() {
+        return speed;
     }
 
     public boolean isBike() {
@@ -189,6 +190,18 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
         
         return sumY / nodes.size();
+    }
+
+    public boolean isOnewayCar() {
+        return onewayCar;
+    }
+
+    public boolean isOnewayBike() {
+        return onewayBike;
+    }
+
+    public boolean isOnewayWalk() {
+        return onewayWalk;
     }
 
     @Override

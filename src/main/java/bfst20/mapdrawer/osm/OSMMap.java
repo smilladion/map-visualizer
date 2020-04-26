@@ -92,22 +92,23 @@ public class OSMMap implements Serializable {
                         if (map != null) {
                             throw new InvalidMapException();
                         }
-
+                
                         // Create a new map and flips and fixes the spherical orientation
                         map = new OSMMap(-Float.parseFloat(xmlReader.getAttributeValue(null, "maxlat")),
                                 0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "minlon")),
                                 -Float.parseFloat(xmlReader.getAttributeValue(null, "minlat")),
                                 0.56f * Float.parseFloat(xmlReader.getAttributeValue(null, "maxlon")));
-
+                        
                         break;
                     case "node": {
+                        
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
                         float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
                         float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
-
+                        
                         OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
-
+                        
                         nodes.add(node);
 
                         if (address != null && !address.isBlank()) {
@@ -118,9 +119,10 @@ public class OSMMap implements Serializable {
                     }
                     case "way": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-
+                        
                         // Read id, and move to readWay method to read all nodes inside of way
                         OSMWay currentWay = readWay(map, nodes, highways, nodeToCoastline, typeToProviders, xmlReader, id);
+                        
                         if (currentWay != null) {
                             ways.add(currentWay);
                         }
@@ -163,7 +165,7 @@ public class OSMMap implements Serializable {
             for (Map.Entry<Type, List<NodeProvider>> entry : typeToProviders.entrySet()) {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
-
+            
             map.routeGraph = new Graph(map.nodeNumber + 1, highways);
         }
 
@@ -176,11 +178,21 @@ public class OSMMap implements Serializable {
      */
     private static OSMWay readWay(OSMMap map, SortedList<OSMNode> nodes, List<OSMWay> highways, Map<OSMNode, OSMWay> nodeToCoastline,
                                   Map<Type, List<NodeProvider>> typeToProviders, XMLStreamReader xmlReader, long id) throws XMLStreamException {
+
         List<OSMNode> localNodes = new ArrayList<>();
 
         Type type = Type.UNKNOWN;
         String road = null;
         OSMWay currentWay;
+
+        int speed = 40;
+        boolean onewayCar = false;
+        boolean onewayBike = false;
+        boolean onewayWalk = false;
+        boolean car = true;
+        boolean bike = true;
+        boolean walk = true;
+        float durationFerry = 0;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -199,22 +211,75 @@ public class OSMMap implements Serializable {
                         if (key.equals("building")) {
                             type = Type.BUILDING;
 
+                        } else if (key.equals("access")) {
+                            if (value.equals("no")) {
+                                car = false;
+                                bike = false;
+                                walk = false;
+                                break;
+                            }
+                        } else if (key.equals("bicycle")) {
+                            if (value.equals("yes")) {
+                                bike = true;
+                            } else if (value.equals("no")) {
+                                bike = false;
+                            }
+                        } else if (key.equals("foot")) {
+                            if (value.equals("yes")) {
+                                walk = true;
+                            } else if (value.equals("no")) {
+                                walk = false;
+                            }
+                        } else if (key.equals("motor-vehicle")) {
+                            if (value.equals("yes")) {
+                                car = true;
+                            } else if (value.equals("no")) {
+                                car = false;
+                            }
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
+                            if (value.equals("residential")) {
+                                speed = 30;
+                            }
+                            if (value.equals("footway")) {
+                                car = false;
+                                bike = false;
+                            }
+                            if (value.equals("motorway")) {
+                                bike = false;
+                                walk = false;
+                            }
 
-                            if (Type.containsType(value)) type = Type.getType(value);
+                        } else if (key.equals("maxspeed")) {
+                            if (value.equals("DK:urban")) {
+                                speed = speed;
+                            } else if (value.equals("signal")) {
+                                speed = speed;
+                            } else {
+                                try {
+                                    speed = Integer.parseInt(value);
+                                } catch (Exception e) {
+                                    System.out.println("Kunne ikke parse int");
+                                    speed = speed;
+                                }
+                            }
 
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
 
-                            for (OSMNode node : localNodes) {
-                                node.setNumberForGraph(map.nodeNumber);
-                                map.nodeNumber++;
-                                node.setRoad(road);
+                        } else if (key.equals("route")) {
+                            if (value.equals("ferry")) {
+                                speed = 80;
                             }
-
-                            highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, 1, true, true, true, road));
-
+                        } else if (key.equals("surface")) {
+                            if (value.equals("gravel") || value.equals("unpaved")) {
+                                speed = 20;
+                            }
+                        } else if (key.equals("oneway") && "highway".equals(type.getKey())) {
+                            if (value.equals("yes")) {
+                                onewayBike = true;
+                                onewayCar = true;
+                            }
                         } else if (Type.containsType(value)) {
                             type = Type.getType(value);
 
@@ -260,6 +325,17 @@ public class OSMMap implements Serializable {
         }
 
         typeToProviders.get(type).add(currentWay);
+
+        if ((road != null) || ("highway".equals(type.getKey()))) {
+
+            for (OSMNode node : nodes) {
+                node.setNumberForGraph(map.nodeNumber);
+                map.nodeNumber++;
+                node.setRoad(road);
+            }
+
+            highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
+        }
 
         return currentWay;
     }
@@ -322,7 +398,8 @@ public class OSMMap implements Serializable {
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
-        String street = null, houseNumber = null, postcode = null, place = null, city = null;
+        String street = "", houseNumber = "", postcode = "", place = "", city = "";
+        boolean addressCheck = false;
 
         while (xmlReader.hasNext()) {
             int nextType = xmlReader.next();
@@ -336,6 +413,7 @@ public class OSMMap implements Serializable {
                     switch (key) {
                         case "addr:street":
                             street = value;
+                            addressCheck = true;
                             break;
                         case "addr:housenumber":
                             houseNumber = value;
@@ -345,9 +423,11 @@ public class OSMMap implements Serializable {
                             break;
                         case "addr:place":
                             place = value;
+                            addressCheck = true;
                             break;
                         case "addr:city":
                             city = value;
+                            addressCheck = true;
                             break;
                     }
                 }
@@ -358,8 +438,8 @@ public class OSMMap implements Serializable {
         }
 
         String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
-
-        if (!address.contains("null")) {
+        
+        if (addressCheck) {
             String uniqueString = address.intern();
             map.addressList.add(uniqueString);
             return uniqueString;

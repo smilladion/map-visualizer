@@ -18,6 +18,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -59,8 +60,13 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+
     private final ToggleSwitch colorToggle = new ToggleSwitch(); 
     private final ToggleSwitch nearestToggle = new ToggleSwitch();
+
+    private final RadioButton car;
+    private final RadioButton bike;
+    private final RadioButton walk;
 
     private final Label zoomDisplay = new Label();
 
@@ -111,6 +117,16 @@ public class MapView {
         autoFrom.setVisibleRowCount(5);
         autoFrom.setMinWidth(300);
 
+        //togglegroup ensures you can only choose one button at a time.
+        ToggleGroup radioGroup = new ToggleGroup();
+        car = new RadioButton("Bil");
+        bike = new RadioButton("Cykel");
+        walk = new RadioButton("Gå");
+        car.setToggleGroup(radioGroup);
+        bike.setToggleGroup(radioGroup);
+        walk.setToggleGroup(radioGroup);
+        car.setSelected(true);
+
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
@@ -152,7 +168,7 @@ public class MapView {
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
+        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -361,6 +377,30 @@ public class MapView {
         paintMap();
     }
 
+    private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
+
+        double dot = vectorFrom.dotProduct(vectorTo);
+        double lengthFrom = (Math.sqrt(((vectorFrom.getX())*(vectorFrom.getX()))+((vectorFrom.getY())*(vectorFrom.getY()))));
+        double lengthTo = (Math.sqrt(((vectorTo.getX())*(vectorTo.getX()))+((vectorTo.getY())*(vectorTo.getY()))));
+
+        double cosv = (dot / (lengthFrom * lengthTo));
+
+        double angle = Math.acos(cosv);
+        double angle1 = Math.toDegrees(angle);
+
+        double realAngle = 180 - angle1;
+
+        return realAngle;
+    }
+
+    //From algs4 library
+    public static int ccw(Point2D a, Point2D b, Point2D c) {
+        double area2 = (b.getX()-a.getX())*(c.getY()-a.getY()) - (b.getY()-a.getY())*(c.getX()-a.getX());
+        if      (area2 < 0) return -1;
+        else if (area2 > 0) return +1;
+        else                return  0;
+    }
+
     private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
         double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
         double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
@@ -400,17 +440,39 @@ public class MapView {
 
             if (!currentRoad.equals(nextRoad)) {
 
+                //the 3 points for ccw
+                Point2D a = new Point2D(current.getX1(), current.getY1());
+                Point2D b = new Point2D(current.getX2(), current.getY2());
+                Point2D c = new Point2D(next.getX2(), next.getY2());
+
+                int ccw = ccw(a, b, c);
+
                 //making the two edges into direction vectors.
                 Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
                 Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
 
-                double angle = calculateAngle(vectorFrom, vectorTo);
+                double angle = calculateAngle1(vectorFrom, vectorTo);
 
-                if (angle > 20 && angle < 140) {
-                    System.out.println("Drej til højre ad " + nextRoad);
-                } else if (angle < -20 && angle > -140) {
-                    System.out.println("Drej til venstre ad " + nextRoad);
-                } else {
+                if (angle > 20 && angle < 150) {
+                    if (ccw > 0) {
+                        System.out.println("Drej til højre ad " + nextRoad);
+                    } else if (ccw < 0) {
+                        System.out.println("Drej til venstre ad "+ nextRoad);
+                    }
+                } else if (angle > 150) {
+                    if (ccw > 0) {
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
+                    } else if (ccw < 0) {
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
+
+                    }
+                } else if (angle < 20) {
+                    if (ccw < 0) {
+                        System.out.println("Drej skarpt til højre ad " + nextRoad);
+                    } else if (ccw > 0) {
+                        System.out.println("Drej skarpt til venstre ad " + nextRoad);
+                    }
+                } else if (ccw == 0) {
                     System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
             }
@@ -491,6 +553,16 @@ public class MapView {
     
     public Label getClosestRoad() {
         return closestRoad;
+    }
+
+    public RadioButton getCar() {
+        return car;
+    }
+    public RadioButton getBike() {
+        return bike;
+    }
+    public RadioButton getWalk() {
+        return walk;
     }
 
     public Affine getTransform() {

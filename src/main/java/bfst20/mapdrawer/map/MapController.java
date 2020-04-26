@@ -1,8 +1,7 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
-import bfst20.mapdrawer.dijkstra.Dijkstra;
-import bfst20.mapdrawer.dijkstra.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
@@ -112,6 +111,16 @@ public class MapController {
             view.paintPoints(addressTo, addressFrom);
             
             if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
+
+                Vehicle v;
+
+                if (view.getCar().isSelected()) {
+                    v = new Car();
+                } else if (view.getBike().isSelected()) {
+                    v = new Bike();
+                } else {
+                    v = new Walk();
+                }
                 
                 OSMNode nodeTo = new OSMNode();
                 OSMNode nodeFrom = new OSMNode();
@@ -134,9 +143,20 @@ public class MapController {
                 Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
                 OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
-                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
-
+                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
+                
                 routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+                
+                double distance = 0;
+
+                for (DirectedEdge edge : routeEdges) {
+                    distance = distance + edge.getWeight();
+                }
+                
+                distance = distance * 10000;
+                distance = Math.ceil(distance);
+
+                System.out.println("Tid: " + distance + " min");
                 
                 view.paintRoute(routeEdges);
                 view.createRouteDescription(routeEdges);

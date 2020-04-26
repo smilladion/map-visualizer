@@ -15,7 +15,7 @@ public class Dijkstra implements Serializable{
     private double[] distTo;
     private IndexMinPQ<Double> pq;
 
-    public Dijkstra(Graph g, int s) {
+    public Dijkstra(Graph g, int s, Vehicle vehicle) {
 
         edgeTo = new DirectedEdge[g.getVertices()];
         distTo = new double[g.getVertices()];
@@ -29,10 +29,9 @@ public class Dijkstra implements Serializable{
 
         pq.insert(s, 0.0);
 
-
         while (!pq.isEmpty()) {
 
-            relax(g, pq.delMin());
+            relax(g, pq.delMin(), vehicle);
         }
     }
 
@@ -52,20 +51,35 @@ public class Dijkstra implements Serializable{
         return path;
     }
 
-    private void relax(Graph g, int v) {
-        for (DirectedEdge edge : g.adja(v)) {
+    private void relax(Graph g, int v, Vehicle vehicle) {
+        //Taking an int v, it checks all vertices that you can go to from v.
+        if (g.adja(v) != null) {
+            for (DirectedEdge edge : g.adja(v)) {
 
-            int w = edge.to();
-            if (distTo[w] > distTo[v] + edge.getWeight()) {
-                distTo[w] = distTo[v] + edge.getWeight();
-                edgeTo[w] = edge;
-                if (pq.contains(w)) {
-                    pq.changeKey(w, distTo[w]);
-                } else {
-                    pq.insert(w, distTo[w]);
+                if (edge.isCar() && vehicle.isCar()) {
+                    relaxMethod(v, edge);
+                } else if (edge.isBike() && vehicle.isBike()) {
+                    relaxMethod(v, edge);
+                } else if (edge.isWalk() && vehicle.isWalk()) {
+                    relaxMethod(v, edge);
                 }
             }
         }
     }
-}
 
+    private void relaxMethod(int v, DirectedEdge edge) {
+        int w = edge.to();
+        //checks if the distance to w is bigger than the distance to v + the weight to w.
+        //if it is, w's distance is updated, and it's edgeTo is set to be v.
+        if (distTo[w] > distTo[v] + edge.getWeight()) {
+            distTo[w] = distTo[v] + edge.getWeight();
+            edgeTo[w] = edge;
+            //as it always relaxes the edge that has the shortest distance to s (and has not been relaxed yet) we need to update w's position in the pq.
+            if (pq.contains(w)) {
+                pq.changeKey(w, distTo[w]);
+            } else {
+                pq.insert(w, distTo[w]);
+            }
+        }
+    }
+}

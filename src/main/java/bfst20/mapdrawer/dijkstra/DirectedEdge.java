@@ -12,7 +12,7 @@ public class DirectedEdge implements Serializable, Drawable {
     
     private final int from;
     private final int to;
-    private final int weight;
+    private final double weight;
     private final boolean bike;
     private final boolean walk;
     private final boolean car;
@@ -23,7 +23,7 @@ public class DirectedEdge implements Serializable, Drawable {
     private final float y2;
 
 
-    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
+    public DirectedEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
         this.from = from;
         this.to = to;
         this.weight = weight;
@@ -45,7 +45,7 @@ public class DirectedEdge implements Serializable, Drawable {
         return to;
     }
 
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 
@@ -64,11 +64,23 @@ public class DirectedEdge implements Serializable, Drawable {
     public float getX2() {
         return x2;
     }
-
-    public float getY2() {
-        return y1;
+    
+    public double getY2() {
+        return y2;
     }
 
+    public boolean isCar() {
+        return car;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+
+    public boolean isWalk() {
+        return walk;
+    }
+    
     public String toString() {
         return String.format("from: " + from + ", to: " + to);
    }
