@@ -27,9 +27,9 @@ public class OSMMap implements Serializable {
     private final float maxLat;
     private final float maxLon;
 
-    private final Map<Type, KdTree> typeToTree = new EnumMap<>(Type.class); // TODO: 80% MEMORY
+    private final Map<Type, KdTree> typeToTree = new EnumMap<>(Type.class);
     private final List<OSMWay> islands = new ArrayList<>();
-    private KdTree highwayTree; // TODO: 10% MEMORY
+    private KdTree highwayTree;
     private int nodeNumber = 1;
 
     private Graph routeGraph;
@@ -319,7 +319,6 @@ public class OSMMap implements Serializable {
             typeToProviders.put(type, new ArrayList<>());
         }
         typeToProviders.get(type).add(currentRelation);
-
     }
 
     private static String readAddress(OSMMap map, XMLStreamReader xmlReader) throws XMLStreamException {
