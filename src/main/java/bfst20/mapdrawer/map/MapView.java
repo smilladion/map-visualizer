@@ -368,16 +368,21 @@ public class MapView {
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             if (addressFrom == null && addressTo == null && !onPurposeNull) {
                 throw new noAddressMatchException();
-            }
-            if (addressFrom == null && addressTo != null) {
+            } else if (addressFrom == null && addressTo != null) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().contains(addressTo)) {
                         searchedDrawables.add(new Point(node, transform));
                     }
                 }
-            } else if (addressTo != null) {
+            } else if (addressTo != null && addressFrom != null) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
+                }
+            } else if (addressFrom != null && addressTo == null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().contains(addressFrom)) {
                         searchedDrawables.add(new Point(node, transform));
                     }
                 }
