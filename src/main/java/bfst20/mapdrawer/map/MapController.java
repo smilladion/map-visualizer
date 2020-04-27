@@ -159,14 +159,14 @@ public class MapController {
                 if(!routeEdges.isEmpty()) {
                     routeEdges.clear();
                 }
-                Vehicle v;
+                Vehicle vehicle;
 
                 if (view.getCar().isSelected()) {
-                    v = new Car();
+                    vehicle = new Car();
                 } else if (view.getBike().isSelected()) {
-                    v = new Bike();
+                    vehicle = new Bike();
                 } else {
-                    v = new Walk();
+                    vehicle = new Walk();
                 }
 
                 if (nodeTo != null && nodeFrom != null) {
@@ -179,9 +179,17 @@ public class MapController {
                     Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
                     OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
-                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
+                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
 
-                    routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+                    try {
+                        routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                    } catch (noRouteException ex) {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle("Ingen rute fundet");
+                        alert.setHeaderText(null);
+                        alert.setContentText(ex.getMessage());
+                        alert.showAndWait();
+                    }
 
                     double distance = 0;
 

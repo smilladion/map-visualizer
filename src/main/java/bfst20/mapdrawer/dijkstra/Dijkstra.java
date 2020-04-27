@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import bfst20.mapdrawer.Exceptions.*;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;
@@ -40,9 +41,21 @@ public class Dijkstra implements Serializable{
         return distTo[v] < Double.POSITIVE_INFINITY;
     }
 
-    public LinkedList<DirectedEdge> pathTo(int v) {
+    public LinkedList<DirectedEdge> pathTo(int v, Vehicle vehicle) throws noRouteException {
         if(!hasPathTo(v)) {
-            return null;
+            String vehicleAlternative1;
+            String vehicleAlternative2;
+            if (vehicle.isCar()) {
+                vehicleAlternative1 = "Cykel";
+                vehicleAlternative2 = "Gå";
+            } else if (vehicle.isBike()) {
+                vehicleAlternative1 = "Bil";
+                vehicleAlternative2 = "Gå";
+            } else {
+                vehicleAlternative1 = "Bil";
+                vehicleAlternative2 = "Cykel";
+            }
+            throw new noRouteException(vehicleAlternative1, vehicleAlternative2);
         }
         LinkedList<DirectedEdge> path = new LinkedList<>();
 
