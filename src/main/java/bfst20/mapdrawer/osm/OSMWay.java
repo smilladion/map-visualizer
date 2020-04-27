@@ -39,12 +39,12 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, double weight, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double speed, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
         this.road = road;
-        this.speed = weight;
+        this.speed = speed;
         this.bike = bike;
         this.walk = walk;
         this.car = car;

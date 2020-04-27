@@ -42,28 +42,27 @@ public class Graph implements Serializable {
                 double x2 = node1.getLon();
                 double y2 = node1.getLat();
                 
-                double tempWeight = Math.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
-                double weight = tempWeight / speed;
+                double distance = Math.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
 
                 if (!onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, weight, bike, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && !onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(from, to, weight, false, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(from, to, speed, distance,false, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, weight, false, false, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, false, false, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 }
             }
         }
     }
     
-    public void addEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
-        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2);
+    public void addEdge(int from, int to, double speed, double distance, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
+        DirectedEdge edge = new DirectedEdge(from, to, speed, distance, bike, walk, car, road, x1, y1, x2, y2);
         if (adj[from] == null) {
             adj[from] = new ArrayList<>();
             adj[from].add(edge);

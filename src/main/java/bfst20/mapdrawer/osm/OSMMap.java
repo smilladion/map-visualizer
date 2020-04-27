@@ -275,7 +275,12 @@ public class OSMMap implements Serializable {
                             if (value.equals("ferry")) {
                                 speed = 80;
                             }
-                        } else if (key.equals("surface")) {
+                        } else if(key.equals("junction")) {
+                            if (value.equals("roundabout")) {
+                                onewayBike = true;
+                                onewayCar = true;
+                            }
+                        }else if (key.equals("surface")) {
                             if (value.equals("gravel") || value.equals("unpaved")) {
                                 speed = 20;
                             }

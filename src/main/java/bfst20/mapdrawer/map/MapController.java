@@ -51,7 +51,7 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
-    List<DirectedEdge> routeEdges = new LinkedList<>();
+    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
@@ -104,7 +104,6 @@ public class MapController {
         
         searchActionDijkstra = e -> {
             view.getSearchedDrawables().clear();
-            routeEdges.clear();
 
             String addressTo = view.getToSearchField().getText();
             String addressFrom = view.getFromSearchField().getText();
@@ -112,7 +111,7 @@ public class MapController {
             view.paintPoints(addressTo, addressFrom);
             
             if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
-
+                routeEdges.clear();
                 Vehicle v;
 
                 if (view.getCar().isSelected()) {
@@ -151,7 +150,7 @@ public class MapController {
                 double distance = 0;
 
                 for (DirectedEdge edge : routeEdges) {
-                    distance = distance + edge.getWeight();
+                    distance = distance + edge.getDistance();
                 }
                 
                 distance = distance * 10000;

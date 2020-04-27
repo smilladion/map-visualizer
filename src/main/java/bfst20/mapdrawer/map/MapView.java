@@ -1,6 +1,7 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.RouteDescription;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
@@ -32,6 +33,7 @@ import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -125,6 +127,9 @@ public class MapView {
         car.setToggleGroup(radioGroup);
         bike.setToggleGroup(radioGroup);
         walk.setToggleGroup(radioGroup);
+        car.setOnAction(controller.getSearchActionDijkstra());
+        bike.setOnAction(controller.getSearchActionDijkstra());
+        walk.setOnAction(controller.getSearchActionDijkstra());
         car.setSelected(true);
 
         Button clearButton = new Button("Nulstil");
@@ -403,66 +408,10 @@ public class MapView {
 
 
 
-    public void createRouteDescription(List<DirectedEdge> edgeList) {
+    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
 
-        for (int i = 0; i < edgeList.size()-1; i++) {
-
-            DirectedEdge current = edgeList.get(i);
-            DirectedEdge next = edgeList.get(i+1);
-
-            String currentRoad = current.getRoad();
-            String nextRoad = next.getRoad();
-
-            if (currentRoad == null) {
-                currentRoad = "ukendt vej";
-            }
-            if (nextRoad == null) {
-                nextRoad = "ukendt vej";
-            }
-
-            if (i == 0) {
-                System.out.println("Fortsæt ligeud ad " + currentRoad);
-            }
-
-            if (!currentRoad.equals(nextRoad)) {
-
-                //the 3 points for ccw
-                Point2D a = new Point2D(current.getX1(), current.getY1());
-                Point2D b = new Point2D(current.getX2(), current.getY2());
-                Point2D c = new Point2D(next.getX2(), next.getY2());
-
-                int ccw = ccw(a, b, c);
-
-                //making the two edges into direction vectors.
-                Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
-                Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
-
-                double angle = calculateAngle1(vectorFrom, vectorTo);
-
-                if (angle > 20 && angle < 150) {
-                    if (ccw > 0) {
-                        System.out.println("Drej til højre ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        System.out.println("Drej til venstre ad "+ nextRoad);
-                    }
-                } else if (angle > 150) {
-                    if (ccw > 0) {
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-
-                    }
-                } else if (angle < 20) {
-                    if (ccw < 0) {
-                        System.out.println("Drej skarpt til højre ad " + nextRoad);
-                    } else if (ccw > 0) {
-                        System.out.println("Drej skarpt til venstre ad " + nextRoad);
-                    }
-                } else if (ccw == 0) {
-                    System.out.println("Fortsæt ligeud ad " + nextRoad);
-                }
-            }
-        }
+        RouteDescription routeDescription = new RouteDescription(edgeList);
+        routeDescription.createRouteDescription();
     }
 
     public void paintSavedAddresses() {
