@@ -1,29 +1,28 @@
 package bfst20.mapdrawer.dijkstra;
 
 import java.io.Serializable;
+import bfst20.mapdrawer.osm.OSMNode;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-
-public class DirectedEdge implements Serializable, Drawable {
+public class DirectedEdge implements Serializable {
 
     private static final long serialVersionUID = 1L;
     
-    private final int from;
-    private final int to;
-    private final int weight;
-    private final boolean bike;
-    private final boolean walk;
-    private final boolean car;
-    private final String road;
-    private final float x1;
-    private final float y1;
-    private final float x2;
-    private final float y2;
+    int from;
+    int to;
+    double weight;
+    boolean bike;
+    boolean walk;
+    boolean car;
+    String road;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    OSMNode nodeFrom;
+    OSMNode nodeTo;
 
 
-    public DirectedEdge(int from, int to, int weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
+    public DirectedEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode nodeFrom, OSMNode nodeTo) {
         this.from = from;
         this.to = to;
         this.weight = weight;
@@ -35,6 +34,8 @@ public class DirectedEdge implements Serializable, Drawable {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.nodeFrom = nodeFrom;
+        this.nodeTo = nodeTo;
     }
 
     public int from() {
@@ -45,7 +46,7 @@ public class DirectedEdge implements Serializable, Drawable {
         return to;
     }
 
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 
@@ -53,32 +54,43 @@ public class DirectedEdge implements Serializable, Drawable {
         return road;
     }
 
-    public float getX1() {
+    public double getX1() {
         return x1;
     }
 
-    public float getY1() {
+    public double getY1() {
         return y1;
     }
 
-    public float getX2() {
+    public double getX2() {
         return x2;
     }
 
-    public float getY2() {
-        return y1;
+    public double getY2() {
+        return y2;
+    }
+
+    public OSMNode getNodeFrom() {
+        return nodeFrom;
+    }
+
+    public OSMNode getNodeTo() {
+        return nodeTo;
+    }
+
+    public boolean isCar() {
+        return car;
+    }
+
+    public boolean isBike() {
+        return bike;
+    }
+
+    public boolean isWalk() {
+        return walk;
     }
 
     public String toString() {
         return String.format("from: " + from + ", to: " + to);
    }
-
-    @Override
-    public void draw(GraphicsContext gc) {
-        gc.setStroke(Color.BLACK);
-        gc.beginPath();
-        gc.moveTo(x1, y1);
-        gc.lineTo(x2, y2);
-        gc.stroke();
-    }
 }

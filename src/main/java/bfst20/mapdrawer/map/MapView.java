@@ -3,31 +3,32 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
+import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -42,7 +43,6 @@ public class MapView {
     private final Affine transform = new Affine();
 
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
-    private final MenuItem showRouteFindingToggleMenu = new MenuItem("Åben Rutefindings Menu");
 
     private final MapController controller;
     private OSMMap model;
@@ -63,10 +63,11 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
-    private final ToggleSwitch colorToggle = new ToggleSwitch(); 
-    private final ToggleSwitch nearestToggle = new ToggleSwitch();
-    VBox routeDescription = new VBox();
-    VBox routeMenu = new VBox(routeDescription);
+    private final ToggleSwitch colorToggle = new ToggleSwitch();
+
+    private final RadioButton car;
+    private final RadioButton bike;
+    private final RadioButton walk;
 
     private final Label zoomDisplay = new Label();
 
@@ -98,9 +99,6 @@ public class MapView {
         saveFile.setOnAction(controller.getSaveFileAction());
         fileMenu.getItems().add(saveFile);
 
-        showRouteFindingToggleMenu.setOnAction(controller.getShowRouteFinding());
-
-        optionsMenu.getItems().add(showRouteFindingToggleMenu);
         optionsMenu.getItems().add(showKdTree);
         menuBar.getMenus().add(optionsMenu);
 
@@ -120,6 +118,16 @@ public class MapView {
         autoFrom.setVisibleRowCount(5);
         autoFrom.setMinWidth(300);
 
+        //togglegroup ensures you can only choose one button at a time.
+        ToggleGroup radioGroup = new ToggleGroup();
+        car = new RadioButton("Bil");
+        bike = new RadioButton("Cykel");
+        walk = new RadioButton("Gå");
+        car.setToggleGroup(radioGroup);
+        bike.setToggleGroup(radioGroup);
+        walk.setToggleGroup(radioGroup);
+        car.setSelected(true);
+
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
@@ -127,9 +135,8 @@ public class MapView {
 
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
-        nearestToggle.setText("Nærmeste vej til mus");
 
-        VBox toggles = new VBox(myPointsToggle, colorToggle, nearestToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -146,12 +153,10 @@ public class MapView {
         roadBox.setPadding(new Insets(0, 0, 13, 15));
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
-        closestRoad.setVisible(false);
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
-        nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
         toSearchField.setOnAction(controller.getSearchActionDijkstra());
         fromSearchField.setOnAction(controller.getSearchActionDijkstra());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
@@ -161,22 +166,7 @@ public class MapView {
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        rootPane.getChildren().add(routeMenu);
-        routeMenu.setMaxSize(300, 600);
-        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
-
-        Text text = new Text("Rutebeskrivelse");
-        text.setUnderline(true);
-        text.setTextAlignment(TextAlignment.CENTER);
-        routeMenu.getChildren().add(text);
-
-        String cssLayout = "-fx-border-color: black;" + "-fx-background-color: white;";
-        routeMenu.setStyle(cssLayout);
-
-        routeMenu.setVisible(false);
-
-
-        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
+        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
@@ -318,12 +308,15 @@ public class MapView {
                     context.setFill(type.getColor());
                 }
                 
+                
                 if (model.getTypeToTree().containsKey(type)) {
-                    for (NodeProvider p : model.getTypeToTree().get(type).search(
-                            new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
+                    for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
                         p.getDrawable().draw(context);
                     }
                 }
+                
+                // Set line width back to normal
+                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
         }
 
@@ -331,9 +324,6 @@ public class MapView {
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
-
-        // Set line width back to normal
-        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
         // Draws saved searches so they are updated on pan/zoom
         if (myPointsToggle.isSelected()) {
@@ -385,6 +375,30 @@ public class MapView {
         paintMap();
     }
 
+    private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
+
+        double dot = vectorFrom.dotProduct(vectorTo);
+        double lengthFrom = (Math.sqrt(((vectorFrom.getX())*(vectorFrom.getX()))+((vectorFrom.getY())*(vectorFrom.getY()))));
+        double lengthTo = (Math.sqrt(((vectorTo.getX())*(vectorTo.getX()))+((vectorTo.getY())*(vectorTo.getY()))));
+
+        double cosv = (dot / (lengthFrom * lengthTo));
+
+        double angle = Math.acos(cosv);
+        double angle1 = Math.toDegrees(angle);
+
+        double realAngle = 180 - angle1;
+
+        return realAngle;
+    }
+
+    //From algs4 library
+    public static int ccw(Point2D a, Point2D b, Point2D c) {
+        double area2 = (b.getX()-a.getX())*(c.getY()-a.getY()) - (b.getY()-a.getY())*(c.getX()-a.getX());
+        if      (area2 < 0) return -1;
+        else if (area2 > 0) return +1;
+        else                return  0;
+    }
+
     private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
         double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
         double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
@@ -424,17 +438,39 @@ public class MapView {
 
             if (!currentRoad.equals(nextRoad)) {
 
+                //the 3 points for ccw
+                Point2D a = new Point2D(current.getX1(), current.getY1());
+                Point2D b = new Point2D(current.getX2(), current.getY2());
+                Point2D c = new Point2D(next.getX2(), next.getY2());
+
+                int ccw = ccw(a, b, c);
+
                 //making the two edges into direction vectors.
                 Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
                 Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
 
-                double angle = calculateAngle(vectorFrom, vectorTo);
+                double angle = calculateAngle1(vectorFrom, vectorTo);
 
-                if (angle > 20 && angle < 140) {
-                    System.out.println("Drej til højre ad " + nextRoad);
-                } else if (angle < -20 && angle > -140) {
-                    System.out.println("Drej til venstre ad " + nextRoad);
-                } else {
+                if (angle > 20 && angle < 150) {
+                    if (ccw > 0) {
+                        System.out.println("Drej til højre ad " + nextRoad);
+                    } else if (ccw < 0) {
+                        System.out.println("Drej til venstre ad "+ nextRoad);
+                    }
+                } else if (angle > 150) {
+                    if (ccw > 0) {
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
+                    } else if (ccw < 0) {
+                        System.out.println("Fortsæt ligeud ad " + nextRoad);
+
+                    }
+                } else if (angle < 20) {
+                    if (ccw < 0) {
+                        System.out.println("Drej skarpt til højre ad " + nextRoad);
+                    } else if (ccw > 0) {
+                        System.out.println("Drej skarpt til venstre ad " + nextRoad);
+                    }
+                } else if (ccw == 0) {
                     System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
             }
@@ -447,12 +483,15 @@ public class MapView {
         }
     }
 
-    public void paintRoute(List<DirectedEdge> edges) {
-        context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
-        
-        for (DirectedEdge edge : edges) {
-            searchedDrawables.add(edge);
-            edge.draw(context);
+    public void paintRoute(OSMWay way) {
+        context.setTransform(transform);
+        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
+
+        LinePath path = new LinePath(way);
+        searchedDrawables.add(path);
+
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
         }
     }
 
@@ -508,21 +547,18 @@ public class MapView {
     public ToggleSwitch getColorToggle() {
         return colorToggle;
     }
-    
-    public ToggleSwitch getNearestToggle() {
-        return nearestToggle;
+
+    public RadioButton getCar() {
+        return car;
     }
-    
-    public Label getClosestRoad() {
-        return closestRoad;
+    public RadioButton getBike() {
+        return bike;
+    }
+    public RadioButton getWalk() {
+        return walk;
     }
 
     public Affine getTransform() {
         return transform;
-    }
-
-    public void openRouteDescription() {
-        routeMenu.setVisible(true);
-        System.out.println("uffe");
     }
 }

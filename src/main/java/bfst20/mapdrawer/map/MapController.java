@@ -1,39 +1,33 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
-import bfst20.mapdrawer.dijkstra.Dijkstra;
-import bfst20.mapdrawer.dijkstra.DirectedEdge;
+
+import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Stack;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MapController {
 
@@ -46,7 +40,6 @@ public class MapController {
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
     private final EventHandler<MouseEvent> colorToggleAction;
-    private final EventHandler<MouseEvent> nearestToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
     private final EventHandler<ActionEvent> saveFileAction;
@@ -57,14 +50,13 @@ public class MapController {
 
     private final EventHandler<ActionEvent> searchActionDijkstra;
 
-    private final EventHandler<ActionEvent> showRouteFinding;
     private final EventHandler<MouseEvent> roadFinderAction;
 
     private Point2D lastMouse;
 
     private Dijkstra dijkstra;
 
-    List<DirectedEdge> routeEdges = new ArrayList<>();
+    List<OSMNode> listForDijkstraOSMWay = new ArrayList<>();
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
@@ -77,7 +69,7 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            routeEdges.clear();
+            listForDijkstraOSMWay.clear();
             view.setPointOfInterest(new Point());
             view.paintPoints(null, null);
         };
@@ -101,7 +93,7 @@ public class MapController {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Besked");
                     alert.setHeaderText(null);
-                    alert.setContentText("Du har ingen gemte punkter!");
+                    alert.setContentText("Du har ingen gemte adresser!");
                     alert.showAndWait();
                 } else {
                     view.paintSavedAddresses();
@@ -117,7 +109,7 @@ public class MapController {
         
         searchActionDijkstra = e -> {
             view.getSearchedDrawables().clear();
-            routeEdges.clear();
+            listForDijkstraOSMWay.clear();
 
             String addressTo = view.getToSearchField().getText().toLowerCase();
             String addressFrom = view.getFromSearchField().getText().toLowerCase();
@@ -147,12 +139,49 @@ public class MapController {
                 Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
                 OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
-                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph());
+                Vehicle v;
 
-                routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
-                
-                view.paintRoute(routeEdges);
-                view.createRouteDescription(routeEdges);
+                if (view.getCar().isSelected()) {
+                    v = new Car();
+                } else if (view.getBike().isSelected()) {
+                    v = new Bike();
+                } else {
+                    v = new Walk();
+                }
+
+                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
+
+                Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+
+                List<DirectedEdge> edgeList = new ArrayList<>();
+
+                //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
+                //it check if its the last edge of the stack, and if it is it also adds the "to" node.
+                while (!route.isEmpty()) {
+                    OSMNode u = route.peek().getNodeFrom();
+                    //OSMNode y = model.getIntToNode().get(route.peek().from());
+                    listForDijkstraOSMWay.add(u);
+                    if (route.size() == 1) {
+                        OSMNode x = route.peek().getNodeTo();
+                        listForDijkstraOSMWay.add(x);
+                    }
+                    edgeList.add(route.pop());
+                }
+                Type type = Type.SEARCHRESULT;
+
+                double distance = 0;
+
+                for (DirectedEdge edge : edgeList) {
+                    distance = distance + edge.getWeight();
+                }
+                distance = distance * 10000;
+                distance = Math.ceil(distance);
+
+                System.out.println("Tid: " + distance + " min");
+
+                OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
+                view.paintRoute(searchedWay);
+                view.createRouteDescription(edgeList);
             }
         };
 
@@ -197,46 +226,53 @@ public class MapController {
             if (file != null) {
                 String fileName = file.getName();
                 String fileExt = fileName.substring(fileName.lastIndexOf("."));
-                
-                if (fileExt.equals(".osm") || fileExt.equals(".zip")) {
-                    try {
-                        if (OSMMap.fromFile(file) != null) {
+
+                switch (fileExt) {
+                    case ".osm":
+                        try {
                             this.view = new MapView(OSMMap.fromFile(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
                         }
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
-                } else if (fileExt.equals(".bin")) {
-                    try {
-                        this.view = new MapView(OSMMap.loadBinary(file), stage);
-                    } catch (Exception exc) {
-                        exc.printStackTrace();
-                    }
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Fejlmeddelelse");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
-                    alert.showAndWait();
+
+                        break;
+                    case ".zip":
+                        try {
+                            this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    case ".bin":
+                        try {
+                            this.view = new MapView(OSMMap.loadBinary(file), stage);
+                        } catch (Exception exc) {
+                            exc.printStackTrace();
+                        }
+
+                        break;
+                    default:
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Fejlmeddelelse");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                        alert.showAndWait();
                 }
             }
         };
 
         saveFileAction = e -> {
-            FileChooser chooser = new FileChooser();
-            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BIN files (*.bin)", "*.bin");
-            chooser.getExtensionFilters().add(extFilter);
-            File file = chooser.showSaveDialog(stage);
-            
-            if (file != null) try {
+            File file = new FileChooser().showSaveDialog(stage);
+            if(file != null) try{
                 long time = -System.nanoTime();
 
-                if (file.getName().endsWith(".bin")) {
-                    try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+                if(file.getName().endsWith(".bin")) {
+                    try(var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))){
                         out.writeObject(model);
                     }
 
-                } else {
+                }else{
                     Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
                     alert.setHeaderText(null);
                     alert.showAndWait();
@@ -245,35 +281,21 @@ public class MapController {
                 time += System.nanoTime();
                 System.out.println(time);
 
-            } catch (IOException exception) {
+            }catch(IOException exception){
                 new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
             }
         };
         
         roadFinderAction = e -> {
-            if (view.getNearestToggle().isSelected()) {
-                try {
-                    Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                    OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
-                    if (result.getRoad() != null) {
-                        view.setClosestRoad(result.getRoad());
-                    }
-                } catch (NonInvertibleTransformException ex) {
-                    ex.printStackTrace();
+            try {
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
+                if (result.getRoad() != null) {
+                    view.setClosestRoad(result.getRoad());
                 }
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
             }
-        };
-        
-        nearestToggleAction = e -> {
-            if (view.getNearestToggle().isSelected()) {
-                view.getClosestRoad().setVisible(true);
-            } else {
-                view.getClosestRoad().setVisible(false);
-            }
-        };
-
-        showRouteFinding = e -> {
-            view.openRouteDescription();
         };
     }
     
@@ -312,10 +334,6 @@ public class MapController {
     public EventHandler<MouseEvent> getColorToggleAction() {
         return colorToggleAction;
     }
-
-    public EventHandler<MouseEvent> getNearestToggleAction() {
-        return nearestToggleAction;
-    }
     
     public EventHandler<ActionEvent> getSearchActionDijkstra() {
         return searchActionDijkstra;
@@ -323,9 +341,5 @@ public class MapController {
 
     public EventHandler<MouseEvent> getRoadFinderAction() {
         return roadFinderAction;
-    }
-
-    public EventHandler<ActionEvent> getShowRouteFinding() {
-        return showRouteFinding;
     }
 }
