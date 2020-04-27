@@ -238,6 +238,7 @@ public class OSMMap implements Serializable {
                             }
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
+                            
                             if (value.equals("residential")) {
                                 speed = 30;
                             }
@@ -248,6 +249,10 @@ public class OSMMap implements Serializable {
                             if (value.equals("motorway")) {
                                 bike = false;
                                 walk = false;
+                            }
+
+                            if (Type.containsType(value)) {
+                                type = Type.getType(value);
                             }
 
                         } else if (key.equals("maxspeed")) {
@@ -326,15 +331,15 @@ public class OSMMap implements Serializable {
 
         typeToProviders.get(type).add(currentWay);
 
-        if ((road != null) || ("highway".equals(type.getKey()))) {
+        if (road != null || "highway".equals(type.getKey())) {
 
-            for (OSMNode node : nodes) {
+            for (OSMNode node : localNodes) {
                 node.setNumberForGraph(map.nodeNumber);
                 map.nodeNumber++;
                 node.setRoad(road);
             }
 
-            highways.add(new OSMWay(id, nodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
+            highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
         }
 
         return currentWay;
