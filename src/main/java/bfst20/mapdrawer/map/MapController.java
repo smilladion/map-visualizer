@@ -6,6 +6,7 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import bfst20.mapdrawer.Exceptions.noAddressMatchException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -51,7 +52,7 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
-    MapController(OSMMap model, MapView view, Stage stage) {
+    MapController(OSMMap model, MapView view, Stage stage) throws noAddressMatchException {
         this.model = model;
         this.view = view;
         this.stage = stage;
@@ -63,7 +64,14 @@ public class MapController {
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
             view.setPointOfInterest(new Point());
-            view.paintPoints(null, null);
+            try {
+                view.paintPoints(null, null, true);
+            } catch (noAddressMatchException ex) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Ingen adresse fundet");
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
         };
 
         // Saves the current address to my list.
@@ -91,7 +99,11 @@ public class MapController {
                     view.paintSavedAddresses();
                 }
             } else {
-                view.paintPoints(null, null);
+                try {
+                    view.paintPoints(null, null, true);
+                } catch (noAddressMatchException ex) {
+                    ex.printStackTrace();
+                }
             }
         };
         
@@ -106,10 +118,44 @@ public class MapController {
 
             String addressTo = view.getToSearchField().getText();
             String addressFrom = view.getFromSearchField().getText();
+
+            OSMNode nodeTo = null;
+            OSMNode nodeFrom = null;
+
+            for (OSMNode node : model.getAddressNodes()) {
+
+                if (node.getAddress().equals(addressTo)) {
+                    nodeTo = node;
+                }
+                if (node.getAddress().equals(addressFrom)) {
+                    nodeFrom = node;
+                }
+            }
+
+            if (addressTo.equals("")) {
+                addressTo = null;
+            }
+            if (addressFrom.equals("")) {
+                addressFrom = null;
+            }
+            if (nodeTo == null) {
+                addressTo = null;
+            }
+            if (nodeFrom == null) {
+                addressFrom = null;
+            }
+
+            try {
+                view.paintPoints(addressTo, addressFrom, false);
+            } catch (noAddressMatchException ex) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Ingen adresse fundet");
+                alert.setHeaderText(null);
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
             
-            view.paintPoints(addressTo, addressFrom);
-            
-            if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
+            if (addressFrom != null && addressTo != null) {
                 if(!routeEdges.isEmpty()) {
                     routeEdges.clear();
                 }
@@ -122,46 +168,37 @@ public class MapController {
                 } else {
                     v = new Walk();
                 }
-                
-                OSMNode nodeTo = new OSMNode();
-                OSMNode nodeFrom = new OSMNode();
 
-                for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().equals(addressTo)) {
-                        nodeTo = node;
+                if (nodeTo != null && nodeFrom != null) {
+                    OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+                    OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+                    Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+                    OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
+
+                    Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+                    OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
+
+                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
+
+                    routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+
+                    double distance = 0;
+
+                    for (DirectedEdge edge : routeEdges) {
+                        distance = distance + edge.getDistance();
                     }
-                    if (node.getAddress().equals(addressFrom)) {
-                        nodeFrom = node;
+
+                    distance = distance * 10000;
+                    distance = Math.ceil(distance);
+
+                    System.out.println("Tid: " + distance + " min");
+
+                    view.paintRoute(routeEdges);
+                    view.createRouteDescription(routeEdges);
+
                     }
                 }
-
-                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
-
-                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-                OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
-
-                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-                OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-                
-                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
-                
-                routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
-                
-                double distance = 0;
-
-                for (DirectedEdge edge : routeEdges) {
-                    distance = distance + edge.getDistance();
-                }
-                
-                distance = distance * 10000;
-                distance = Math.ceil(distance);
-                
-                System.out.println("Tid: " + distance + " min");
-                
-                view.paintRoute(routeEdges);
-                view.createRouteDescription(routeEdges);
-            }
         };
 
         clickAction = e -> {

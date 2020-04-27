@@ -10,6 +10,7 @@ import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
+import bfst20.mapdrawer.Exceptions.noAddressMatchException;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -75,7 +76,7 @@ public class MapView {
     private final Label closestRoad = new Label();
     private Point pointOfInterest = new Point();
 
-    public MapView(OSMMap model, Stage window) {
+    public MapView(OSMMap model, Stage window) throws noAddressMatchException {
 
         window.setTitle("Google Map'nt");
 
@@ -362,51 +363,27 @@ public class MapView {
         pointOfInterest.draw(context);
     }
 
-    public void paintPoints(String addressTo, String addressFrom) {
+    public void paintPoints(String addressTo, String addressFrom, boolean onPurposeNull) throws noAddressMatchException {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-        
-        if (addressFrom == null && addressTo != null) {
-            for (OSMNode node : model.getAddressNodes()) {
-                if (node.getAddress().contains(addressTo)) {
-                    searchedDrawables.add(new Point(node, transform));
+            if (addressFrom == null && addressTo == null && !onPurposeNull) {
+                throw new noAddressMatchException();
+            }
+            if (addressFrom == null && addressTo != null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().contains(addressTo)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
+                }
+            } else if (addressTo != null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
                 }
             }
-        } else if (addressTo != null) {
-            for (OSMNode node : model.getAddressNodes()) {
-                if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
-                    searchedDrawables.add(new Point(node, transform));
-                }
-            }
-        }
         paintMap();
     }
-
-    private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
-
-        double dot = vectorFrom.dotProduct(vectorTo);
-        double lengthFrom = (Math.sqrt(((vectorFrom.getX())*(vectorFrom.getX()))+((vectorFrom.getY())*(vectorFrom.getY()))));
-        double lengthTo = (Math.sqrt(((vectorTo.getX())*(vectorTo.getX()))+((vectorTo.getY())*(vectorTo.getY()))));
-
-        double cosv = (dot / (lengthFrom * lengthTo));
-
-        double angle = Math.acos(cosv);
-        double angle1 = Math.toDegrees(angle);
-
-        double realAngle = 180 - angle1;
-
-        return realAngle;
-    }
-
-    //From algs4 library
-    public static int ccw(Point2D a, Point2D b, Point2D c) {
-        double area2 = (b.getX()-a.getX())*(c.getY()-a.getY()) - (b.getY()-a.getY())*(c.getX()-a.getX());
-        if      (area2 < 0) return -1;
-        else if (area2 > 0) return +1;
-        else                return  0;
-    }
-
-
 
     public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
 
