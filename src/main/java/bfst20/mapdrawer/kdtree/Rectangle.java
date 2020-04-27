@@ -11,7 +11,7 @@ import javafx.scene.canvas.GraphicsContext;
 public class Rectangle implements Drawable, Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     private final float xmin;
     private final float ymin;
     private final float xmax;
@@ -48,7 +48,7 @@ public class Rectangle implements Drawable, Serializable {
     public boolean intersects(Rectangle rect) {
         return xmax >= rect.xmin && ymax >= rect.ymin && rect.xmax >= xmin && rect.ymax >= ymin;
     }
-    
+
     // Returns true if this point is within the rectangle bounds
     public boolean containsPoint(Point2D p) {
         return p.getX() >= xmin && p.getX() <= xmax && p.getY() >= ymin && p.getY() <= ymax;

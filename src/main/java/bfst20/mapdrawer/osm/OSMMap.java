@@ -90,8 +90,8 @@ public class OSMMap implements Serializable {
                         break;
                     case "node": {
                         long id = Long.parseLong(xmlReader.getAttributeValue(null, "id"));
-                        double lat = Double.parseDouble(xmlReader.getAttributeValue(null, "lat"));
-                        double lon = Double.parseDouble(xmlReader.getAttributeValue(null, "lon"));
+                        float lat = Float.parseFloat(xmlReader.getAttributeValue(null, "lat"));
+                        float lon = Float.parseFloat(xmlReader.getAttributeValue(null, "lon"));
                         String address = readAddress(map, xmlReader);
                         OSMNode node = new OSMNode(id, 0.56f * lon, -lat, -1, address);
 

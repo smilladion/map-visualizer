@@ -6,8 +6,6 @@ import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.kdtree.NodeProvider;
-import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
@@ -20,15 +18,14 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -43,6 +40,7 @@ public class MapView {
     private final Affine transform = new Affine();
 
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
+    private final MenuItem showRouteDescription = new MenuItem("Åben Rutefindings Menu");
 
     private final MapController controller;
     private OSMMap model;
@@ -64,6 +62,16 @@ public class MapView {
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch();
+
+    private VBox routeDescription = new VBox();
+    private ScrollBar sb = new ScrollBar();
+    private Button closeRouteMenu = new Button("Luk");
+    private Button reloadRoute = new Button("Opdatér rute");
+    private HBox routeDescriptionTopBar = new HBox(reloadRoute, closeRouteMenu);
+    private VBox routeMenu = new VBox(routeDescription, routeDescriptionTopBar);
+
+    List<String> routeDescriptionList;
+    boolean routeMenuOpened = false;
 
     private final RadioButton car;
     private final RadioButton bike;
@@ -175,6 +183,26 @@ public class MapView {
         rootPane.getChildren().add(searchRow);
 
         Scene scene = new Scene(rootPane);
+
+        showRouteDescription.setOnAction(controller.getShowRouteFinding());
+        optionsMenu.getItems().add(showRouteDescription);
+        rootPane.getChildren().add(routeMenu);
+        routeMenu.setVisible(false);
+        routeDescriptionList = new ArrayList<>();
+        closeRouteMenu.setOnAction(controller.getCloseRouteMenu());
+        reloadRoute.setOnAction(controller.getShowRouteFinding());
+
+        routeMenu.setMaxSize(300, 600);
+
+        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
+
+
+
+        String cssLayout = "-fx-border-color: black;" + "-fx-background-color: white;";
+        routeMenu.setStyle(cssLayout);
+
+
+
 
         scene.getStylesheets().add("mapStyle.css");
 
@@ -307,14 +335,13 @@ public class MapView {
                     context.setStroke(type.getColor());
                     context.setFill(type.getColor());
                 }
-                
-                
+/*
                 if (model.getTypeToTree().containsKey(type)) {
                     for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
                         p.getDrawable().draw(context);
                     }
                 }
-                
+                */
                 // Set line width back to normal
                 context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
@@ -416,6 +443,9 @@ public class MapView {
     }
 
     public void createRouteDescription(List<DirectedEdge> edgeList) {
+        String startAt = ("Start ved " + System.lineSeparator() + fromSearchField.getCharacters());
+        routeDescriptionList.add(startAt);
+
 
         for (int i = 0; i < edgeList.size()-1; i++) {
 
@@ -433,6 +463,8 @@ public class MapView {
             }
 
             if (i == 0) {
+                String straightAhead = ("Fortsæt ligeud ad " + currentRoad);
+                routeDescriptionList.add(straightAhead);
                 System.out.println("Fortsæt ligeud ad " + currentRoad);
             }
 
@@ -453,28 +485,45 @@ public class MapView {
 
                 if (angle > 20 && angle < 150) {
                     if (ccw > 0) {
+                        String turnRight = ("Drej til højre ad " + nextRoad);
+                        routeDescriptionList.add(turnRight);
                         System.out.println("Drej til højre ad " + nextRoad);
                     } else if (ccw < 0) {
+                        String turnLeft = ("Drej til venstre ad "+ nextRoad);
+                        routeDescriptionList.add(turnLeft);
                         System.out.println("Drej til venstre ad "+ nextRoad);
                     }
                 } else if (angle > 150) {
                     if (ccw > 0) {
+                        String continueForward = ("Fortsæt ligeud ad " + nextRoad);
+                        routeDescriptionList.add(continueForward);
                         System.out.println("Fortsæt ligeud ad " + nextRoad);
                     } else if (ccw < 0) {
+                        String continueForwardTwo = ("Fortsæt ligeud ad " + nextRoad);
+                        routeDescriptionList.add(continueForwardTwo);
                         System.out.println("Fortsæt ligeud ad " + nextRoad);
 
                     }
                 } else if (angle < 20) {
                     if (ccw < 0) {
+                        String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
+                        routeDescriptionList.add(turnHardRight);
                         System.out.println("Drej skarpt til højre ad " + nextRoad);
                     } else if (ccw > 0) {
+                        String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
+                        routeDescriptionList.add(turnHardLeft);
                         System.out.println("Drej skarpt til venstre ad " + nextRoad);
                     }
                 } else if (ccw == 0) {
+                    String continueForwardThree = ("Fortsæt ligeud ad " + nextRoad);
+                    routeDescriptionList.add(continueForwardThree);
                     System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
             }
         }
+        String destination = ("Ankommet til destination: " + System.lineSeparator() + toSearchField.getCharacters());
+        routeDescriptionList.add(destination);
+
     }
 
     public void paintSavedAddresses() {
@@ -560,5 +609,24 @@ public class MapView {
 
     public Affine getTransform() {
         return transform;
+    }
+
+    public void openRouteDescription() {
+        routeMenu.setVisible(true);
+        int j = 1;
+
+        for(int i = 0; i < routeDescriptionList.size(); i++){
+            Label label = new Label();
+            label.setText(j + ": " + routeDescriptionList.get(i));
+            routeMenu.getChildren().add(label);
+            j++;
+        }
+
+        System.out.println("" + routeDescriptionList.size());
+        routeMenuOpened = true;
+    }
+
+    public VBox getRouteMenu() {
+        return routeMenu;
     }
 }

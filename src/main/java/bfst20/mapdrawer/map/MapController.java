@@ -49,8 +49,9 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
 
     private final EventHandler<ActionEvent> searchActionDijkstra;
-
+    private final EventHandler<ActionEvent> showRouteFinding;
     private final EventHandler<MouseEvent> roadFinderAction;
+    private final EventHandler<ActionEvent> closeRouteMenu;
 
     private Point2D lastMouse;
 
@@ -182,6 +183,7 @@ public class MapController {
                 OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
                 view.paintRoute(searchedWay);
                 view.createRouteDescription(edgeList);
+
             }
         };
 
@@ -297,6 +299,14 @@ public class MapController {
                 ex.printStackTrace();
             }
         };
+
+        showRouteFinding = e -> {
+            view.openRouteDescription();
+        };
+
+        closeRouteMenu = e -> {
+            view.getRouteMenu().setVisible(false);
+        };
     }
     
     public EventHandler<MouseEvent> getPanAction() {
@@ -341,5 +351,13 @@ public class MapController {
 
     public EventHandler<MouseEvent> getRoadFinderAction() {
         return roadFinderAction;
+    }
+
+    public EventHandler<ActionEvent> getShowRouteFinding() {
+        return showRouteFinding;
+    }
+
+    public EventHandler<ActionEvent> getCloseRouteMenu() {
+        return closeRouteMenu;
     }
 }
