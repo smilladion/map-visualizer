@@ -401,21 +401,7 @@ public class MapView {
         else                return  0;
     }
 
-    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
-        double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
-        double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
-        double angle = angleTo - angleFrom;
 
-        if (angle > Math.PI) {
-            angle = -(angle - Math.PI);
-        } else if (angle < -Math.PI) {
-            angle = -(angle + Math.PI);
-        }
-
-        angle *= 180 / Math.PI;
-        
-        return angle;
-    }
 
     public void createRouteDescription(List<DirectedEdge> edgeList) {
 

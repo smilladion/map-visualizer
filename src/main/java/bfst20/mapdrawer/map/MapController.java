@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MapController {
@@ -50,7 +51,7 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
-    List<DirectedEdge> routeEdges = new ArrayList<>();
+    List<DirectedEdge> routeEdges = new LinkedList<>();
 
     MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;

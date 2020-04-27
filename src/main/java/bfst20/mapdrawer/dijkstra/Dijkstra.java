@@ -2,6 +2,7 @@ package bfst20.mapdrawer.dijkstra;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
@@ -43,10 +44,10 @@ public class Dijkstra implements Serializable{
         if(!hasPathTo(v)) {
             return null;
         }
-        List<DirectedEdge> path = new ArrayList<>();
+        LinkedList<DirectedEdge> path = new LinkedList<>();
 
         for (DirectedEdge edge = edgeTo[v]; edge != null; edge = edgeTo[edge.from()]) {
-            path.add(edge);
+            path.addFirst(edge);
         }
         return path;
     }
