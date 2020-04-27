@@ -3,18 +3,17 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
-import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -25,9 +24,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
@@ -65,6 +65,8 @@ public class MapView {
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch(); 
     private final ToggleSwitch nearestToggle = new ToggleSwitch();
+    VBox routeDescription = new VBox();
+    VBox routeMenu = new VBox(routeDescription);
 
     private final Label zoomDisplay = new Label();
 
@@ -96,7 +98,7 @@ public class MapView {
         saveFile.setOnAction(controller.getSaveFileAction());
         fileMenu.getItems().add(saveFile);
 
-        showRouteFindingToggleMenu.setOnAction(controller.getShowRouteFindingToggleMenu());
+        showRouteFindingToggleMenu.setOnAction(controller.getShowRouteFinding());
 
         optionsMenu.getItems().add(showRouteFindingToggleMenu);
         optionsMenu.getItems().add(showKdTree);
@@ -158,6 +160,21 @@ public class MapView {
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
+
+        rootPane.getChildren().add(routeMenu);
+        routeMenu.setMaxSize(300, 600);
+        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
+
+        Text text = new Text("Rutebeskrivelse");
+        text.setUnderline(true);
+        text.setTextAlignment(TextAlignment.CENTER);
+        routeMenu.getChildren().add(text);
+
+        String cssLayout = "-fx-border-color: black;" + "-fx-background-color: white;";
+        routeMenu.setStyle(cssLayout);
+
+        routeMenu.setVisible(false);
+
 
         HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, saveToSearch);
         searchRow.setSpacing(20.0);
@@ -502,5 +519,10 @@ public class MapView {
 
     public Affine getTransform() {
         return transform;
+    }
+
+    public void openRouteDescription() {
+        routeMenu.setVisible(true);
+        System.out.println("uffe");
     }
 }

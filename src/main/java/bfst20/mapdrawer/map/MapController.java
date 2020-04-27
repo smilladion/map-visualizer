@@ -11,15 +11,18 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -27,11 +30,10 @@ import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.Boolean.TRUE;
 
 public class MapController {
 
@@ -55,11 +57,7 @@ public class MapController {
 
     private final EventHandler<ActionEvent> searchActionDijkstra;
 
-    private final EventHandler<ActionEvent> showRouteFindingToggleMenu;
-    CheckMenuItem walkToggle = new CheckMenuItem("Toggle Walk Route");
-    CheckMenuItem bicycleToggle = new CheckMenuItem("Toggle Cycle Route");
-    CheckMenuItem carToggle = new CheckMenuItem("Toggle Car Route");
-
+    private final EventHandler<ActionEvent> showRouteFinding;
     private final EventHandler<MouseEvent> roadFinderAction;
 
     private Point2D lastMouse;
@@ -274,31 +272,8 @@ public class MapController {
             }
         };
 
-        showRouteFindingToggleMenu = e -> {
-            //skal måske puttes i en metode i MapView, angående MVC
-            final Stage popUp = new Stage();
-            VBox popUpVBox = new VBox(20);
-            popUp.setTitle("Rutefinding");
-
-            Button walk = new Button("Vis Gå rute");
-            Button bicycle = new Button("Vis Cykel rute");
-            Button car = new Button("Vis Bil rute");
-            popUpVBox.getChildren().add(walk);
-            popUpVBox.getChildren().add(bicycle);
-            popUpVBox.getChildren().add(car);
-
-            walk.setAlignment(Pos.TOP_CENTER);
-            bicycle.setAlignment(Pos.CENTER);
-            car.setAlignment(Pos.BOTTOM_CENTER);
-            popUpVBox.setAlignment(Pos.CENTER);
-
-            walk.setOnAction(null);
-            bicycle.setOnAction(null);
-            car.setOnAction(null);
-
-            Scene popUpScene = new Scene(popUpVBox, 300, 200);
-            popUp.setScene(popUpScene);
-            popUp.show();
+        showRouteFinding = e -> {
+            view.openRouteDescription();
         };
     }
     
@@ -350,7 +325,7 @@ public class MapController {
         return roadFinderAction;
     }
 
-    public EventHandler<ActionEvent> getShowRouteFindingToggleMenu() {
-        return showRouteFindingToggleMenu;
+    public EventHandler<ActionEvent> getShowRouteFinding() {
+        return showRouteFinding;
     }
 }
