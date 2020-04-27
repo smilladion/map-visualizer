@@ -210,7 +210,7 @@ public class OSMMap implements Serializable {
 
                         if (key.equals("building")) {
                             type = Type.BUILDING;
-
+                            
                         } else if (key.equals("access")) {
                             if (value.equals("no")) {
                                 car = false;
@@ -268,7 +268,6 @@ public class OSMMap implements Serializable {
                                     speed = speed;
                                 }
                             }
-
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
 
@@ -341,7 +340,7 @@ public class OSMMap implements Serializable {
 
             highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
         }
-
+        
         return currentWay;
     }
 
@@ -443,7 +442,7 @@ public class OSMMap implements Serializable {
         }
 
         String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
-        
+
         if (addressCheck) {
             String uniqueString = address.intern();
             map.addressList.add(uniqueString);

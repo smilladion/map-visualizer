@@ -6,7 +6,7 @@ public class Bike implements Vehicle {
     public boolean isCar() {
         return false;
     }
-
+    
     @Override
     public boolean isBike() {
         return true;

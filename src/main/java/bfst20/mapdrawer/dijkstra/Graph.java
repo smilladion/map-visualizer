@@ -41,7 +41,7 @@ public class Graph implements Serializable {
                 double y1 = node.getLat();
                 double x2 = node1.getLon();
                 double y2 = node1.getLat();
-
+                
                 double tempWeight = Math.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
                 double weight = tempWeight / speed;
 
@@ -61,7 +61,7 @@ public class Graph implements Serializable {
             }
         }
     }
-
+    
     public void addEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
         DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2);
         if (adj[from] == null) {

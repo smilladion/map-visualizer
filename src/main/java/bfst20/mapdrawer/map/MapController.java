@@ -142,7 +142,7 @@ public class MapController {
 
                 Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
                 OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-
+                
                 dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
                 
                 routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph());
@@ -155,7 +155,7 @@ public class MapController {
                 
                 distance = distance * 10000;
                 distance = Math.ceil(distance);
-
+                
                 System.out.println("Tid: " + distance + " min");
                 
                 view.paintRoute(routeEdges);
