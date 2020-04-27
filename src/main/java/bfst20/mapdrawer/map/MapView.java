@@ -10,7 +10,7 @@ import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.Exceptions.noAddressMatchException;
+import bfst20.mapdrawer.Exceptions.*;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -391,9 +391,13 @@ public class MapView {
         routeDescription.createRouteDescription();
     }
 
-    public void paintSavedAddresses() {
-        for (Drawable drawable : savedPoints) {
-            drawable.draw(context);
+    public void paintSavedAddresses() throws noSavedPointsException {
+        if (savedPoints.isEmpty()) {
+            throw new noSavedPointsException();
+        } else {
+            for (Drawable drawable : savedPoints) {
+                drawable.draw(context);
+            }
         }
     }
 

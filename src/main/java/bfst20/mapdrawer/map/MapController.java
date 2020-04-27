@@ -6,7 +6,7 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
-import bfst20.mapdrawer.Exceptions.noAddressMatchException;
+import bfst20.mapdrawer.Exceptions.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -89,14 +89,14 @@ public class MapController {
 
         toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
-                if (view.getSavedPoints().isEmpty()) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Besked");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Du har ingen gemte punkter!");
-                    alert.showAndWait();
-                } else {
+                try {
                     view.paintSavedAddresses();
+                } catch (noSavedPointsException e1) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Besked");
+                        alert.setHeaderText(null);
+                        alert.setContentText(e1.getMessage());
+                        alert.showAndWait();
                 }
             } else {
                 try {
