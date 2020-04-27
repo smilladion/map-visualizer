@@ -30,6 +30,7 @@ public class Graph implements Serializable {
             boolean onewayCar = way.isOnewayCar();
             boolean onewayBike = way.isOnewayBike();
             boolean onewayWalk = way.isOnewayWalk();
+            boolean roundabout = way.isRoundabout();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 OSMNode node = way.getNodes().get(i);
@@ -45,24 +46,24 @@ public class Graph implements Serializable {
                 double distance = Math.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
 
                 if (!onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, speed, distance, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, car, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, speed, distance, bike, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && !onewayWalk) {
-                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(from, to, speed, distance,false, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(from, to, speed, distance,false, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && onewayWalk) {
-                    addEdge(from, to, speed, distance, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, speed, distance, false, false, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, false, false, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 }
             }
         }
     }
     
-    public void addEdge(int from, int to, double speed, double distance, boolean bike, boolean walk, boolean car, String road, float x1, float y1, float x2, float y2) {
-        DirectedEdge edge = new DirectedEdge(from, to, speed, distance, bike, walk, car, road, x1, y1, x2, y2);
+    public void addEdge(int from, int to, double speed, double distance, boolean bike, boolean walk, boolean car, boolean roundabout, String road, float x1, float y1, float x2, float y2) {
+        DirectedEdge edge = new DirectedEdge(from, to, speed, distance, bike, walk, car, roundabout, road, x1, y1, x2, y2);
         if (adj[from] == null) {
             adj[from] = new ArrayList<>();
             adj[from].add(edge);
@@ -83,6 +84,14 @@ public class Graph implements Serializable {
             }
         }
         return bag;
+    }
+
+    public int numberOfOutgoingEdges(int v) {
+        int y = 0;
+        for (DirectedEdge edge : adj[v]) {
+            y++;
+        }
+        return y;
     }
 
     public int getVertices() {

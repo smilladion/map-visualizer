@@ -410,7 +410,7 @@ public class MapView {
 
     public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
 
-        RouteDescription routeDescription = new RouteDescription(edgeList);
+        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
         routeDescription.createRouteDescription();
     }
 
@@ -502,5 +502,9 @@ public class MapView {
 
     public Affine getTransform() {
         return transform;
+    }
+
+    public OSMMap getModel() {
+        return model;
     }
 }

@@ -30,6 +30,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     private boolean onewayCar;
     private boolean onewayBike;
     private boolean onewayWalk;
+    private boolean roundabout;
 
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
         this.id = id;
@@ -39,7 +40,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     }
 
     // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, double speed, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, String road) {
+    public OSMWay(long id, List<OSMNode> nodes, Type type, double speed, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, boolean roundabout, String road) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -51,6 +52,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.onewayCar = onewayCar;
         this.onewayBike = onewayBike;
         this.onewayWalk = onewayWalk;
+        this.roundabout = roundabout;
     }
 
     public OSMWay() {
@@ -202,6 +204,10 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
     public boolean isOnewayWalk() {
         return onewayWalk;
+    }
+
+    public boolean isRoundabout() {
+        return roundabout;
     }
 
     @Override

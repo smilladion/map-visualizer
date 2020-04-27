@@ -189,6 +189,7 @@ public class OSMMap implements Serializable {
         boolean onewayCar = false;
         boolean onewayBike = false;
         boolean onewayWalk = false;
+        boolean roundabout = false;
         boolean car = true;
         boolean bike = true;
         boolean walk = true;
@@ -279,6 +280,7 @@ public class OSMMap implements Serializable {
                             if (value.equals("roundabout")) {
                                 onewayBike = true;
                                 onewayCar = true;
+                                roundabout = true;
                             }
                         }else if (key.equals("surface")) {
                             if (value.equals("gravel") || value.equals("unpaved")) {
@@ -343,7 +345,7 @@ public class OSMMap implements Serializable {
                 node.setRoad(road);
             }
 
-            highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, road));
+            highways.add(new OSMWay(id, localNodes, Type.SEARCHRESULT, speed, bike, walk, car, onewayCar, onewayBike, onewayWalk, roundabout, road));
         }
         
         return currentWay;

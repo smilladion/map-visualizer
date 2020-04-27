@@ -1,24 +1,34 @@
 package bfst20.mapdrawer.dijkstra;
 
+import bfst20.mapdrawer.map.MapView;
+import bfst20.mapdrawer.osm.OSMMap;
 import javafx.geometry.Point2D;
+import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class RouteDescription {
 
     private LinkedList<DirectedEdge> edgeList;
+    private final OSMMap model;
+    private MapView view;
 
-    public RouteDescription(LinkedList<DirectedEdge> edgeList) {
+    public RouteDescription(LinkedList<DirectedEdge> edgeList, OSMMap model, MapView view) {
         this.edgeList = edgeList;
+        this.model = model;
+        this.view = view;
     }
 
     public void createRouteDescription() {
 
-        for (int i = 0; i < edgeList.size()-1; i++) {
+        int roundaboutExit = 0;
+
+        for (int i = 0; i < edgeList.size() - 1; i++) {
 
             DirectedEdge current = edgeList.get(i);
-            DirectedEdge next = edgeList.get(i+1);
+            DirectedEdge next = edgeList.get(i + 1);
 
             String currentRoad = current.getRoad();
             String nextRoad = next.getRoad();
@@ -34,46 +44,59 @@ public class RouteDescription {
                 System.out.println("Fortsæt ligeud ad " + currentRoad);
             }
 
-            if (!currentRoad.equals(nextRoad)) {
+            if (next.isRoundabout()) {
+                int numberForGraph = next.to();
+                int outgoing = model.getRouteGraph().numberOfOutgoingEdges(numberForGraph);
+                if (outgoing > 2) {
+                    roundaboutExit++;
+                }
+            } else if (!currentRoad.equals(nextRoad)) {
 
-                //the 3 points for ccw
-                Point2D a = new Point2D(current.getX1(), current.getY1());
-                Point2D b = new Point2D(current.getX2(), current.getY2());
-                Point2D c = new Point2D(next.getX2(), next.getY2());
+                    if (roundaboutExit > 0) {
+                        System.out.println("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
+                        roundaboutExit = 0;
+                    } else {
 
-                int ccw = ccw(a, b, c);
+                        //the 3 points for ccw
+                        Point2D a = new Point2D(current.getX1(), current.getY1());
+                        Point2D b = new Point2D(current.getX2(), current.getY2());
+                        Point2D c = new Point2D(next.getX2(), next.getY2());
 
-                //making the two edges into direction vectors.
-                Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
-                Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
+                        int ccw = ccw(a, b, c);
 
-                double angle = calculateAngle1(vectorFrom, vectorTo);
+                        //making the two edges into direction vectors.
+                        Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), -(current.getY2() - current.getY1()));
+                        Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), -(next.getY2() - current.getY2()));
 
-                if (angle > 20 && angle < 150) {
-                    if (ccw > 0) {
-                        System.out.println("Drej til højre ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        System.out.println("Drej til venstre ad "+ nextRoad);
+                        double angle = calculateAngle1(vectorFrom, vectorTo);
+
+                        if (angle > 20 && angle < 150) {
+                            if (ccw > 0) {
+                                System.out.println("Drej til højre ad " + nextRoad);
+                            } else if (ccw < 0) {
+                                System.out.println("Drej til venstre ad " + nextRoad);
+                            }
+                        } else if (angle > 150) {
+                            if (ccw > 0) {
+                                System.out.println("Fortsæt ligeud ad " + nextRoad);
+                            } else if (ccw < 0) {
+                                System.out.println("Fortsæt ligeud ad " + nextRoad);
+
+                            }
+                        } else if (angle < 20) {
+                            if (ccw < 0) {
+                                System.out.println("Drej skarpt til højre ad " + nextRoad);
+                            } else if (ccw > 0) {
+                                System.out.println("Drej skarpt til venstre ad " + nextRoad);
+                            }
+                        } else if (ccw == 0) {
+                            System.out.println("Fortsæt ligeud ad " + nextRoad);
+                        }
                     }
-                } else if (angle > 150) {
-                    if (ccw > 0) {
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-
-                    }
-                } else if (angle < 20) {
-                    if (ccw < 0) {
-                        System.out.println("Drej skarpt til højre ad " + nextRoad);
-                    } else if (ccw > 0) {
-                        System.out.println("Drej skarpt til venstre ad " + nextRoad);
-                    }
-                } else if (ccw == 0) {
-                    System.out.println("Fortsæt ligeud ad " + nextRoad);
                 }
             }
         }
-    }
+
 
     private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
 
