@@ -55,14 +55,13 @@ public class MapController {
     private final EventHandler<ActionEvent> showRouteFinding;
     private final EventHandler<MouseEvent> roadFinderAction;
     private final EventHandler<ActionEvent> closeRouteMenu;
-    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+
     private String lastSearchFrom = "";
     private Point2D lastMouse;
-
     private Dijkstra dijkstra;
-
-    private String lastSearchFrom = "";
     private Vehicle lastVehicle = null;
+
+    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
 
     MapController(OSMMap model, MapView view, Stage stage) throws NoAddressMatchException {
         this.model = model;

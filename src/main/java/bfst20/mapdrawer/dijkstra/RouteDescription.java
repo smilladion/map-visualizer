@@ -1,7 +1,6 @@
 package bfst20.mapdrawer.dijkstra;
 
-import bfst20.mapdrawer.Exceptions.noAddressMatchException;
-import bfst20.mapdrawer.Exceptions.noRouteException;
+
 import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
@@ -15,16 +14,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class RouteDescription {
-
-    private LinkedList<DirectedEdge> edgeList;
-
-    public List<String> getRouteDescriptionList() {
-        return routeDescriptionList;
-    }
-
-    List<String> routeDescriptionList;
     private final OSMMap model;
     private MapView view;
+
+    private LinkedList<DirectedEdge> edgeList;
+    List<String> routeDescriptionList;
 
     public RouteDescription(LinkedList<DirectedEdge> edgeList, OSMMap model, MapView view) {
         this.edgeList = edgeList;
@@ -156,103 +150,8 @@ public class RouteDescription {
         else if (area2 > 0) return +1;
         else                return  0;
     }
-/*
-    public searchActionDijsktra() {
-        view.getSearchedDrawables().clear();
 
-        String addressTo = view.getToSearchField().getText();
-        String addressFrom = view.getFromSearchField().getText();
-
-        OSMNode nodeTo = null;
-        OSMNode nodeFrom = null;
-
-        for (OSMNode node : model.getAddressNodes()) {
-
-            if (node.getAddress().equals(addressTo)) {
-                nodeTo = node;
-            }
-            if (node.getAddress().equals(addressFrom)) {
-                nodeFrom = node;
-            }
-        }
-
-        if (addressTo.equals("")) {
-            addressTo = null;
-        }
-        if (addressFrom.equals("")) {
-            addressFrom = null;
-        }
-        if (nodeTo == null) {
-            addressTo = null;
-        }
-        if (nodeFrom == null) {
-            addressFrom = null;
-        }
-
-        try {
-            view.paintPoints(addressTo, addressFrom, false);
-        } catch (noAddressMatchException ex) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Ingen adresse fundet");
-            alert.setHeaderText(null);
-            alert.setContentText(ex.getMessage());
-            alert.showAndWait();
-        }
-
-        if (addressFrom != null && addressTo != null) {
-            if (!routeEdges.isEmpty()) {
-                routeEdges.clear();
-            }
-            Vehicle vehicle;
-
-            if (view.getCar().isSelected()) {
-                vehicle = new Car();
-            } else if (view.getBike().isSelected()) {
-                vehicle = new Bike();
-            } else {
-                vehicle = new Walk();
-            }
-
-            if (nodeTo != null && nodeFrom != null) {
-                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
-
-                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-                OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
-
-                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-                OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-
-                try {
-                    if (!lastSearchFrom.equals(view.getFromSearchField().getText())) {
-
-                        dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
-
-                        routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
-                    } else {
-                        routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
-                    }
-                } catch (noRouteException ex) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Ingen rute fundet");
-                    alert.setHeaderText(null);
-                    alert.setContentText(ex.getMessage());
-                    alert.showAndWait();
-                }
-
-                double distance = 0;
-
-                for (DirectedEdge edge : routeEdges) {
-                    distance = distance + edge.getDistance();
-                }
-
-                distance = distance * 10000;
-                distance = Math.ceil(distance);
-
-                System.out.println("Tid: " + distance + " min");
-
-            }
+    public List<String> getRouteDescriptionList() {
+        return routeDescriptionList;
     }
-
- */
 }

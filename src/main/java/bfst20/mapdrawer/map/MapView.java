@@ -42,9 +42,6 @@ import java.util.List;
 public class MapView {
 
     private final Affine transform = new Affine();
-
-    private final MenuItem showRouteDescription = new MenuItem("Åben Rutefindings Menu");
-
     private final MapController controller;
     private OSMMap model;
 
@@ -56,6 +53,8 @@ public class MapView {
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
+    private final MenuItem showRouteDescription = new MenuItem("Åben Rutefindings Menu");
+
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
@@ -76,17 +75,13 @@ public class MapView {
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
     private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
 
-
+    private VBox routeDescription = new VBox(); //Empty VBox gets filled with Labels from routedescription
     private Button closeRouteMenu = new Button("Luk");
     private Button reloadRoute = new Button("Opdatér rute");
     private HBox routeDescriptionTopBar = new HBox(reloadRoute, closeRouteMenu);
-    private VBox routeDescription = new VBox();
     private ScrollPane scrollPane = new ScrollPane(routeDescription);
     private VBox routeMenu = new VBox(routeDescriptionTopBar, scrollPane);
 
-    private final Label zoomDisplay = new Label();
-
-    private final Label closestRoad = new Label();
     private Point pointOfInterest = new Point();
 
     public MapView(OSMMap model, Stage window) throws NoAddressMatchException {
@@ -207,6 +202,8 @@ public class MapView {
         car.setOnAction(controller.getSearchActionDijkstra());
         bike.setOnAction(controller.getSearchActionDijkstra());
         walk.setOnAction(controller.getSearchActionDijkstra());
+
+
 
         canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
@@ -452,26 +449,18 @@ public class MapView {
         }
     }
 
-    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
-        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
-        routeDescription.createRouteDescription();
-    }
-
     public void openRouteDescription() {
         routeMenu.setVisible(true);
         VBox scrollRoutes = new VBox();
         scrollRoutes.setSpacing(5);
         routeDescription.getChildren().add(scrollRoutes);
-
-
         RouteDescription description = new RouteDescription(controller.getRouteEdges(), model, this);
         List<String> routeDescriptionList = description.createRouteDescription();
-        //description.get
 
         double distance = 0;
 
         for (DirectedEdge edge : controller.getRouteEdges()) {
-            distance = distance + (edge.getDistance()/edge.getSpeed());
+            distance = distance + (edge.getDistance());
         }
 
         distance = distance * 10000;
@@ -491,7 +480,6 @@ public class MapView {
             scrollRoutes.getChildren().add(label);
             j++;
         }
-
     }
 
     private void clearCanvas() {
