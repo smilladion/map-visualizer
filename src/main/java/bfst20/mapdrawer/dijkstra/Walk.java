@@ -16,4 +16,12 @@ public class Walk implements Vehicle {
     public boolean isWalk() {
         return true;
     }
+
+    @Override
+    public boolean isSameVehicleAs(Vehicle vehicle) {
+        if (vehicle.isWalk()) {
+            return true;
+        }
+        return false;
+    }
 }

@@ -7,4 +7,6 @@ public interface Vehicle {
     public boolean isBike();
 
     public boolean isWalk();
+
+    public boolean isSameVehicleAs(Vehicle vehicle);
 }

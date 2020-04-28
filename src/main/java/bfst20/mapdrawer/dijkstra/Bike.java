@@ -16,4 +16,12 @@ public class Bike implements Vehicle {
     public boolean isWalk() {
         return false;
     }
+
+    @Override
+    public boolean isSameVehicleAs(Vehicle vehicle) {
+        if (vehicle.isBike()) {
+            return true;
+        }
+        return false;
+    }
 }

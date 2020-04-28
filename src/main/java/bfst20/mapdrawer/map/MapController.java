@@ -53,6 +53,7 @@ public class MapController {
     private Dijkstra dijkstra;
 
     private String lastSearchFrom = "";
+    private Vehicle lastVehicle = null;
 
     MapController(OSMMap model, MapView view, Stage stage) throws noAddressMatchException {
         this.model = model;
@@ -103,6 +104,7 @@ public class MapController {
                         alert.setHeaderText(null);
                         alert.setContentText(e1.getMessage());
                         alert.showAndWait();
+                        view.getMyPointsToggle().setSelected(false);
                 }
             } else {
                 try {
@@ -116,7 +118,7 @@ public class MapController {
         colorToggleAction = e -> {
             view.paintMap();
         };
-        
+
         searchActionDijkstra = e -> {
 
                 LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
@@ -187,13 +189,14 @@ public class MapController {
 
                         try {
                             if (!lastSearchFrom.equals(view.getFromSearchField().getText())) {
-
                                 dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
 
-                                routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
                             } else {
-                                    routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                                if (lastVehicle == null || (!lastVehicle.isSameVehicleAs(vehicle))) {
+                                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
+                                }
                             }
+                            routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
                         } catch (noRouteException ex) {
                             Alert alert = new Alert(AlertType.INFORMATION);
                             alert.setTitle("Ingen rute fundet");
@@ -216,6 +219,7 @@ public class MapController {
                         view.paintRoute(routeEdges);
                         view.createRouteDescription(routeEdges);
                         lastSearchFrom = addressFrom;
+                        lastVehicle = vehicle;
 
                     }
                 }
