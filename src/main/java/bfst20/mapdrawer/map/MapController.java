@@ -3,15 +3,19 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Point;
+import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import edu.princeton.cs.algs4.Stack;
+
 import bfst20.mapdrawer.exceptions.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -20,7 +24,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MapController {
 
@@ -43,9 +52,11 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
 
     private final EventHandler<ActionEvent> searchActionDijkstra;
-
+    private final EventHandler<ActionEvent> showRouteFinding;
     private final EventHandler<MouseEvent> roadFinderAction;
-
+    private final EventHandler<ActionEvent> closeRouteMenu;
+    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+    private String lastSearchFrom = "";
     private Point2D lastMouse;
 
     private Dijkstra dijkstra;
@@ -119,7 +130,7 @@ public class MapController {
 
         searchActionDijkstra = e -> {
 
-                LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+                //LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
                 view.getSearchedDrawables().clear();
 
                 String addressTo = view.getToSearchField().getText();
@@ -333,7 +344,16 @@ public class MapController {
                 }
             }
         };
-        
+
+        showRouteFinding = e -> {
+            view.getRouteDescription().getChildren().clear();
+            view.openRouteDescription();
+        };
+
+        closeRouteMenu = e -> {
+            view.getRouteMenu().setVisible(false);
+        };
+
         nearestToggleAction = e -> {
             if (view.getNearestToggle().isSelected()) {
                 view.getClosestRoad().setVisible(true);
@@ -378,10 +398,6 @@ public class MapController {
     public EventHandler<MouseEvent> getColorToggleAction() {
         return colorToggleAction;
     }
-
-    public EventHandler<MouseEvent> getNearestToggleAction() {
-        return nearestToggleAction;
-    }
     
     public EventHandler<ActionEvent> getSearchActionDijkstra() {
         return searchActionDijkstra;
@@ -390,4 +406,21 @@ public class MapController {
     public EventHandler<MouseEvent> getRoadFinderAction() {
         return roadFinderAction;
     }
+
+    public LinkedList<DirectedEdge> getRouteEdges() {
+        return routeEdges;
+    }
+
+    public EventHandler<ActionEvent> getShowRouteFinding() {
+        return showRouteFinding;
+    }
+
+    public EventHandler<ActionEvent> getCloseRouteMenu() {
+        return closeRouteMenu;
+    }
+
+    public EventHandler<MouseEvent> getNearestToggleAction() {
+        return nearestToggleAction;
+    }
+
 }
