@@ -194,12 +194,11 @@ public class MapController {
                                     dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
                                 }
                             }
-<<<<<<< HEAD
+
                             routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
-                        } catch (noRouteException ex) {
-=======
+
                         } catch (NoRouteException ex) {
->>>>>>> 66c11a2f2e88965c8a312f3249b9a7ce5cdbf457
+
                             Alert alert = new Alert(AlertType.INFORMATION);
                             alert.setTitle("Ingen rute fundet");
                             alert.setHeaderText(null);
