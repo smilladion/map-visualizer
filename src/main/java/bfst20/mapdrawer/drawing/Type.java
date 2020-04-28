@@ -27,7 +27,7 @@ public enum Type {
     // TODO: Scuffed grass relations
     //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
     
-    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, Color.GAINSBORO, true, 0, 18000),
+    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, Color.GAINSBORO, true, 0, 40000),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, Color.GAINSBORO, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, Color.DIMGRAY, true, 0, 18000),
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, Color.GREY, true, 0, 18000),
