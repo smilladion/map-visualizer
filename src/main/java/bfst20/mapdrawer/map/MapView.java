@@ -6,11 +6,12 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.osm.NodeProvider;
+import bfst20.mapdrawer.exceptions.NoAddressMatchException;
+import bfst20.mapdrawer.exceptions.NoSavedPointsException;
 import bfst20.mapdrawer.kdtree.Rectangle;
+import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.exceptions.*;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -227,6 +228,8 @@ public class MapView {
             zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
         }
         
+        
+        
         // Remove focus from search field on startup
         canvas.requestFocus();
     }
@@ -262,37 +265,20 @@ public class MapView {
         context.setTransform(new Affine());
 
         // Paint background light blue
-        if(colorToggle.isSelected()){
+        if (colorToggle.isSelected()) {
             context.setFill(Color.LIGHTGREY);
         } else {
             context.setFill(Color.LIGHTBLUE);
         }
+        
         context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Pan and scale all below
         context.setTransform(transform);
 
-        // Paint using light yellow
-        if(colorToggle.isSelected()){
-            context.setFill(Color.WHITE);
-        } else {
-            context.setFill(Color.LIGHTYELLOW);
-        }
-
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
-
-        // Draw islands
-        for (Drawable island : model.getIslands()) {
-            if(colorToggle.isSelected()){
-                context.setStroke(Color.LIGHTGREY);
-            } else {
-                context.setStroke(Color.LIGHTBLUE);
-            }
-            island.draw(context);
-            context.fill();
-        }
 
         Point2D topLeft = null;
         Point2D bottomRight = null;
@@ -324,7 +310,7 @@ public class MapView {
                 context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
                 
                 // Change the color
-                if(colorToggle.isSelected()){
+                if (colorToggle.isSelected()) {
                     context.setStroke(type.getAlternateColor());
                     context.setFill(type.getAlternateColor());
                 } else {
