@@ -37,80 +37,78 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class MapView {
 
     private final Affine transform = new Affine();
-
-    private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
     private final MapController controller;
     private OSMMap model;
 
     private final Canvas canvas;
-    private final StackPane rootPane;
     private final GraphicsContext context;
-    
-    private final List<Line> lineExtras = new ArrayList<>(); // Extra UI elements
-    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
-
-    private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
+    private final StackPane rootPane;
 
     private final MenuBar menuBar = new MenuBar();
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
+    private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
-    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
-
-    private final ToggleSwitch colorToggle = new ToggleSwitch(); 
-    private final ToggleSwitch nearestToggle = new ToggleSwitch();
-
-    private final RadioButton car;
-    private final RadioButton bike;
-    private final RadioButton walk;
 
     private final Label zoomDisplay = new Label();
 
     private final Label closestRoad = new Label();
+
+    private final RadioButton car = new RadioButton("Bil");
+    private final RadioButton bike = new RadioButton("Cykel");
+    private final RadioButton walk = new RadioButton("Gå");
+
+    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+    private final ToggleSwitch colorToggle = new ToggleSwitch();
+    private final ToggleSwitch nearestToggle = new ToggleSwitch();
+    
+    private final List<Line> lineExtras = new ArrayList<>(); // Extra UI elements
+    private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
+    private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
+    
     private Point pointOfInterest = new Point();
 
     public MapView(OSMMap model, Stage window) throws noAddressMatchException {
-
-        window.setTitle("Google Map'nt");
-
-        window.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
-
+        
         this.model = model;
-
-        canvas = new Canvas(1280, 720);
-        context = canvas.getGraphicsContext2D();
-
-        rootPane = new StackPane(canvas); // Makes sure UI elements can go on top of the map itself
-
         controller = new MapController(model, this, window);
 
+        // Application options.
+        window.setTitle("Google Map'nt");
+        window.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+        
+        // Creating the JavaFX basics.
+        canvas = new Canvas(1280, 720);
+        context = canvas.getGraphicsContext2D();
+        rootPane = new StackPane(canvas); // StackPane makes sure UI elements can go on top of the map itself
+        
+        // The top menu and its items.
         VBox menuBox = new VBox(menuBar);
         menuBox.setPickOnBounds(false);
-        menuBar.getMenus().add(fileMenu);
+        
         MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
-        loadFile.setOnAction(controller.getLoadFileAction());
-        fileMenu.getItems().add(loadFile);
         MenuItem saveFile = new MenuItem("Gem...                      (.bin)");
-        saveFile.setOnAction(controller.getSaveFileAction());
-        fileMenu.getItems().add(saveFile);
 
+        fileMenu.getItems().add(loadFile);
+        fileMenu.getItems().add(saveFile);
         optionsMenu.getItems().add(showKdTree);
+        
+        menuBar.getMenus().add(fileMenu);
         menuBar.getMenus().add(optionsMenu);
 
-        showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
-
         rootPane.getChildren().add(menuBox);
-
+        
+        // The text for the search fields.
         toSearchField.setPromptText("Til...");
         fromSearchField.setPromptText("Fra...");
-
+        
+        // Setting autocompletion on the search fields.
         AutoCompletionBinding<String> autoTo = TextFields.bindAutoCompletion(toSearchField, model.getAddressList());
         AutoCompletionBinding<String> autoFrom = TextFields.bindAutoCompletion(fromSearchField, model.getAddressList());
 
@@ -119,25 +117,53 @@ public class MapView {
 
         autoFrom.setVisibleRowCount(5);
         autoFrom.setMinWidth(300);
-
-        //togglegroup ensures you can only choose one button at a time.
+        
+        // Our buttons.
+        Button clearButton = new Button("Nulstil");
+        Button savePointButton = new Button("Gem punkt");
+        
+        // The zoom scale in the bottom right corner.
+        zoomDisplay.setId("zoomDisplay");
+        HBox zoomLevel = new HBox(zoomDisplay);
+        zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
+        zoomLevel.setPickOnBounds(false);
+        rootPane.getChildren().add(zoomLevel);
+        
+        // The label in the bottom left corner for nearest road.
+        closestRoad.setId("closestRoad");
+        HBox roadBox = new HBox(closestRoad);
+        roadBox.setPadding(new Insets(0, 0, 13, 15));
+        roadBox.setAlignment(Pos.BOTTOM_LEFT);
+        roadBox.setPickOnBounds(false);
+        closestRoad.setVisible(false);
+        rootPane.getChildren().add(roadBox);
+        
+        // The different types of routes.
+        // ToggleGroup ensures you can only choose one button at a time.
         ToggleGroup radioGroup = new ToggleGroup();
-        car = new RadioButton("Bil");
-        bike = new RadioButton("Cykel");
-        walk = new RadioButton("Gå");
         car.setToggleGroup(radioGroup);
         bike.setToggleGroup(radioGroup);
         walk.setToggleGroup(radioGroup);
-        car.setOnAction(controller.getSearchActionDijkstra());
-        bike.setOnAction(controller.getSearchActionDijkstra());
-        walk.setOnAction(controller.getSearchActionDijkstra());
         car.setSelected(true);
+        
+        HBox routeType = new HBox(car, bike, walk);
+        routeType.setAlignment(Pos.TOP_CENTER);
+        routeType.setSpacing(20.0);
+        
+        // The upper row for address searching.
+        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, savePointButton);
+        searchRow.setSpacing(20.0);
+        searchRow.setAlignment(Pos.TOP_CENTER);
+        searchRow.setPadding(new Insets(10.0));
+        
+        // The search row and types of route put together vertically.
+        VBox searchUI = new VBox(searchRow, routeType);
+        searchUI.setPadding(new Insets(25.0));
+        searchUI.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
-        Button clearButton = new Button("Nulstil");
-        clearButton.setOnAction(controller.getClearAction());
-
-        Button savePointButton = new Button("Gem punkt");
-
+        rootPane.getChildren().add(searchUI);
+        
+        // The toggles on the right side of the screen.
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
         nearestToggle.setText("Nærmeste vej til mus");
@@ -148,39 +174,29 @@ public class MapView {
         toggles.setPickOnBounds(false);
         rootPane.getChildren().add(toggles);
 
-        zoomDisplay.setId("zoomDisplay");
-        HBox zoomLevel = new HBox(zoomDisplay);
-        zoomLevel.setAlignment(Pos.BOTTOM_RIGHT);
-        zoomLevel.setPickOnBounds(false);
-        rootPane.getChildren().add(zoomLevel);
-
-        closestRoad.setId("closestRoad");
-        HBox roadBox = new HBox(closestRoad);
-        roadBox.setPadding(new Insets(0, 0, 13, 15));
-        roadBox.setAlignment(Pos.BOTTOM_LEFT);
-        roadBox.setPickOnBounds(false);
-        closestRoad.setVisible(false);
-        rootPane.getChildren().add(roadBox);
-
+        // All of the events and listeners from the controller, attached to UI elements.
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
+        
         toSearchField.setOnAction(controller.getSearchActionDijkstra());
         fromSearchField.setOnAction(controller.getSearchActionDijkstra());
         savePointButton.setOnAction(controller.getSaveAddressAction());
+        clearButton.setOnAction(controller.getClearAction());
+
+        loadFile.setOnAction(controller.getLoadFileAction());
+        saveFile.setOnAction(controller.getSaveFileAction());
+
+        showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
+        
+        car.setOnAction(controller.getSearchActionDijkstra());
+        bike.setOnAction(controller.getSearchActionDijkstra());
+        walk.setOnAction(controller.getSearchActionDijkstra());
 
         canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
-
-        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, savePointButton);
-        searchRow.setSpacing(20.0);
-        searchRow.setAlignment(Pos.TOP_CENTER);
-        searchRow.setPadding(new Insets(35.0));
-        searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
-
-        rootPane.getChildren().add(searchRow);
 
         Scene scene = new Scene(rootPane);
 
@@ -205,6 +221,7 @@ public class MapView {
 
         paintMap();
         
+        // Set the zoom scale to the correct value
         if (getMetersPerPixels(80) >= 1000) {
             zoomDisplay.setText(String.format("%.2f", (getMetersPerPixels(80)) / 1000) + " km");
         } else {

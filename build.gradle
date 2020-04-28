@@ -38,7 +38,7 @@ test {
 
 run {
     // Add module exports to fix ControlsFX Java 11+ bug
-    jvmArgs = ['--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED', '-Xms800M', '-Xmx5500M']
+    jvmArgs = ['--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED', '-Xms800M', '-Xmx6500M']
 }
 
 jar {
