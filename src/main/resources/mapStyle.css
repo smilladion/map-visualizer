@@ -48,7 +48,7 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 0.2, 0.0, 0.0, 2);
 }
 
-.radio-button {
+/*.radio-button {
     -fx-font-family: "Roboto";
     -fx-focus-traversable: false;
 }
@@ -69,7 +69,7 @@
 .radio-button:selected .radio .dot {
     -fx-background-color: #274060;
     -fx-background-insets: 0;
-}
+}*/
 
 #closestRoad {
     -fx-font-size: 12px;

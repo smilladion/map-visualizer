@@ -1,8 +1,8 @@
-package bfst20.mapdrawer.Exceptions;
+package bfst20.mapdrawer.exceptions;
 
-public class noSavedPointsException extends Exception {
+public class NoSavedPointsException extends Exception {
 
-    public noSavedPointsException() {
+    public NoSavedPointsException() {
         super("Du har ikke nogle gemte punkter. Højreklik på kortet, og tryk på 'Gem punkt', for at gemme et punkt");
     }
 }

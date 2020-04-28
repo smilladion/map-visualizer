@@ -10,7 +10,7 @@ import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.Exceptions.*;
+import bfst20.mapdrawer.exceptions.*;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -20,7 +20,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -74,7 +73,7 @@ public class MapView {
     
     private Point pointOfInterest = new Point();
 
-    public MapView(OSMMap model, Stage window) throws noAddressMatchException {
+    public MapView(OSMMap model, Stage window) throws NoAddressMatchException {
         
         this.model = model;
         controller = new MapController(model, this, window);
@@ -380,11 +379,11 @@ public class MapView {
         pointOfInterest.draw(context);
     }
 
-    public void paintPoints(String addressTo, String addressFrom, boolean onPurposeNull) throws noAddressMatchException {
+    public void paintPoints(String addressTo, String addressFrom, boolean onPurposeNull) throws NoAddressMatchException {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             if (addressFrom == null && addressTo == null && !onPurposeNull) {
-                throw new noAddressMatchException();
+                throw new NoAddressMatchException();
             } else if (addressFrom == null && addressTo != null) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().contains(addressTo)) {
@@ -413,9 +412,9 @@ public class MapView {
         routeDescription.createRouteDescription();
     }
 
-    public void paintSavedAddresses() throws noSavedPointsException {
+    public void paintSavedAddresses() throws NoSavedPointsException {
         if (savedPoints.isEmpty()) {
-            throw new noSavedPointsException();
+            throw new NoSavedPointsException();
         } else {
             for (Drawable drawable : savedPoints) {
                 drawable.draw(context);

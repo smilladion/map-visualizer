@@ -6,7 +6,7 @@ import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
-import bfst20.mapdrawer.Exceptions.*;
+import bfst20.mapdrawer.exceptions.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -20,9 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 public class MapController {
 
@@ -54,7 +52,7 @@ public class MapController {
 
     private String lastSearchFrom = "";
 
-    MapController(OSMMap model, MapView view, Stage stage) throws noAddressMatchException {
+    MapController(OSMMap model, MapView view, Stage stage) throws NoAddressMatchException {
         this.model = model;
         this.view = view;
         this.stage = stage;
@@ -68,7 +66,7 @@ public class MapController {
             view.setPointOfInterest(new Point());
             try {
                 view.paintPoints(null, null, true);
-            } catch (noAddressMatchException ex) {
+            } catch (NoAddressMatchException ex) {
                 Alert alert = new Alert(AlertType.INFORMATION);
                 alert.setTitle("Ingen adresse fundet");
                 alert.setContentText(ex.getMessage());
@@ -82,9 +80,9 @@ public class MapController {
             if (!view.getPointOfInterest().isEmpty()) {
                 view.getSavedPoints().add(view.getPointOfInterest());
             } else {
-                throw new noPointChosenException();
+                throw new NoPointChosenException();
             }
-        } catch (noPointChosenException e1) {
+        } catch (NoPointChosenException e1) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Besked");
                 alert.setHeaderText(null);
@@ -97,7 +95,7 @@ public class MapController {
             if (view.getMyPointsToggle().isSelected()) {
                 try {
                     view.paintSavedAddresses();
-                } catch (noSavedPointsException e1) {
+                } catch (NoSavedPointsException e1) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setTitle("Besked");
                         alert.setHeaderText(null);
@@ -107,7 +105,7 @@ public class MapController {
             } else {
                 try {
                     view.paintPoints(null, null, true);
-                } catch (noAddressMatchException ex) {
+                } catch (NoAddressMatchException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -153,7 +151,7 @@ public class MapController {
 
                 try {
                     view.paintPoints(addressTo, addressFrom, false);
-                } catch (noAddressMatchException ex) {
+                } catch (NoAddressMatchException ex) {
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Ingen adresse fundet");
                     alert.setHeaderText(null);
@@ -194,7 +192,7 @@ public class MapController {
                             } else {
                                     routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
                             }
-                        } catch (noRouteException ex) {
+                        } catch (NoRouteException ex) {
                             Alert alert = new Alert(AlertType.INFORMATION);
                             alert.setTitle("Ingen rute fundet");
                             alert.setHeaderText(null);

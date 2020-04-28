@@ -1,13 +1,11 @@
 package bfst20.mapdrawer.dijkstra;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import bfst20.mapdrawer.Exceptions.*;
+
+import bfst20.mapdrawer.exceptions.*;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
-import edu.princeton.cs.algs4.Stack;
 
 public class Dijkstra implements Serializable{
 
@@ -41,7 +39,7 @@ public class Dijkstra implements Serializable{
         return distTo[v] < Double.POSITIVE_INFINITY;
     }
 
-    public LinkedList<DirectedEdge> pathTo(int v, Vehicle vehicle) throws noRouteException {
+    public LinkedList<DirectedEdge> pathTo(int v, Vehicle vehicle) throws NoRouteException {
         if(!hasPathTo(v)) {
             String vehicleAlternative1;
             String vehicleAlternative2;
@@ -55,7 +53,7 @@ public class Dijkstra implements Serializable{
                 vehicleAlternative1 = "Bil";
                 vehicleAlternative2 = "Cykel";
             }
-            throw new noRouteException(vehicleAlternative1, vehicleAlternative2);
+            throw new NoRouteException(vehicleAlternative1, vehicleAlternative2);
         }
         LinkedList<DirectedEdge> path = new LinkedList<>();
 

@@ -423,17 +423,19 @@ public class OSMMap implements Serializable {
 
                     switch (key) {
                         case "addr:street":
-                            street = value;
+                            street = value + " ";
                             addressCheck = true;
                             break;
                         case "addr:housenumber":
-                            houseNumber = value;
+                            houseNumber = value + ", ";
+                            addressCheck = true;
                             break;
                         case "addr:postcode":
-                            postcode = value;
+                            postcode = value + " ";
+                            addressCheck = true;
                             break;
                         case "addr:place":
-                            place = value;
+                            place = value + ", ";
                             addressCheck = true;
                             break;
                         case "addr:city":
@@ -448,7 +450,7 @@ public class OSMMap implements Serializable {
             }
         }
 
-        String address = street + " " + houseNumber + ", " + postcode + " " + place + ", " + city;
+        String address = street + houseNumber + postcode + place + city;
 
         if (addressCheck) {
             String uniqueString = address.intern();
