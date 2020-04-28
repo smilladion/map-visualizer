@@ -6,8 +6,14 @@ public class Bike implements Vehicle {
     public boolean isCar() {
         return false;
     }
+    
+    @Override
+    public boolean isBike() {
+        return true;
+    }
 
-    public boolean isBike() {return true;}
-
-    public boolean isWalk() {return false;}
+    @Override
+    public boolean isWalk() {
+        return false;
+    }
 }

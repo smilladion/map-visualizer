@@ -1,11 +1,8 @@
 package bfst20.mapdrawer.osm;
 
-import bfst20.mapdrawer.drawing.Drawable;
-import bfst20.mapdrawer.drawing.Polygon;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.kdtree.NodeProvider;
 import bfst20.mapdrawer.kdtree.Rectangle;
-import javafx.scene.paint.Paint;
+import javafx.scene.canvas.GraphicsContext;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,7 +14,6 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
     
     private final long id;
     private final List<OSMWay> ways;
-    private final Drawable drawable;
 
     private final Type type;
 
@@ -25,12 +21,6 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
         this.id = id;
         this.ways = ways;
         this.type = type;
-
-        if (type.getColor() == Type.NONE.getColor()) {
-            drawable = null;
-        } else {
-            drawable = new Polygon(this);
-        }
     }
 
     @Override
@@ -41,10 +31,20 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
     public List<OSMWay> getWays() {
         return ways;
     }
-
+    
     @Override
-    public Drawable getDrawable() {
-        return drawable;
+    public void draw(GraphicsContext gc) {
+        for (OSMWay way : ways) {
+            if (way.getNodes().isEmpty()) {
+                continue;
+            }
+            
+            way.trace(gc);
+        }
+
+        if (type.shouldBeFilled()) {
+            gc.fill();
+        }
     }
 
     @Override

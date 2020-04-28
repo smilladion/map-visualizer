@@ -6,13 +6,14 @@ public class Car implements Vehicle {
     public boolean isCar() {
         return true;
     }
-
+    
+    @Override
     public boolean isBike() {
         return false;
     }
-
+    
+    @Override
     public boolean isWalk() {
         return false;
     }
-
 }

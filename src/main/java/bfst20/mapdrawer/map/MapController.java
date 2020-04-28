@@ -8,6 +8,7 @@ import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
+import bfst20.mapdrawer.Exceptions.*;
 import edu.princeton.cs.algs4.Stack;
 
 import javafx.event.ActionEvent;
@@ -25,6 +26,7 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,7 @@ public class MapController {
     private final EventHandler<ActionEvent> saveAddressAction;
     private final EventHandler<MouseEvent> toggleAction;
     private final EventHandler<MouseEvent> colorToggleAction;
+    private final EventHandler<MouseEvent> nearestToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
     private final EventHandler<ActionEvent> saveFileAction;
@@ -57,9 +60,7 @@ public class MapController {
 
     private Dijkstra dijkstra;
 
-    List<OSMNode> listForDijkstraOSMWay = new ArrayList<>();
-
-    MapController(OSMMap model, MapView view, Stage stage) {
+    MapController(OSMMap model, MapView view, Stage stage) throws noAddressMatchException {
         this.model = model;
         this.view = view;
         this.stage = stage;
@@ -70,9 +71,15 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
-            listForDijkstraOSMWay.clear();
             view.setPointOfInterest(new Point());
-            view.paintPoints(null, null);
+            try {
+                view.paintPoints(null, null, true);
+            } catch (noAddressMatchException ex) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Ingen adresse fundet");
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
         };
 
         // Saves the current address to my list.
@@ -90,17 +97,21 @@ public class MapController {
 
         toggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
-                if (view.getSavedPoints().isEmpty()) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Besked");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Du har ingen gemte adresser!");
-                    alert.showAndWait();
-                } else {
+                try {
                     view.paintSavedAddresses();
+                } catch (noSavedPointsException e1) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Besked");
+                        alert.setHeaderText(null);
+                        alert.setContentText(e1.getMessage());
+                        alert.showAndWait();
                 }
             } else {
-                view.paintPoints(null, null);
+                try {
+                    view.paintPoints(null, null, true);
+                } catch (noAddressMatchException ex) {
+                    ex.printStackTrace();
+                }
             }
         };
         
@@ -109,82 +120,101 @@ public class MapController {
         };
         
         searchActionDijkstra = e -> {
+
+            LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
             view.getSearchedDrawables().clear();
-            listForDijkstraOSMWay.clear();
 
-            String addressTo = view.getToSearchField().getText().toLowerCase();
-            String addressFrom = view.getFromSearchField().getText().toLowerCase();
-            
-            view.paintPoints(addressTo, addressFrom);
-            
-            if (!addressFrom.isEmpty() && !addressTo.isEmpty()) {
-                
-                OSMNode nodeTo = new OSMNode();
-                OSMNode nodeFrom = new OSMNode();
+            String addressTo = view.getToSearchField().getText();
+            String addressFrom = view.getFromSearchField().getText();
 
-                for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().equals(addressTo)) {
-                        nodeTo = node;
-                    }
-                    if (node.getAddress().equals(addressFrom)) {
-                        nodeFrom = node;
-                    }
+            OSMNode nodeTo = null;
+            OSMNode nodeFrom = null;
+
+            for (OSMNode node : model.getAddressNodes()) {
+
+                if (node.getAddress().equals(addressTo)) {
+                    nodeTo = node;
                 }
+                if (node.getAddress().equals(addressFrom)) {
+                    nodeFrom = node;
+                }
+            }
 
-                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+            if (addressTo.equals("")) {
+                addressTo = null;
+            }
+            if (addressFrom.equals("")) {
+                addressFrom = null;
+            }
+            if (nodeTo == null) {
+                addressTo = null;
+            }
+            if (nodeFrom == null) {
+                addressFrom = null;
+            }
 
-                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-                OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
+            try {
+                view.paintPoints(addressTo, addressFrom, false);
+            } catch (noAddressMatchException ex) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Ingen adresse fundet");
+                alert.setHeaderText(null);
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
 
-                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-                OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-
-                Vehicle v;
+            if (addressFrom != null && addressTo != null) {
+                if(!routeEdges.isEmpty()) {
+                    routeEdges.clear();
+                }
+                Vehicle vehicle;
 
                 if (view.getCar().isSelected()) {
-                    v = new Car();
+                    vehicle = new Car();
                 } else if (view.getBike().isSelected()) {
-                    v = new Bike();
+                    vehicle = new Bike();
                 } else {
-                    v = new Walk();
+                    vehicle = new Walk();
                 }
 
-                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), v);
+                if (nodeTo != null && nodeFrom != null) {
+                    OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+                    OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
 
-                Stack<DirectedEdge> route = dijkstra.pathTo(nearestToNode.getNumberForGraph());
+                    Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+                    OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
 
-                List<DirectedEdge> edgeList = new ArrayList<>();
+                    Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+                    OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
-                //adds all the nodes from the route to a list. it only adds the "from" nodes, to avoid duplicates.
-                //it check if its the last edge of the stack, and if it is it also adds the "to" node.
-                while (!route.isEmpty()) {
-                    OSMNode u = route.peek().getNodeFrom();
-                    //OSMNode y = model.getIntToNode().get(route.peek().from());
-                    listForDijkstraOSMWay.add(u);
-                    if (route.size() == 1) {
-                        OSMNode x = route.peek().getNodeTo();
-                        listForDijkstraOSMWay.add(x);
+                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
+
+                    try {
+                        routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                    } catch (noRouteException ex) {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle("Ingen rute fundet");
+                        alert.setHeaderText(null);
+                        alert.setContentText(ex.getMessage());
+                        alert.showAndWait();
                     }
-                    edgeList.add(route.pop());
+
+                    double distance = 0;
+
+                    for (DirectedEdge edge : routeEdges) {
+                        distance = distance + edge.getDistance();
+                    }
+
+                    distance = distance * 10000;
+                    distance = Math.ceil(distance);
+
+                    System.out.println("Tid: " + distance + " min");
+
+                    view.paintRoute(routeEdges);
+                    view.createRouteDescription(routeEdges);
+
+                    }
                 }
-                Type type = Type.SEARCHRESULT;
-
-                double distance = 0;
-
-                for (DirectedEdge edge : edgeList) {
-                    distance = distance + edge.getWeight();
-                }
-                distance = distance * 10000;
-                distance = Math.ceil(distance);
-
-                System.out.println("Tid: " + distance + " min");
-
-                OSMWay searchedWay = new OSMWay(1, listForDijkstraOSMWay, type, null);
-                view.paintRoute(searchedWay);
-                view.createRouteDescription(edgeList);
-
-            }
         };
 
         clickAction = e -> {
@@ -229,52 +259,45 @@ public class MapController {
                 String fileName = file.getName();
                 String fileExt = fileName.substring(fileName.lastIndexOf("."));
 
-                switch (fileExt) {
-                    case ".osm":
-                        try {
+                if (fileExt.equals(".osm") || fileExt.equals(".zip")) {
+                    try {
+                        if (OSMMap.fromFile(file) != null) {
                             this.view = new MapView(OSMMap.fromFile(file), stage);
-                        } catch (Exception exc) {
-                            exc.printStackTrace();
                         }
-
-                        break;
-                    case ".zip":
-                        try {
-                            this.view = new MapView(OSMMap.fromFile(OSMMap.unZip(file.getAbsolutePath(), "src/main/resources/")), stage);
-                        } catch (Exception exc) {
-                            exc.printStackTrace();
-                        }
-
-                        break;
-                    case ".bin":
-                        try {
-                            this.view = new MapView(OSMMap.loadBinary(file), stage);
-                        } catch (Exception exc) {
-                            exc.printStackTrace();
-                        }
-
-                        break;
-                    default:
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Fejlmeddelelse");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
-                        alert.showAndWait();
+                    } catch (Exception exc) {
+                        exc.printStackTrace();
+                    }
+                } else if (fileExt.equals(".bin")) {
+                    try {
+                        this.view = new MapView(OSMMap.loadBinary(file), stage);
+                    } catch (Exception exc) {
+                        exc.printStackTrace();
+                    }
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Fejlmeddelelse");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                    alert.showAndWait();
                 }
             }
         };
 
         saveFileAction = e -> {
-            File file = new FileChooser().showSaveDialog(stage);
-            if(file != null) try{
+            FileChooser chooser = new FileChooser();
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BIN files (*.bin)", "*.bin");
+            chooser.getExtensionFilters().add(extFilter);
+            File file = chooser.showSaveDialog(stage);
+
+            if (file != null) try {
                 long time = -System.nanoTime();
 
-                if(file.getName().endsWith(".bin")) {
-                    try(var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))){
+                if (file.getName().endsWith(".bin")) {
+                    try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
                         out.writeObject(model);
                     }
 
-                }else{
+                } else {
                     Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
                     alert.setHeaderText(null);
                     alert.showAndWait();
@@ -283,20 +306,22 @@ public class MapController {
                 time += System.nanoTime();
                 System.out.println(time);
 
-            }catch(IOException exception){
+            } catch (IOException exception) {
                 new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
             }
         };
-        
+
         roadFinderAction = e -> {
-            try {
-                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
-                if (result.getRoad() != null) {
-                    view.setClosestRoad(result.getRoad());
+            if (view.getNearestToggle().isSelected()) {
+                try {
+                    Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                    OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
+                    if (result.getRoad() != null) {
+                        view.setClosestRoad(result.getRoad());
+                    }
+                } catch (NonInvertibleTransformException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (NonInvertibleTransformException ex) {
-                ex.printStackTrace();
             }
         };
 

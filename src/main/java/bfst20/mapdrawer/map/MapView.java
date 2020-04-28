@@ -1,14 +1,16 @@
 package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.dijkstra.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.RouteDescription;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
-import bfst20.mapdrawer.drawing.LinePath;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.osm.NodeProvider;
+import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
+import bfst20.mapdrawer.Exceptions.*;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -32,6 +34,7 @@ import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -61,6 +64,9 @@ public class MapView {
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+
+    private final ToggleSwitch colorToggle = new ToggleSwitch();
+    private final ToggleSwitch nearestToggle = new ToggleSwitch();
     private final ToggleSwitch colorToggle = new ToggleSwitch();
 
     private VBox routeDescription = new VBox();
@@ -82,7 +88,7 @@ public class MapView {
     private final Label closestRoad = new Label();
     private Point pointOfInterest = new Point();
 
-    public MapView(OSMMap model, Stage window) {
+    public MapView(OSMMap model, Stage window) throws noAddressMatchException {
 
         window.setTitle("Google Map'nt");
 
@@ -143,8 +149,9 @@ public class MapView {
 
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
+        nearestToggle.setText("Nærmeste vej til mus");
 
-        VBox toggles = new VBox(myPointsToggle, colorToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle, nearestToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -161,10 +168,12 @@ public class MapView {
         roadBox.setPadding(new Insets(0, 0, 13, 15));
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
+        closestRoad.setVisible(false);
         rootPane.getChildren().add(roadBox);
 
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
+        nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
         toSearchField.setOnAction(controller.getSearchActionDijkstra());
         fromSearchField.setOnAction(controller.getSearchActionDijkstra());
         saveToSearch.setOnAction(controller.getSaveAddressAction());
@@ -335,15 +344,13 @@ public class MapView {
                     context.setStroke(type.getColor());
                     context.setFill(type.getColor());
                 }
-/*
+                
                 if (model.getTypeToTree().containsKey(type)) {
-                    for (NodeProvider p : model.getTypeToTree().get(type).search(new Rectangle(topLeft.getX(), topLeft.getY(), bottomRight.getX(), bottomRight.getY()))) {
-                        p.getDrawable().draw(context);
+                    for (NodeProvider p : model.getTypeToTree().get(type).search(
+                            new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
+                        p.draw(context);
                     }
                 }
-                */
-                // Set line width back to normal
-                context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
             }
         }
 
@@ -351,6 +358,9 @@ public class MapView {
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
+
+        // Set line width back to normal
+        context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
         // Draws saved searches so they are updated on pan/zoom
         if (myPointsToggle.isSelected()) {
@@ -382,63 +392,48 @@ public class MapView {
         pointOfInterest.draw(context);
     }
 
-    public void paintPoints(String addressTo, String addressFrom) {
+    public void paintPoints(String addressTo, String addressFrom, boolean onPurposeNull) throws noAddressMatchException {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-        
-        if (addressFrom == null && addressTo != null) {
-            for (OSMNode node : model.getAddressNodes()) {
-                if (node.getAddress().contains(addressTo)) {
-                    searchedDrawables.add(new Point(node, transform));
+            if (addressFrom == null && addressTo == null && !onPurposeNull) {
+                throw new noAddressMatchException();
+            } else if (addressFrom == null && addressTo != null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().contains(addressTo)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
+                }
+            } else if (addressTo != null && addressFrom != null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
+                }
+            } else if (addressFrom != null && addressTo == null) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().contains(addressFrom)) {
+                        searchedDrawables.add(new Point(node, transform));
+                    }
                 }
             }
-        } else if (addressTo != null) {
-            for (OSMNode node : model.getAddressNodes()) {
-                if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
-                    searchedDrawables.add(new Point(node, transform));
-                }
-            }
-        }
         paintMap();
     }
 
-    private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
+    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
 
-        double dot = vectorFrom.dotProduct(vectorTo);
-        double lengthFrom = (Math.sqrt(((vectorFrom.getX())*(vectorFrom.getX()))+((vectorFrom.getY())*(vectorFrom.getY()))));
-        double lengthTo = (Math.sqrt(((vectorTo.getX())*(vectorTo.getX()))+((vectorTo.getY())*(vectorTo.getY()))));
-
-        double cosv = (dot / (lengthFrom * lengthTo));
-
-        double angle = Math.acos(cosv);
-        double angle1 = Math.toDegrees(angle);
-
-        double realAngle = 180 - angle1;
-
-        return realAngle;
+        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
+        routeDescription.createRouteDescription();
     }
 
-    //From algs4 library
-    public static int ccw(Point2D a, Point2D b, Point2D c) {
-        double area2 = (b.getX()-a.getX())*(c.getY()-a.getY()) - (b.getY()-a.getY())*(c.getX()-a.getX());
-        if      (area2 < 0) return -1;
-        else if (area2 > 0) return +1;
-        else                return  0;
-    }
-
-    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
-        double angleFrom = Math.atan2(vectorFrom.getX(), vectorFrom.getY());
-        double angleTo = Math.atan2(vectorTo.getX(), vectorTo.getY());
-        double angle = angleTo - angleFrom;
-
-        if (angle > Math.PI) {
-            angle = -(angle - Math.PI);
-        } else if (angle < -Math.PI) {
-            angle = -(angle + Math.PI);
-        }
-
+    public void paintSavedAddresses() throws noSavedPointsException {
+        if (savedPoints.isEmpty()) {
+            throw new noSavedPointsException();
+        } else {
+            for (Drawable drawable : savedPoints) {
+                drawable.draw(context);
+            }
         angle *= 180 / Math.PI;
-        
+
         return angle;
     }
 
@@ -532,17 +527,14 @@ public class MapView {
         }
     }
 
-    public void paintRoute(OSMWay way) {
-        context.setTransform(transform);
-        context.setLineWidth(5.0 / Math.sqrt(Math.abs(transform.determinant())));
+        public void paintRoute(List<DirectedEdge> edges) {
+            context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
 
-        LinePath path = new LinePath(way);
-        searchedDrawables.add(path);
-
-        for (Drawable drawable : searchedDrawables) {
-            drawable.draw(context);
+            for (DirectedEdge edge : edges) {
+                searchedDrawables.add(edge);
+                edge.draw(context);
+            }
         }
-    }
 
     private void clearCanvas() {
         context.setTransform(new Affine());
@@ -596,6 +588,14 @@ public class MapView {
     public ToggleSwitch getColorToggle() {
         return colorToggle;
     }
+    
+    public ToggleSwitch getNearestToggle() {
+        return nearestToggle;
+    }
+    
+    public Label getClosestRoad() {
+        return closestRoad;
+    }
 
     public RadioButton getCar() {
         return car;
@@ -628,5 +628,9 @@ public class MapView {
 
     public VBox getRouteMenu() {
         return routeMenu;
+    }
+
+    public OSMMap getModel() {
+        return model;
     }
 }

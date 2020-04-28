@@ -1,6 +1,10 @@
 package bfst20.mapdrawer.dijkstra;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import bfst20.mapdrawer.Exceptions.*;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;
@@ -37,14 +41,26 @@ public class Dijkstra implements Serializable{
         return distTo[v] < Double.POSITIVE_INFINITY;
     }
 
-    public Stack<DirectedEdge> pathTo(int v) {
+    public LinkedList<DirectedEdge> pathTo(int v, Vehicle vehicle) throws noRouteException {
         if(!hasPathTo(v)) {
-            return null;
+            String vehicleAlternative1;
+            String vehicleAlternative2;
+            if (vehicle.isCar()) {
+                vehicleAlternative1 = "Cykel";
+                vehicleAlternative2 = "Gå";
+            } else if (vehicle.isBike()) {
+                vehicleAlternative1 = "Bil";
+                vehicleAlternative2 = "Gå";
+            } else {
+                vehicleAlternative1 = "Bil";
+                vehicleAlternative2 = "Cykel";
+            }
+            throw new noRouteException(vehicleAlternative1, vehicleAlternative2);
         }
-        Stack<DirectedEdge> path = new Stack<DirectedEdge>();
+        LinkedList<DirectedEdge> path = new LinkedList<>();
 
         for (DirectedEdge edge = edgeTo[v]; edge != null; edge = edgeTo[edge.from()]) {
-            path.push(edge);
+            path.addFirst(edge);
         }
         return path;
     }
@@ -55,22 +71,29 @@ public class Dijkstra implements Serializable{
             for (DirectedEdge edge : g.adja(v)) {
 
                 if (edge.isCar() && vehicle.isCar()) {
-                    relaxMethod(v, edge);
+                    relaxMethod(v, edge, vehicle);
                 } else if (edge.isBike() && vehicle.isBike()) {
-                    relaxMethod(v, edge);
+                    relaxMethod(v, edge, vehicle);
                 } else if (edge.isWalk() && vehicle.isWalk()) {
-                    relaxMethod(v, edge);
+                    relaxMethod(v, edge, vehicle);
                 }
             }
         }
     }
 
-    private void relaxMethod(int v, DirectedEdge edge) {
+    private void relaxMethod(int v, DirectedEdge edge, Vehicle vehicle) {
         int w = edge.to();
+
+        double weight = 0;
+        if (vehicle.isCar()) {
+            weight = edge.getDistance() / edge.getSpeed();
+        } else {
+            weight = edge.getDistance();
+        }
         //checks if the distance to w is bigger than the distance to v + the weight to w.
         //if it is, w's distance is updated, and it's edgeTo is set to be v.
-        if (distTo[w] > distTo[v] + edge.getWeight()) {
-            distTo[w] = distTo[v] + edge.getWeight();
+        if (distTo[w] > distTo[v] + weight) {
+            distTo[w] = distTo[v] + weight;
             edgeTo[w] = edge;
             //as it always relaxes the edge that has the shortest distance to s (and has not been relaxed yet) we need to update w's position in the pq.
             if (pq.contains(w)) {
@@ -80,6 +103,4 @@ public class Dijkstra implements Serializable{
             }
         }
     }
-
 }
-

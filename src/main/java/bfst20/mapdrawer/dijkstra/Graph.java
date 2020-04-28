@@ -8,12 +8,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Graph implements Serializable{
+public class Graph implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     int vertices;
-        ArrayList<DirectedEdge>[] adj;
+    ArrayList<DirectedEdge>[] adj;
 
     public Graph(int vertices, List<OSMWay> highways) {
         this.vertices = vertices;
@@ -30,10 +30,11 @@ public class Graph implements Serializable{
             boolean onewayCar = way.isOnewayCar();
             boolean onewayBike = way.isOnewayBike();
             boolean onewayWalk = way.isOnewayWalk();
+            boolean roundabout = way.isRoundabout();
 
             for (int i = 0; i < way.getNodes().size() - 1; i++) {
                 OSMNode node = way.getNodes().get(i);
-                OSMNode node1 = way.getNodes().get(i+1);
+                OSMNode node1 = way.getNodes().get(i + 1);
                 int from = node.getNumberForGraph();
                 int to = node1.getNumberForGraph();
 
@@ -41,35 +42,34 @@ public class Graph implements Serializable{
                 double y1 = node.getLat();
                 double x2 = node1.getLon();
                 double y2 = node1.getLat();
-
-                double tempWeight = (Math.sqrt(((x2-x1)*(x2-x1)) + ((y2-y1)*(y2-y1))));
-                double weight = tempWeight / speed;
+                
+                double distance = Math.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
 
                 if (!onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
-                    addEdge(to, from, weight, bike, walk, car, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, car, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && !onewayBike && !onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
-                    addEdge(to, from, weight, bike, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
-                } else if (onewayCar && onewayBike && !onewayWalk){
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
-                    addEdge(from, to, weight, false, walk, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, bike, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                } else if (onewayCar && onewayBike && !onewayWalk) {
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(from, to, speed, distance,false, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && onewayWalk) {
-                    addEdge(from, to, weight, bike, walk, car, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat(), node, node1);
-                    addEdge(to, from, weight, false, false, false, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat(), node1, node);
+                    addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
+                    addEdge(to, from, speed, distance, false, false, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 }
             }
         }
     }
-
-    public void addEdge(int from, int to, double weight, boolean bike, boolean walk, boolean car, String road, double x1, double y1, double x2, double y2, OSMNode node, OSMNode node1) {
-        DirectedEdge edge = new DirectedEdge(from, to, weight, bike, walk, car, road, x1, y1, x2, y2, node, node1);
-          if (adj[from] == null) {
-              adj[from] = new ArrayList<>();
-              adj[from].add(edge);
-          } else {
-              adj[from].add(edge);
-          }
+    
+    public void addEdge(int from, int to, double speed, double distance, boolean bike, boolean walk, boolean car, boolean roundabout, String road, float x1, float y1, float x2, float y2) {
+        DirectedEdge edge = new DirectedEdge(from, to, speed, distance, bike, walk, car, roundabout, road, x1, y1, x2, y2);
+        if (adj[from] == null) {
+            adj[from] = new ArrayList<>();
+            adj[from].add(edge);
+        } else {
+            adj[from].add(edge);
+        }
     }
 
     public Iterable<DirectedEdge> adja(int v) {
@@ -86,8 +86,15 @@ public class Graph implements Serializable{
         return bag;
     }
 
+    public int numberOfOutgoingEdges(int v) {
+        int y = 0;
+        for (DirectedEdge edge : adj[v]) {
+            y++;
+        }
+        return y;
+    }
+
     public int getVertices() {
         return vertices;
     }
 }
-
