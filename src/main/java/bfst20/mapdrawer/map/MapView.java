@@ -136,7 +136,7 @@ public class MapView {
         Button clearButton = new Button("Nulstil");
         clearButton.setOnAction(controller.getClearAction());
 
-        Button saveToSearch = new Button("Gem punkt");
+        Button savePointButton = new Button("Gem punkt");
 
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
@@ -167,14 +167,14 @@ public class MapView {
         nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
         toSearchField.setOnAction(controller.getSearchActionDijkstra());
         fromSearchField.setOnAction(controller.getSearchActionDijkstra());
-        saveToSearch.setOnAction(controller.getSaveAddressAction());
+        savePointButton.setOnAction(controller.getSaveAddressAction());
 
         canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
-        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, saveToSearch);
+        HBox searchRow = new HBox(car, bike, walk, clearButton, fromSearchField, toSearchField, savePointButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(35.0));
