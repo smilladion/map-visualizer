@@ -428,6 +428,7 @@ public class MapView {
 
         RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
         routeDescription.createRouteDescription();
+        openRouteDescription();
     }
 
     public void paintSavedAddresses() throws NoSavedPointsException {

@@ -51,7 +51,6 @@ public class RouteDescription {
             if (i == 0) {
                 String straightAhead = ("Fortsæt ligeud ad " + currentRoad);
                 routeDescriptionList.add(straightAhead);
-                System.out.println("Fortsæt ligeud ad " + currentRoad);
             }
 
             if (next.isRoundabout()) {
@@ -64,7 +63,6 @@ public class RouteDescription {
 
                     if (roundaboutExit > 0) {
                         String roundAbout = ("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
-                        System.out.println("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
                         roundaboutExit = 0;
                     } else {
 
@@ -85,37 +83,29 @@ public class RouteDescription {
                             if (ccw > 0) {
                                 String turnRight = ("Drej til højre ad " + nextRoad);
                                 routeDescriptionList.add(turnRight);
-                                System.out.println("Drej til højre ad " + nextRoad);
                             } else if (ccw < 0) {
                                 String turnLeft = ("Drej til venstre ad "+ nextRoad);
                                 routeDescriptionList.add(turnLeft);
-                                System.out.println("Drej til venstre ad " + nextRoad);
                             }
                         } else if (angle > 150) {
                             if (ccw > 0) {
                                 String continueForward = ("Fortsæt ligeud ad " + nextRoad);
                                 routeDescriptionList.add(continueForward);
-                                System.out.println("Fortsæt ligeud ad " + nextRoad);
                             } else if (ccw < 0) {
                                 String continueForwardTwo = ("Fortsæt ligeud ad " + nextRoad);
                                 routeDescriptionList.add(continueForwardTwo);
-                                System.out.println("Fortsæt ligeud ad " + nextRoad);
-
                             }
                         } else if (angle < 20) {
                             if (ccw < 0) {
                                 String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
                                 routeDescriptionList.add(turnHardRight);
-                                System.out.println("Drej skarpt til højre ad " + nextRoad);
                             } else if (ccw > 0) {
                                 String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
                                 routeDescriptionList.add(turnHardLeft);
-                                System.out.println("Drej skarpt til venstre ad " + nextRoad);
                             }
                         } else if (ccw == 0) {
                             String continueForwardThree = ("Fortsæt ligeud ad " + nextRoad);
                             routeDescriptionList.add(continueForwardThree);
-                            System.out.println("Fortsæt ligeud ad " + nextRoad);
                         }
                     }
                 }
