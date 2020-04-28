@@ -16,6 +16,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -56,6 +57,12 @@ public class MapController {
     private final EventHandler<MouseEvent> roadFinderAction;
     private final EventHandler<ActionEvent> closeRouteMenu;
 
+    public LinkedList<DirectedEdge> getRouteEdges() {
+        return routeEdges;
+    }
+
+    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+    private String lastSearchFrom = "";
     private Point2D lastMouse;
 
     private Dijkstra dijkstra;
@@ -120,8 +127,6 @@ public class MapController {
         };
         
         searchActionDijkstra = e -> {
-
-            LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
             view.getSearchedDrawables().clear();
 
             String addressTo = view.getToSearchField().getText();
@@ -164,7 +169,7 @@ public class MapController {
             }
 
             if (addressFrom != null && addressTo != null) {
-                if(!routeEdges.isEmpty()) {
+                if (!routeEdges.isEmpty()) {
                     routeEdges.clear();
                 }
                 Vehicle vehicle;
@@ -187,10 +192,15 @@ public class MapController {
                     Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
                     OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
-                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
-
                     try {
-                        routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                        if (!lastSearchFrom.equals(view.getFromSearchField().getText())) {
+
+                            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
+
+                            routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                        } else {
+                            routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+                        }
                     } catch (noRouteException ex) {
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Ingen rute fundet");
@@ -212,7 +222,7 @@ public class MapController {
 
                     view.paintRoute(routeEdges);
                     view.createRouteDescription(routeEdges);
-
+                    lastSearchFrom = addressFrom;
                     }
                 }
         };
@@ -326,11 +336,20 @@ public class MapController {
         };
 
         showRouteFinding = e -> {
+            view.getRouteDescription().getChildren().clear();
             view.openRouteDescription();
         };
 
         closeRouteMenu = e -> {
             view.getRouteMenu().setVisible(false);
+        };
+
+        nearestToggleAction = e -> {
+            if (view.getNearestToggle().isSelected()) {
+                view.getClosestRoad().setVisible(true);
+            } else {
+                view.getClosestRoad().setVisible(false);
+            }
         };
     }
     
@@ -385,4 +404,9 @@ public class MapController {
     public EventHandler<ActionEvent> getCloseRouteMenu() {
         return closeRouteMenu;
     }
+
+    public EventHandler<MouseEvent> getNearestToggleAction() {
+        return nearestToggleAction;
+    }
+
 }

@@ -1,7 +1,6 @@
 package bfst20.mapdrawer.map;
 
-import bfst20.mapdrawer.dijkstra.DirectedEdge;
-import bfst20.mapdrawer.dijkstra.RouteDescription;
+import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
@@ -11,8 +10,10 @@ import bfst20.mapdrawer.kdtree.Rectangle;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.Exceptions.*;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -36,7 +37,6 @@ import org.controlsfx.control.textfield.TextFields;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class MapView {
 
@@ -67,17 +67,15 @@ public class MapView {
 
     private final ToggleSwitch colorToggle = new ToggleSwitch();
     private final ToggleSwitch nearestToggle = new ToggleSwitch();
-    private final ToggleSwitch colorToggle = new ToggleSwitch();
 
-    private VBox routeDescription = new VBox();
-    private ScrollBar sb = new ScrollBar();
     private Button closeRouteMenu = new Button("Luk");
     private Button reloadRoute = new Button("Opdatér rute");
     private HBox routeDescriptionTopBar = new HBox(reloadRoute, closeRouteMenu);
-    private VBox routeMenu = new VBox(routeDescription, routeDescriptionTopBar);
+    private VBox routeDescription = new VBox();
+    private ScrollPane scrollPane = new ScrollPane(routeDescription);
+    private VBox routeMenu = new VBox(routeDescriptionTopBar, scrollPane);
 
-    List<String> routeDescriptionList;
-    boolean routeMenuOpened = false;
+
 
     private final RadioButton car;
     private final RadioButton bike;
@@ -190,25 +188,30 @@ public class MapView {
         searchRow.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
 
         rootPane.getChildren().add(searchRow);
+        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
+        rootPane.getChildren().add(routeMenu);
 
         Scene scene = new Scene(rootPane);
 
-        showRouteDescription.setOnAction(controller.getShowRouteFinding());
+        String styles = "-fx-border-color: transparent;" + "-fx-background-color: transparent;";
         optionsMenu.getItems().add(showRouteDescription);
-        rootPane.getChildren().add(routeMenu);
-        routeMenu.setVisible(false);
-        routeDescriptionList = new ArrayList<>();
+
+
+        showRouteDescription.setOnAction(controller.getShowRouteFinding());
         closeRouteMenu.setOnAction(controller.getCloseRouteMenu());
         reloadRoute.setOnAction(controller.getShowRouteFinding());
 
-        routeMenu.setMaxSize(300, 600);
+        routeMenu.setVisible(false);
+        routeMenu.setMaxSize(350, 550);
+        routeMenu.setStyle(styles);
+        routeMenu.setSpacing(20);
 
-        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
+        routeDescriptionTopBar.alignmentProperty().setValue(Pos.BOTTOM_CENTER);
+        routeDescriptionTopBar.setSpacing(20);
+
+        //sb.setOrientation(Orientation.VERTICAL);
 
 
-
-        String cssLayout = "-fx-border-color: black;" + "-fx-background-color: white;";
-        routeMenu.setStyle(cssLayout);
 
 
 
@@ -419,12 +422,6 @@ public class MapView {
         paintMap();
     }
 
-    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
-
-        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
-        routeDescription.createRouteDescription();
-    }
-
     public void paintSavedAddresses() throws noSavedPointsException {
         if (savedPoints.isEmpty()) {
             throw new noSavedPointsException();
@@ -432,98 +429,6 @@ public class MapView {
             for (Drawable drawable : savedPoints) {
                 drawable.draw(context);
             }
-        angle *= 180 / Math.PI;
-
-        return angle;
-    }
-
-    public void createRouteDescription(List<DirectedEdge> edgeList) {
-        String startAt = ("Start ved " + System.lineSeparator() + fromSearchField.getCharacters());
-        routeDescriptionList.add(startAt);
-
-
-        for (int i = 0; i < edgeList.size()-1; i++) {
-
-            DirectedEdge current = edgeList.get(i);
-            DirectedEdge next = edgeList.get(i+1);
-
-            String currentRoad = current.getRoad();
-            String nextRoad = next.getRoad();
-
-            if (currentRoad == null) {
-                currentRoad = "ukendt vej";
-            }
-            if (nextRoad == null) {
-                nextRoad = "ukendt vej";
-            }
-
-            if (i == 0) {
-                String straightAhead = ("Fortsæt ligeud ad " + currentRoad);
-                routeDescriptionList.add(straightAhead);
-                System.out.println("Fortsæt ligeud ad " + currentRoad);
-            }
-
-            if (!currentRoad.equals(nextRoad)) {
-
-                //the 3 points for ccw
-                Point2D a = new Point2D(current.getX1(), current.getY1());
-                Point2D b = new Point2D(current.getX2(), current.getY2());
-                Point2D c = new Point2D(next.getX2(), next.getY2());
-
-                int ccw = ccw(a, b, c);
-
-                //making the two edges into direction vectors.
-                Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), - (current.getY2() - current.getY1()));
-                Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), - (next.getY2() - current.getY2()));
-
-                double angle = calculateAngle1(vectorFrom, vectorTo);
-
-                if (angle > 20 && angle < 150) {
-                    if (ccw > 0) {
-                        String turnRight = ("Drej til højre ad " + nextRoad);
-                        routeDescriptionList.add(turnRight);
-                        System.out.println("Drej til højre ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        String turnLeft = ("Drej til venstre ad "+ nextRoad);
-                        routeDescriptionList.add(turnLeft);
-                        System.out.println("Drej til venstre ad "+ nextRoad);
-                    }
-                } else if (angle > 150) {
-                    if (ccw > 0) {
-                        String continueForward = ("Fortsæt ligeud ad " + nextRoad);
-                        routeDescriptionList.add(continueForward);
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-                    } else if (ccw < 0) {
-                        String continueForwardTwo = ("Fortsæt ligeud ad " + nextRoad);
-                        routeDescriptionList.add(continueForwardTwo);
-                        System.out.println("Fortsæt ligeud ad " + nextRoad);
-
-                    }
-                } else if (angle < 20) {
-                    if (ccw < 0) {
-                        String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
-                        routeDescriptionList.add(turnHardRight);
-                        System.out.println("Drej skarpt til højre ad " + nextRoad);
-                    } else if (ccw > 0) {
-                        String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
-                        routeDescriptionList.add(turnHardLeft);
-                        System.out.println("Drej skarpt til venstre ad " + nextRoad);
-                    }
-                } else if (ccw == 0) {
-                    String continueForwardThree = ("Fortsæt ligeud ad " + nextRoad);
-                    routeDescriptionList.add(continueForwardThree);
-                    System.out.println("Fortsæt ligeud ad " + nextRoad);
-                }
-            }
-        }
-        String destination = ("Ankommet til destination: " + System.lineSeparator() + toSearchField.getCharacters());
-        routeDescriptionList.add(destination);
-
-    }
-
-    public void paintSavedAddresses() {
-        for (Drawable drawable : savedPoints) {
-            drawable.draw(context);
         }
     }
 
@@ -535,6 +440,48 @@ public class MapView {
                 edge.draw(context);
             }
         }
+
+    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
+        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
+        routeDescription.createRouteDescription();
+    }
+
+    public void openRouteDescription() {
+        routeMenu.setVisible(true);
+        VBox scrollRoutes = new VBox();
+        scrollRoutes.setSpacing(5);
+        routeDescription.getChildren().add(scrollRoutes);
+
+
+        RouteDescription description = new RouteDescription(controller.getRouteEdges(), model, this);
+        List<String> routeDescriptionList = description.createRouteDescription();
+        //description.get
+
+        double distance = 0;
+
+        for (DirectedEdge edge : controller.getRouteEdges()) {
+            distance = distance + (edge.getDistance()/edge.getSpeed());
+        }
+
+        distance = distance * 10000;
+        distance = Math.ceil(distance);
+
+        String time = ("Tid: " + distance + " min");
+
+        Label timeLabel = new Label();
+        timeLabel.setText(time);
+        scrollRoutes.getChildren().add(timeLabel);
+
+        int j = 1;
+
+        for(int i = 0; i < routeDescriptionList.size(); i++){
+            Label label = new Label();
+            label.setText(j + ": " + routeDescriptionList.get(i));
+            scrollRoutes.getChildren().add(label);
+            j++;
+        }
+
+    }
 
     private void clearCanvas() {
         context.setTransform(new Affine());
@@ -611,23 +558,12 @@ public class MapView {
         return transform;
     }
 
-    public void openRouteDescription() {
-        routeMenu.setVisible(true);
-        int j = 1;
-
-        for(int i = 0; i < routeDescriptionList.size(); i++){
-            Label label = new Label();
-            label.setText(j + ": " + routeDescriptionList.get(i));
-            routeMenu.getChildren().add(label);
-            j++;
-        }
-
-        System.out.println("" + routeDescriptionList.size());
-        routeMenuOpened = true;
-    }
-
     public VBox getRouteMenu() {
         return routeMenu;
+    }
+
+    public VBox getRouteDescription() {
+        return routeDescription;
     }
 
     public OSMMap getModel() {
