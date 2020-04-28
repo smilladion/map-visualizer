@@ -6,11 +6,13 @@ import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.drawing.Type;
-import bfst20.mapdrawer.osm.NodeProvider;
+import bfst20.mapdrawer.exceptions.NoAddressMatchException;
+import bfst20.mapdrawer.exceptions.NoSavedPointsException;
 import bfst20.mapdrawer.kdtree.Rectangle;
+import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.exceptions.*;
+import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -227,6 +229,8 @@ public class MapView {
             zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
         }
         
+        
+        
         // Remove focus from search field on startup
         canvas.requestFocus();
     }
@@ -262,37 +266,20 @@ public class MapView {
         context.setTransform(new Affine());
 
         // Paint background light blue
-        if(colorToggle.isSelected()){
+        if (colorToggle.isSelected()) {
             context.setFill(Color.LIGHTGREY);
         } else {
             context.setFill(Color.LIGHTBLUE);
         }
+        
         context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Pan and scale all below
         context.setTransform(transform);
 
-        // Paint using light yellow
-        if(colorToggle.isSelected()){
-            context.setFill(Color.WHITE);
-        } else {
-            context.setFill(Color.LIGHTYELLOW);
-        }
-
         // Line width proportionate to pan/zoom
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
         context.setFillRule(FillRule.EVEN_ODD);
-
-        // Draw islands
-        for (Drawable island : model.getIslands()) {
-            if(colorToggle.isSelected()){
-                context.setStroke(Color.LIGHTGREY);
-            } else {
-                context.setStroke(Color.LIGHTBLUE);
-            }
-            island.draw(context);
-            context.fill();
-        }
 
         Point2D topLeft = null;
         Point2D bottomRight = null;
@@ -324,7 +311,7 @@ public class MapView {
                 context.setLineWidth(type.getLineWidth() / Math.sqrt(Math.abs(transform.determinant())));
                 
                 // Change the color
-                if(colorToggle.isSelected()){
+                if (colorToggle.isSelected()) {
                     context.setStroke(type.getAlternateColor());
                     context.setFill(type.getAlternateColor());
                 } else {
@@ -335,7 +322,11 @@ public class MapView {
                 if (model.getTypeToTree().containsKey(type)) {
                     for (NodeProvider p : model.getTypeToTree().get(type).search(
                             new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
-                        p.draw(context);
+                        if (type == Type.COASTLINE) {
+                            skipInvisibleCoastlines(p);
+                        } else {
+                            p.draw(context);
+                        }
                     }
                 }
             }
@@ -437,9 +428,34 @@ public class MapView {
     }
     
     private double getMetersPerPixels(int pixels) {
-        double LatPerPixel = 1 / Math.sqrt(Math.abs(context.getTransform().determinant()));
-        double metersPerPixel = 111111 * LatPerPixel; // 111111 is roughly meters per 1 degree lat
+        double metersPerPixel = 111111 * getLatPerPixel(); // 111111 is roughly meters per 1 degree lat
         return pixels * metersPerPixel;
+    }
+    
+    private double getLatPerPixel() {
+        return 1 / Math.sqrt(Math.abs(context.getTransform().determinant()));
+    }
+    
+    // Does not draw a coastline if its length is less than the length of two pixels.
+    private void skipInvisibleCoastlines(NodeProvider provider) {
+        if (provider instanceof OSMWay) {
+            OSMWay way = (OSMWay) provider;
+            OSMNode previousNode = way.getNodes().get(0);
+
+            context.beginPath();
+            context.moveTo(previousNode.getLon(), previousNode.getLat());
+
+            for (OSMNode node : way.getNodes().subList(1, way.getNodes().size())) {
+                if (node.distance(previousNode) > getLatPerPixel() * 2) {
+                    context.lineTo(node.getLon(), node.getLat());
+                    
+                    previousNode = node;
+                }
+            }
+
+            context.stroke();
+            context.fill();
+        }
     }
 
     public void resetSearchField() {

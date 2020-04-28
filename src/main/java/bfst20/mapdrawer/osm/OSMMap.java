@@ -28,7 +28,7 @@ public class OSMMap implements Serializable {
     private final float maxLon;
 
     private final Map<Type, KdTree> typeToTree = new EnumMap<>(Type.class);
-    private final List<OSMWay> islands = new ArrayList<>();
+    private final List<NodeProvider> islands = new ArrayList<>();
     private KdTree highwayTree;
     private int nodeNumber = 1;
 
@@ -165,6 +165,7 @@ public class OSMMap implements Serializable {
             for (Map.Entry<Type, List<NodeProvider>> entry : typeToProviders.entrySet()) {
                 map.typeToTree.put(entry.getKey(), new KdTree(entry.getValue()));
             }
+            map.typeToTree.put(Type.COASTLINE, new KdTree(map.islands));
             
             map.routeGraph = new Graph(map.nodeNumber + 1, highways);
         }
@@ -487,7 +488,7 @@ public class OSMMap implements Serializable {
         return maxLon;
     }
 
-    public List<OSMWay> getIslands() {
+    public List<NodeProvider> getIslands() {
         return islands;
     }
 

@@ -3,6 +3,9 @@ package bfst20.mapdrawer.osm;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.FillRule;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,7 +73,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         }
 
         // Create a "no-id" OSM way
-        OSMWay way = new OSMWay();
+        OSMWay way = new OSMWay(NO_ID, new ArrayList<>(), Type.COASTLINE, null);
 
         // Where input is a path (collection of points)
         // And output is another path (similarly)

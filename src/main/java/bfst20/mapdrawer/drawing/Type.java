@@ -11,7 +11,7 @@ public enum Type {
     // First type (unknown) will be drawn first, bottom type will be last.
 
     UNKNOWN(null, null, Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, Integer.MAX_VALUE),
-    COASTLINE("natural", "coastline", Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, Integer.MAX_VALUE),
+    COASTLINE("natural", "coastline", Color.LIGHTYELLOW, Color.WHITE, true, 0, Integer.MIN_VALUE),
     //COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
     //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
     //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
@@ -26,12 +26,12 @@ public enum Type {
 
     // TODO: Scuffed grass relations
     //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
-
-    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, Color.GAINSBORO, true, 0, 6000),
+    
+    FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, Color.GAINSBORO, true, 0, 40000),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, Color.GAINSBORO, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, Color.DIMGRAY, true, 0, 18000),
     GRASSLAND("natural", "grassland", Color.LIGHTGREEN, Color.GREY, true, 0, 18000),
-    FOREST("landuse", "forest", Color.LIGHTGREEN, Color.DIMGREY, true, 0, 6000),
+    FOREST("landuse", "forest", Color.LIGHTGREEN, Color.DIMGREY, true, 0, 12000),
     HEATH("natural", "heath", Color.WHEAT, Color.GAINSBORO, true, 0, 18000),
     MEADOW("landuse", "meadow", Color.LIGHTGREEN, Color.GAINSBORO, true, 0, 6000),
     QUARRY("landuse", "quarry", Color.LIGHTGREY, Color.LIGHTGREY, true, 0, 18000),
@@ -70,8 +70,7 @@ public enum Type {
     TRACK("highway", "track", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
 
     SEARCHRESULT("highway", "searchresult", Color.RED, Color.RED, false, 3, 1000),
-    BUILDING("building", "building", Color.DARKGREY, Color.GREY, true, 0, 80000),
-    NONE(null, null, Color.BLACK, Color.BLACK, false, 0, 0);
+    BUILDING("building", "building", Color.DARKGREY, Color.GREY, true, 0, 80000);
 
     // key should be exactly what is read from the 'key' field in a tag in the osm file eg. "landuse" or "natural"
     private final String key;

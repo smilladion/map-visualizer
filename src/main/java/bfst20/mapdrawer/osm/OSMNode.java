@@ -72,6 +72,13 @@ public class OSMNode implements LongSupplier, Serializable {
         return (float) (dX * dX + dY * dY);
     }
     
+    public double distance(OSMNode node) {
+        Point2D p1 = new Point2D(getLon(), getLat());
+        Point2D p2 = new Point2D(node.getLon(), node.getLat());
+        
+        return p1.distance(p2);
+    }
+    
     public void setRoad(String road) {
         this.road = road;
     }
