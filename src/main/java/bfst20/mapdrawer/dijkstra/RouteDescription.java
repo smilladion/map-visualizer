@@ -1,23 +1,17 @@
 package bfst20.mapdrawer.dijkstra;
 
-
 import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
-import bfst20.mapdrawer.osm.OSMNode;
-import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
-import javafx.scene.control.Alert;
-import javafx.stage.Stage;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class RouteDescription {
     private final OSMMap model;
-    private MapView view;
+    private final MapView view;
 
-    private LinkedList<DirectedEdge> edgeList;
+    private final LinkedList<DirectedEdge> edgeList;
     List<String> routeDescriptionList;
 
     public RouteDescription(LinkedList<DirectedEdge> edgeList, OSMMap model, MapView view) {
@@ -27,8 +21,8 @@ public class RouteDescription {
     }
 
     public List<String> createRouteDescription() {
-        routeDescriptionList = new ArrayList();
-        String startAt = ("Start ved " + System.lineSeparator() + view.getFromSearchField().getCharacters());
+        routeDescriptionList = new ArrayList<>();
+        String startAt = ("Start ved: " + System.lineSeparator() + view.getFromSearchField().getCharacters());
         routeDescriptionList.add(startAt);
 
         int roundaboutExit = 0;
@@ -61,63 +55,62 @@ public class RouteDescription {
                 }
             } else if (!currentRoad.equals(nextRoad)) {
 
-                    if (roundaboutExit > 0) {
-                        String roundAbout = ("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
-                        roundaboutExit = 0;
-                    } else {
+                if (roundaboutExit > 0) {
+                    String roundAbout = ("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
+                    roundaboutExit = 0;
+                } else {
 
-                        //the 3 points for ccw
-                        Point2D a = new Point2D(current.getX1(), current.getY1());
-                        Point2D b = new Point2D(current.getX2(), current.getY2());
-                        Point2D c = new Point2D(next.getX2(), next.getY2());
+                    //the 3 points for ccw
+                    Point2D a = new Point2D(current.getX1(), current.getY1());
+                    Point2D b = new Point2D(current.getX2(), current.getY2());
+                    Point2D c = new Point2D(next.getX2(), next.getY2());
 
-                        int ccw = ccw(a, b, c);
+                    int ccw = ccw(a, b, c);
 
-                        //making the two edges into direction vectors.
-                        Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), -(current.getY2() - current.getY1()));
-                        Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), -(next.getY2() - current.getY2()));
+                    //making the two edges into direction vectors.
+                    Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), -(current.getY2() - current.getY1()));
+                    Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), -(next.getY2() - current.getY2()));
 
-                        double angle = calculateAngle1(vectorFrom, vectorTo);
+                    double angle = calculateAngle(vectorFrom, vectorTo);
 
-                        if (angle > 20 && angle < 150) {
-                            if (ccw > 0) {
-                                String turnRight = ("Drej til højre ad " + nextRoad);
-                                routeDescriptionList.add(turnRight);
-                            } else if (ccw < 0) {
-                                String turnLeft = ("Drej til venstre ad "+ nextRoad);
-                                routeDescriptionList.add(turnLeft);
-                            }
-                        } else if (angle > 150) {
-                            if (ccw > 0) {
-                                String continueForward = ("Fortsæt ligeud ad " + nextRoad);
-                                routeDescriptionList.add(continueForward);
-                            } else if (ccw < 0) {
-                                String continueForwardTwo = ("Fortsæt ligeud ad " + nextRoad);
-                                routeDescriptionList.add(continueForwardTwo);
-                            }
-                        } else if (angle < 20) {
-                            if (ccw < 0) {
-                                String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
-                                routeDescriptionList.add(turnHardRight);
-                            } else if (ccw > 0) {
-                                String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
-                                routeDescriptionList.add(turnHardLeft);
-                            }
-                        } else if (ccw == 0) {
-                            String continueForwardThree = ("Fortsæt ligeud ad " + nextRoad);
-                            routeDescriptionList.add(continueForwardThree);
+                    if (angle > 20 && angle < 150) {
+                        if (ccw > 0) {
+                            String turnRight = ("Drej til højre ad " + nextRoad);
+                            routeDescriptionList.add(turnRight);
+                        } else if (ccw < 0) {
+                            String turnLeft = ("Drej til venstre ad " + nextRoad);
+                            routeDescriptionList.add(turnLeft);
                         }
+                    } else if (angle > 150) {
+                        if (ccw > 0) {
+                            String continueForward = ("Fortsæt ligeud ad " + nextRoad);
+                            routeDescriptionList.add(continueForward);
+                        } else if (ccw < 0) {
+                            String continueForwardTwo = ("Fortsæt ligeud ad " + nextRoad);
+                            routeDescriptionList.add(continueForwardTwo);
+                        }
+                    } else if (angle < 20) {
+                        if (ccw < 0) {
+                            String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
+                            routeDescriptionList.add(turnHardRight);
+                        } else if (ccw > 0) {
+                            String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
+                            routeDescriptionList.add(turnHardLeft);
+                        }
+                    } else if (ccw == 0) {
+                        String continueForwardThree = ("Fortsæt ligeud ad " + nextRoad);
+                        routeDescriptionList.add(continueForwardThree);
                     }
                 }
             }
+        }
         String destination = ("Ankommet til destination: " + System.lineSeparator() + view.getToSearchField().getCharacters());
         routeDescriptionList.add(destination);
 
         return routeDescriptionList;
-        }
+    }
 
-
-    private double calculateAngle1(Point2D vectorFrom, Point2D vectorTo) {
+    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
 
         double dot = vectorFrom.dotProduct(vectorTo);
         double lengthFrom = (Math.sqrt(((vectorFrom.getX())*(vectorFrom.getX()))+((vectorFrom.getY())*(vectorFrom.getY()))));

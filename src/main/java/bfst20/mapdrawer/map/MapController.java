@@ -3,19 +3,18 @@ package bfst20.mapdrawer.map;
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Point;
-import bfst20.mapdrawer.drawing.Type;
+import bfst20.mapdrawer.exceptions.NoAddressMatchException;
+import bfst20.mapdrawer.exceptions.NoPointChosenException;
+import bfst20.mapdrawer.exceptions.NoRouteException;
+import bfst20.mapdrawer.exceptions.NoSavedPointsException;
 import bfst20.mapdrawer.osm.OSMMap;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
-import edu.princeton.cs.algs4.Stack;
-
-import bfst20.mapdrawer.exceptions.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -24,12 +23,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class MapController {
 
@@ -51,10 +45,10 @@ public class MapController {
     private final EventHandler<MouseEvent> clickAction;
     private final EventHandler<ScrollEvent> scrollAction;
 
-    private final EventHandler<ActionEvent> searchActionDijkstra;
-    private final EventHandler<ActionEvent> showRouteFinding;
+    private final EventHandler<ActionEvent> searchDijkstraAction;
+    private final EventHandler<ActionEvent> showRouteMenuAction;
     private final EventHandler<MouseEvent> roadFinderAction;
-    private final EventHandler<ActionEvent> closeRouteMenu;
+    private final EventHandler<ActionEvent> closeRouteMenuAction;
 
     private String lastSearchFrom = "";
     private Point2D lastMouse;
@@ -63,7 +57,7 @@ public class MapController {
 
     LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
 
-    MapController(OSMMap model, MapView view, Stage stage) throws NoAddressMatchException {
+    MapController(OSMMap model, MapView view, Stage stage) {
         this.model = model;
         this.view = view;
         this.stage = stage;
@@ -127,113 +121,97 @@ public class MapController {
             view.paintMap();
         };
 
-        searchActionDijkstra = e -> {
+        searchDijkstraAction = e -> {
+            view.getSearchedDrawables().clear();
+            view.getRouteDrawables().clear();
 
-                //LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
-                view.getSearchedDrawables().clear();
+            String addressTo = view.getToSearchField().getText();
+            String addressFrom = view.getFromSearchField().getText();
 
-                String addressTo = view.getToSearchField().getText();
-                String addressFrom = view.getFromSearchField().getText();
+            OSMNode nodeTo = null;
+            OSMNode nodeFrom = null;
 
-                OSMNode nodeTo = null;
-                OSMNode nodeFrom = null;
+            for (OSMNode node : model.getAddressNodes()) {
+                if (node.getAddress().equals(addressTo)) {
+                    nodeTo = node;
+                }
+                if (node.getAddress().equals(addressFrom)) {
+                    nodeFrom = node;
+                }
+            }
 
-                for (OSMNode node : model.getAddressNodes()) {
+            if (addressTo.equals("")) {
+                addressTo = null;
+            }
+            if (addressFrom.equals("")) {
+                addressFrom = null;
+            }
+            if (nodeTo == null) {
+                addressTo = null;
+            }
+            if (nodeFrom == null) {
+                addressFrom = null;
+            }
 
-                    if (node.getAddress().equals(addressTo)) {
-                        nodeTo = node;
-                    }
-                    if (node.getAddress().equals(addressFrom)) {
-                        nodeFrom = node;
-                    }
+            try {
+                view.paintPoints(addressTo, addressFrom, false);
+            } catch (NoAddressMatchException ex) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Ingen adresse fundet");
+                alert.setHeaderText(null);
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
+
+            if (addressFrom != null && addressTo != null) {
+                if (!routeEdges.isEmpty()) {
+                    routeEdges.clear();
+                }
+                Vehicle vehicle;
+
+                if (view.getCar().isSelected()) {
+                    vehicle = new Car();
+                } else if (view.getBike().isSelected()) {
+                    vehicle = new Bike();
+                } else {
+                    vehicle = new Walk();
                 }
 
-                if (addressTo.equals("")) {
-                    addressTo = null;
-                }
-                if (addressFrom.equals("")) {
-                    addressFrom = null;
-                }
-                if (nodeTo == null) {
-                    addressTo = null;
-                }
-                if (nodeFrom == null) {
-                    addressFrom = null;
-                }
+                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
+                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+
+                Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
+                OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
+
+                Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
+                OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
 
                 try {
-                    view.paintPoints(addressTo, addressFrom, false);
-                } catch (NoAddressMatchException ex) {
+                    if (!lastSearchFrom.equals(view.getFromSearchField().getText())) {
+                        dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
+
+                    } else {
+                        if (lastVehicle == null || (!lastVehicle.isSameVehicleAs(vehicle))) {
+                            dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
+                        }
+                    }
+
+                    routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
+
+                } catch (NoRouteException ex) {
+
                     Alert alert = new Alert(AlertType.INFORMATION);
-                    alert.setTitle("Ingen adresse fundet");
+                    alert.setTitle("Ingen rute fundet");
                     alert.setHeaderText(null);
                     alert.setContentText(ex.getMessage());
                     alert.showAndWait();
                 }
 
-                if (addressFrom != null && addressTo != null) {
-                    if (!routeEdges.isEmpty()) {
-                        routeEdges.clear();
-                    }
-                    Vehicle vehicle;
-
-                    if (view.getCar().isSelected()) {
-                        vehicle = new Car();
-                    } else if (view.getBike().isSelected()) {
-                        vehicle = new Bike();
-                    } else {
-                        vehicle = new Walk();
-                    }
-
-                    if (nodeTo != null && nodeFrom != null) {
-                        OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-                        OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
-
-                        Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
-                        OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
-
-                        Point2D pointFrom = new Point2D(nodeFrom.getLon(), nodeFrom.getLat());
-                        OSMNode nearestFromNode = model.getHighwayTree().nodeDistance(pointFrom, nearestFrom);
-
-                        try {
-                            if (!lastSearchFrom.equals(view.getFromSearchField().getText())) {
-                                dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
-
-                            } else {
-                                if (lastVehicle == null || (!lastVehicle.isSameVehicleAs(vehicle))) {
-                                    dijkstra = new Dijkstra(model.getRouteGraph(), nearestFromNode.getNumberForGraph(), vehicle);
-                                }
-                            }
-
-                            routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
-
-                        } catch (NoRouteException ex) {
-
-                            Alert alert = new Alert(AlertType.INFORMATION);
-                            alert.setTitle("Ingen rute fundet");
-                            alert.setHeaderText(null);
-                            alert.setContentText(ex.getMessage());
-                            alert.showAndWait();
-                        }
-
-                        double distance = 0;
-
-                        for (DirectedEdge edge : routeEdges) {
-                            distance = distance + edge.getDistance();
-                        }
-
-                        distance = distance * 10000;
-                        distance = Math.ceil(distance);
-
-                        System.out.println("Tid: " + distance + " min");
-
-                        view.paintRoute(routeEdges);
-                        view.createRouteDescription(routeEdges);
-                        lastSearchFrom = addressFrom;
-                        lastVehicle = vehicle;
-
-                    }
-                }
+                view.paintRoute(routeEdges);
+                view.openRouteDescription();
+                lastSearchFrom = addressFrom;
+                lastVehicle = vehicle;
+            }
         };
 
         clickAction = e -> {
@@ -344,12 +322,11 @@ public class MapController {
             }
         };
 
-        showRouteFinding = e -> {
-            view.getRouteDescription().getChildren().clear();
+        showRouteMenuAction = e -> {
             view.openRouteDescription();
         };
 
-        closeRouteMenu = e -> {
+        closeRouteMenuAction = e -> {
             view.getRouteMenu().setVisible(false);
         };
 
@@ -398,8 +375,8 @@ public class MapController {
         return colorToggleAction;
     }
     
-    public EventHandler<ActionEvent> getSearchActionDijkstra() {
-        return searchActionDijkstra;
+    public EventHandler<ActionEvent> getSearchDijkstraAction() {
+        return searchDijkstraAction;
     }
 
     public EventHandler<MouseEvent> getRoadFinderAction() {
@@ -410,12 +387,12 @@ public class MapController {
         return routeEdges;
     }
 
-    public EventHandler<ActionEvent> getShowRouteFinding() {
-        return showRouteFinding;
+    public EventHandler<ActionEvent> getShowRouteMenuAction() {
+        return showRouteMenuAction;
     }
 
-    public EventHandler<ActionEvent> getCloseRouteMenu() {
-        return closeRouteMenu;
+    public EventHandler<ActionEvent> getCloseRouteMenuAction() {
+        return closeRouteMenuAction;
     }
 
     public EventHandler<MouseEvent> getNearestToggleAction() {

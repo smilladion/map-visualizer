@@ -1,3 +1,8 @@
+.root { 
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
 .button {
     -fx-background-color: #335c81, linear-gradient(#335c81, #274060);
     -fx-background-radius: 5px;
@@ -48,9 +53,8 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 0.2, 0.0, 0.0, 2);
 }
 
-/*.radio-button {
+.radio-button {
     -fx-font-family: "Roboto";
-    -fx-focus-traversable: false;
 }
 
 .radio-button .radio {
@@ -69,7 +73,7 @@
 .radio-button:selected .radio .dot {
     -fx-background-color: #274060;
     -fx-background-insets: 0;
-}*/
+}
 
 #closestRoad {
     -fx-font-size: 12px;
@@ -82,6 +86,36 @@
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-padding: 0 19 10;
+}
+
+#timeLabel {
+    -fx-font-size: 13px;
+    -fx-text-fill: #274060;
+    -fx-padding: 0 0 3;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+    -fx-border-color: #274060;
+    -fx-border-width: 0 0 1 0;
+}
+
+#routeDescription {
+    -fx-padding: 5;
+}
+
+#closeRoute {
+    -fx-font: 12px "Roboto";
+    -fx-padding: 5 15 5 15;
+    -fx-spacing: 5 0 0 0;
+}
+
+#routeMenu {
+    -fx-padding: 5;
+}
+
+.scroll-pane {
+    -fx-background-color: white;
+    -fx-border-width: 2px;
+    -fx-border-color: #274060;
 }
 
 .menu-bar {

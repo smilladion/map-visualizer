@@ -12,7 +12,7 @@ public class Point implements Drawable, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final double SIZE = 0.85;
+    private static final double SIZE = 0.65;
 
     private final double x;
     private final double y;
@@ -82,5 +82,3 @@ public class Point implements Drawable, Serializable {
         return isEmpty;
     }
 }
-
-

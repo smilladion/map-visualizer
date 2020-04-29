@@ -258,17 +258,8 @@ public class OSMMap implements Serializable {
                             }
 
                         } else if (key.equals("maxspeed")) {
-                            if (value.equals("DK:urban")) {
-                                speed = speed;
-                            } else if (value.equals("signal")) {
-                                speed = speed;
-                            } else {
-                                try {
-                                    speed = Integer.parseInt(value);
-                                } catch (Exception e) {
-                                    System.out.println("Kunne ikke parse int");
-                                    speed = speed;
-                                }
+                            if (!value.equals("DK:urban") && !value.equals("signals")) {
+                                speed = Integer.parseInt(value);
                             }
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;

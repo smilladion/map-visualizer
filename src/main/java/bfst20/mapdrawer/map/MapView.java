@@ -1,6 +1,7 @@
 package bfst20.mapdrawer.map;
 
-import bfst20.mapdrawer.dijkstra.*;
+import bfst20.mapdrawer.dijkstra.DirectedEdge;
+import bfst20.mapdrawer.dijkstra.RouteDescription;
 import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
@@ -14,7 +15,6 @@ import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -27,7 +27,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.FillRule;
-import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.Stage;
@@ -36,7 +35,6 @@ import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class MapView {
@@ -53,8 +51,6 @@ public class MapView {
     private final Menu fileMenu = new Menu("Fil");
     private final Menu optionsMenu = new Menu("Indstillinger");
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
-    private final MenuItem showRouteDescription = new MenuItem("Åben Rutefindings Menu");
-
 
     private final TextField toSearchField = new TextField();
     private final TextField fromSearchField = new TextField();
@@ -73,18 +69,17 @@ public class MapView {
 
     private final List<Line> lineExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
+    private final List<Drawable> routeDrawables = new ArrayList<>(); // Calculated route between two points
     private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
 
-    private VBox routeDescription = new VBox(); //Empty VBox gets filled with Labels from routedescription
-    private Button closeRouteMenu = new Button("Luk");
-    private Button reloadRoute = new Button("Opdatér rute");
-    private HBox routeDescriptionTopBar = new HBox(reloadRoute, closeRouteMenu);
-    private ScrollPane scrollPane = new ScrollPane(routeDescription);
-    private VBox routeMenu = new VBox(routeDescriptionTopBar, scrollPane);
+    private final VBox routeDescription = new VBox(); // Empty VBox gets filled with Labels from RouteDescription
+    private final Button closeRouteButton = new Button("✕");
+    private final ScrollPane scrollPane = new ScrollPane(routeDescription);
+    private final VBox routeMenu = new VBox(closeRouteButton, scrollPane);
 
     private Point pointOfInterest = new Point();
 
-    public MapView(OSMMap model, Stage window) throws NoAddressMatchException {
+    public MapView(OSMMap model, Stage window) {
 
         this.model = model;
         controller = new MapController(model, this, window);
@@ -159,12 +154,14 @@ public class MapView {
         HBox routeType = new HBox(car, bike, walk);
         routeType.setAlignment(Pos.TOP_CENTER);
         routeType.setSpacing(20.0);
+        routeType.setPickOnBounds(false);
 
         // The upper row for address searching.
         HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, savePointButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(10.0));
+        searchRow.setPickOnBounds(false);
 
         // The search row and types of route put together vertically.
         VBox searchUI = new VBox(searchRow, routeType);
@@ -184,13 +181,26 @@ public class MapView {
         toggles.setPickOnBounds(false);
         rootPane.getChildren().add(toggles);
 
+        // The box for the route description.
+        routeMenu.setMaxSize(300, 550);
+        routeMenu.setPickOnBounds(false);
+        routeMenu.setVisible(false);
+        routeMenu.setSpacing(3);
+        
+        routeDescription.setId("routeDescription");
+        closeRouteButton.setId("closeRoute");
+        routeMenu.setId("routeMenu");
+
+        rootPane.setAlignment(Pos.CENTER_LEFT);
+        rootPane.getChildren().add(routeMenu);
+
         // All of the events and listeners from the controller, attached to UI elements.
         myPointsToggle.setOnMouseClicked(controller.getToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
 
-        toSearchField.setOnAction(controller.getSearchActionDijkstra());
-        fromSearchField.setOnAction(controller.getSearchActionDijkstra());
+        toSearchField.setOnAction(controller.getSearchDijkstraAction());
+        fromSearchField.setOnAction(controller.getSearchDijkstraAction());
         savePointButton.setOnAction(controller.getSaveAddressAction());
         clearButton.setOnAction(controller.getClearAction());
 
@@ -199,34 +209,18 @@ public class MapView {
 
         showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
 
-        car.setOnAction(controller.getSearchActionDijkstra());
-        bike.setOnAction(controller.getSearchActionDijkstra());
-        walk.setOnAction(controller.getSearchActionDijkstra());
-
-
-
+        car.setOnAction(controller.getSearchDijkstraAction());
+        bike.setOnAction(controller.getSearchDijkstraAction());
+        walk.setOnAction(controller.getSearchDijkstraAction());
+        
         canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
         canvas.setOnScroll(controller.getScrollAction());
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
+        closeRouteButton.setOnAction(controller.getCloseRouteMenuAction());
+
         Scene scene = new Scene(rootPane);
-
-        String styles = "-fx-border-color: transparent;" + "-fx-background-color: transparent;";
-        optionsMenu.getItems().add(showRouteDescription);
-        showRouteDescription.setOnAction(controller.getShowRouteFinding());
-        closeRouteMenu.setOnAction(controller.getCloseRouteMenu());
-        reloadRoute.setOnAction(controller.getShowRouteFinding());
-
-        routeMenu.setVisible(false);
-        routeMenu.setMaxSize(350, 550);
-        routeMenu.setStyle(styles);
-        routeMenu.setSpacing(20);
-
-        routeDescriptionTopBar.alignmentProperty().setValue(Pos.BOTTOM_CENTER);
-        routeDescriptionTopBar.setSpacing(20);
-        rootPane.alignmentProperty().setValue(Pos.CENTER_LEFT);
-        rootPane.getChildren().add(routeMenu);
 
         scene.getStylesheets().add("mapStyle.css");
 
@@ -256,8 +250,6 @@ public class MapView {
             zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
         }
         
-
-
         // Remove focus from search field on startup
         canvas.requestFocus();
     }
@@ -358,6 +350,11 @@ public class MapView {
                 }
             }
         }
+        
+        // Draw route
+        for (Drawable drawable : routeDrawables) {
+            drawable.draw(context);
+        }
 
         // Draw search results
         for (Drawable drawable : searchedDrawables) {
@@ -424,13 +421,6 @@ public class MapView {
         paintMap();
     }
 
-    public void createRouteDescription(LinkedList<DirectedEdge> edgeList) {
-
-        RouteDescription routeDescription = new RouteDescription(edgeList, model, this);
-        routeDescription.createRouteDescription();
-        openRouteDescription();
-    }
-
     public void paintSavedAddresses() throws NoSavedPointsException {
         if (savedPoints.isEmpty()) {
             throw new NoSavedPointsException();
@@ -445,42 +435,45 @@ public class MapView {
         context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
         
         for (DirectedEdge edge : edges) {
-            searchedDrawables.add(edge);
+            routeDrawables.add(edge);
             edge.draw(context);
+        }
+        
+        for (Drawable drawable : searchedDrawables) {
+            drawable.draw(context);
         }
     }
 
     public void openRouteDescription() {
+        routeDescription.getChildren().clear();
         routeMenu.setVisible(true);
-        VBox scrollRoutes = new VBox();
-        scrollRoutes.setSpacing(5);
-        routeDescription.getChildren().add(scrollRoutes);
+        routeDescription.setSpacing(5);
+        
         RouteDescription description = new RouteDescription(controller.getRouteEdges(), model, this);
         List<String> routeDescriptionList = description.createRouteDescription();
 
+        Label timeLabel = new Label(getRouteTime());
+        timeLabel.setId("timeLabel");
+        routeDescription.getChildren().add(timeLabel);
+
+        for (int i = 1; i <= routeDescriptionList.size(); i++) {
+            Label label = new Label();
+            label.setText(i + ": " + routeDescriptionList.get(i - 1));
+            routeDescription.getChildren().add(label);
+        }
+    }
+    
+    public String getRouteTime() {
         double distance = 0;
 
         for (DirectedEdge edge : controller.getRouteEdges()) {
-            distance = distance + (edge.getDistance());
+            distance = distance + edge.getDistance();
         }
 
         distance = distance * 10000;
         distance = Math.ceil(distance);
-
-        String time = ("Tid: " + distance + " min");
-
-        Label timeLabel = new Label();
-        timeLabel.setText(time);
-        scrollRoutes.getChildren().add(timeLabel);
-
-        int j = 1;
-
-        for(int i = 0; i < routeDescriptionList.size(); i++){
-            Label label = new Label();
-            label.setText(j + ": " + routeDescriptionList.get(i));
-            scrollRoutes.getChildren().add(label);
-            j++;
-        }
+        
+        return "Tid: " + distance + " min";
     }
 
     private void clearCanvas() {
@@ -593,5 +586,9 @@ public class MapView {
 
     public OSMMap getModel() {
         return model;
+    }
+
+    public List<Drawable> getRouteDrawables() {
+        return routeDrawables;
     }
 }
