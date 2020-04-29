@@ -91,9 +91,14 @@
 #timeLabel {
     -fx-font-size: 13px;
     -fx-text-fill: #274060;
-    -fx-padding: 0 0 3;
     -fx-font-weight: bold;
-    -fx-background-color: transparent;
+}
+
+#distanceLabel {
+    -fx-font-size: 13px;
+    -fx-text-fill: #274060;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 3 0;
     -fx-border-color: #274060;
     -fx-border-width: 0 0 1 0;
 }
@@ -105,7 +110,6 @@
 #closeRoute {
     -fx-font: 12px "Roboto";
     -fx-padding: 5 15 5 15;
-    -fx-spacing: 5 0 0 0;
 }
 
 #routeMenu {

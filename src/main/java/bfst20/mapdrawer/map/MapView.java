@@ -405,13 +405,13 @@ public class MapView {
                         searchedDrawables.add(new Point(node, transform));
                     }
                 }
-            } else if (addressTo != null && addressFrom != null) {
+            } else if (addressTo != null) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
                         searchedDrawables.add(new Point(node, transform));
                     }
                 }
-            } else if (addressFrom != null && addressTo == null) {
+            } else if (addressFrom != null) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().contains(addressFrom)) {
                         searchedDrawables.add(new Point(node, transform));
@@ -449,31 +449,21 @@ public class MapView {
         routeMenu.setVisible(true);
         routeDescription.setSpacing(5);
         
-        RouteDescription description = new RouteDescription(controller.getRouteEdges(), model, this);
+        RouteDescription description = new RouteDescription(controller.getRouteEdges(), model, this, controller);
         List<String> routeDescriptionList = description.createRouteDescription();
 
-        Label timeLabel = new Label(getRouteTime());
-        timeLabel.setId("timeLabel");
+        Label timeLabel = new Label(description.getRouteTime());
+        Label distanceLabel = new Label(description.getRouteDistance());
         routeDescription.getChildren().add(timeLabel);
+        routeDescription.getChildren().add(distanceLabel);
+        timeLabel.setId("timeLabel");
+        distanceLabel.setId("distanceLabel");
 
         for (int i = 1; i <= routeDescriptionList.size(); i++) {
             Label label = new Label();
             label.setText(i + ": " + routeDescriptionList.get(i - 1));
             routeDescription.getChildren().add(label);
         }
-    }
-    
-    public String getRouteTime() {
-        double distance = 0;
-
-        for (DirectedEdge edge : controller.getRouteEdges()) {
-            distance = distance + edge.getDistance();
-        }
-
-        distance = distance * 10000;
-        distance = Math.ceil(distance);
-        
-        return "Tid: " + distance + " min";
     }
 
     private void clearCanvas() {
