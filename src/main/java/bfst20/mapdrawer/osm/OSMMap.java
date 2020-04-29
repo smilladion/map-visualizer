@@ -13,13 +13,14 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
 public class OSMMap implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<String> addressList = new ArrayList<>();
+    private List<String> addressList = new ArrayList<>();
     private final List<OSMNode> addressNodes = new ArrayList<>();
 
     private final float minLat;
@@ -168,6 +169,9 @@ public class OSMMap implements Serializable {
             map.typeToTree.put(Type.COASTLINE, new KdTree(map.islands));
             
             map.routeGraph = new Graph(map.nodeNumber + 1, highways);
+            
+            // Remove duplicate strings from the list of addresses
+            map.addressList = map.addressList.stream().distinct().collect(Collectors.toList());
         }
 
         return map;

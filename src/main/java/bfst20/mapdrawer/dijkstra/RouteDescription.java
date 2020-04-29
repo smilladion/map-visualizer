@@ -154,7 +154,13 @@ public class RouteDescription {
         }
 
         if (timeInHours < 1) {
-            return "Tid: " + (int) (timeInHours * 60) + " min";
+            double minutes = timeInHours * 60;
+            
+            if (minutes < 1) {
+                return "Tid: " + (int) (minutes * 60) + " sek";
+            }
+            
+            return "Tid: " + (int) minutes + " min";
         } else {
             int hours = (int) timeInHours;
             int minutes = (int) ((timeInHours - hours) * 60);

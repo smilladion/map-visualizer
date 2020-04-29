@@ -46,7 +46,6 @@ public class MapController {
     private final EventHandler<ScrollEvent> scrollAction;
 
     private final EventHandler<ActionEvent> searchDijkstraAction;
-    private final EventHandler<ActionEvent> showRouteMenuAction;
     private final EventHandler<MouseEvent> roadFinderAction;
     private final EventHandler<ActionEvent> closeRouteMenuAction;
 
@@ -68,7 +67,10 @@ public class MapController {
             view.getToSearchField().setPromptText("Til...");
             view.getFromSearchField().setPromptText("Fra...");
             view.getSearchedDrawables().clear();
+            view.getRouteDrawables().clear();
             view.setPointOfInterest(new Point());
+            view.getRouteMenu().setVisible(false);
+            
             try {
                 view.paintPoints(null, null, true);
             } catch (NoAddressMatchException ex) {
@@ -322,10 +324,6 @@ public class MapController {
             }
         };
 
-        showRouteMenuAction = e -> {
-            view.openRouteDescription();
-        };
-
         closeRouteMenuAction = e -> {
             view.getRouteMenu().setVisible(false);
         };
@@ -385,10 +383,6 @@ public class MapController {
 
     public LinkedList<DirectedEdge> getRouteEdges() {
         return routeEdges;
-    }
-
-    public EventHandler<ActionEvent> getShowRouteMenuAction() {
-        return showRouteMenuAction;
     }
 
     public EventHandler<ActionEvent> getCloseRouteMenuAction() {

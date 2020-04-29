@@ -401,20 +401,36 @@ public class MapView {
                 throw new NoAddressMatchException();
             } else if (addressFrom == null && addressTo != null) {
                 for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().contains(addressTo)) {
+                    if (node.getAddress().equals(addressTo)) {
                         searchedDrawables.add(new Point(node, transform));
+                        break;
                     }
                 }
             } else if (addressTo != null) {
+                boolean to = false;
+                boolean from = false;
+                
                 for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().equals(addressTo) || node.getAddress().equals(addressFrom)) {
+                    
+                    if (node.getAddress().equals(addressTo)) {
                         searchedDrawables.add(new Point(node, transform));
+                        to = true;
+                    }
+                    
+                    if (node.getAddress().equals(addressFrom)) {
+                        searchedDrawables.add(new Point(node, transform));
+                        from = true;
+                    }
+                    
+                    if (to && from) {
+                        break;
                     }
                 }
             } else if (addressFrom != null) {
                 for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().contains(addressFrom)) {
+                    if (node.getAddress().equals(addressFrom)) {
                         searchedDrawables.add(new Point(node, transform));
+                        break;
                     }
                 }
             }
