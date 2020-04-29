@@ -120,6 +120,7 @@
     -fx-background-color: white;
     -fx-border-width: 2px;
     -fx-border-color: #274060;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0.0, 0, 1);
 }
 
 .menu-bar {
