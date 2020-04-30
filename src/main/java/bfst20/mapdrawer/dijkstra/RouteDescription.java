@@ -4,7 +4,6 @@ import bfst20.mapdrawer.map.MapController;
 import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.geometry.Point2D;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

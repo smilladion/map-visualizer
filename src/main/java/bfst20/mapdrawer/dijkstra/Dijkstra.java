@@ -30,7 +30,6 @@ public class Dijkstra implements Serializable{
         pq.insert(s, 0.0);
 
         while (!pq.isEmpty()) {
-
             relax(g, pq.delMin(), vehicle);
         }
     }

@@ -458,7 +458,7 @@ public class OSMMap implements Serializable {
     }
 
     public static OSMMap loadBinary(File file) throws IOException {
-        OSMMap map = null;
+        OSMMap map;
         try (var in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             map = (OSMMap) in.readObject();
         } catch (ClassNotFoundException e) {

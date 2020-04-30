@@ -394,47 +394,25 @@ public class MapView {
         pointOfInterest.draw(context);
     }
 
-    public void paintPoints(String addressTo, String addressFrom, boolean onPurposeNull) throws NoAddressMatchException {
+    public void paintPoints(OSMNode nodeTo, OSMNode nodeFrom) throws NoAddressMatchException {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
-            if (addressFrom == null && addressTo == null && !onPurposeNull) {
-                throw new NoAddressMatchException();
-            } else if (addressFrom == null && addressTo != null) {
-                for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().equals(addressTo)) {
-                        searchedDrawables.add(new Point(node, transform));
-                        break;
-                    }
-                }
-            } else if (addressTo != null) {
-                boolean to = false;
-                boolean from = false;
-                
-                for (OSMNode node : model.getAddressNodes()) {
-                    
-                    if (node.getAddress().equals(addressTo)) {
-                        searchedDrawables.add(new Point(node, transform));
-                        to = true;
-                    }
-                    
-                    if (node.getAddress().equals(addressFrom)) {
-                        searchedDrawables.add(new Point(node, transform));
-                        from = true;
-                    }
-                    
-                    if (to && from) {
-                        break;
-                    }
-                }
-            } else if (addressFrom != null) {
-                for (OSMNode node : model.getAddressNodes()) {
-                    if (node.getAddress().equals(addressFrom)) {
-                        searchedDrawables.add(new Point(node, transform));
-                        break;
-                    }
-                }
-            }
-        paintMap();
+        
+        if (nodeTo == null && nodeFrom == null) {
+            throw new NoAddressMatchException();
+        } else if (nodeTo != null && nodeFrom == null) {
+            searchedDrawables.add(new Point(nodeTo, transform));
+            paintMap();
+            throw new NoAddressMatchException();
+        } else if (nodeTo == null) {
+            searchedDrawables.add(new Point(nodeFrom, transform));
+            paintMap();
+            throw new NoAddressMatchException();
+        } else {
+            searchedDrawables.add(new Point(nodeTo, transform));
+            searchedDrawables.add(new Point(nodeFrom, transform));
+            paintMap();
+        }
     }
 
     public void paintSavedAddresses() throws NoSavedPointsException {
