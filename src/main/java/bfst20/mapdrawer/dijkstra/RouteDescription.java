@@ -114,7 +114,7 @@ public class RouteDescription {
         return routeDescriptionList;
     }
 
-    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
+    public static double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
 
         double dot = vectorFrom.dotProduct(vectorTo);
         double lengthFrom = (Math.sqrt(((vectorFrom.getX()) * (vectorFrom.getX())) + ((vectorFrom.getY()) * (vectorFrom.getY()))));
