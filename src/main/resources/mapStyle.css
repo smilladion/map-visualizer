@@ -62,6 +62,7 @@
     -fx-border-width: 1px;
     -fx-border-radius: 10px;
     -fx-background-insets: 0;
+    -fx-padding: 5;
 }
 
 .radio-button:selected .radio {

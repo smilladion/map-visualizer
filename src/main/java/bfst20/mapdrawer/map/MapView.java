@@ -22,6 +22,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -36,6 +37,7 @@ import org.controlsfx.control.textfield.TextFields;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MapView {
 
@@ -59,9 +61,10 @@ public class MapView {
 
     private final Label closestRoad = new Label();
 
-    private final RadioButton car = new RadioButton("Bil");
-    private final RadioButton bike = new RadioButton("Cykel");
-    private final RadioButton walk = new RadioButton("Gå");
+    private final RadioButton car = new RadioButton();
+    private final RadioButton bike = new RadioButton();
+    private final RadioButton walk = new RadioButton();
+    private final RadioButton helicopter = new RadioButton();
 
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch();
@@ -149,9 +152,15 @@ public class MapView {
         car.setToggleGroup(radioGroup);
         bike.setToggleGroup(radioGroup);
         walk.setToggleGroup(radioGroup);
+        helicopter.setToggleGroup(radioGroup);
         car.setSelected(true);
+        
+        bike.setGraphic(new ImageView(new Image("file:src/main/resources/bike.png")));
+        car.setGraphic(new ImageView(new Image("file:src/main/resources/car.png")));
+        walk.setGraphic(new ImageView(new Image("file:src/main/resources/walk.png")));
+        helicopter.setGraphic(new ImageView(new Image("file:src/main/resources/helicopter.png")));
 
-        HBox routeType = new HBox(car, bike, walk);
+        HBox routeType = new HBox(car, bike, walk, helicopter);
         routeType.setAlignment(Pos.TOP_CENTER);
         routeType.setSpacing(20.0);
         routeType.setPickOnBounds(false);
@@ -212,6 +221,7 @@ public class MapView {
         car.setOnAction(controller.getSearchDijkstraAction());
         bike.setOnAction(controller.getSearchDijkstraAction());
         walk.setOnAction(controller.getSearchDijkstraAction());
+        helicopter.setOnAction(controller.getSearchDijkstraAction());
         
         canvas.setOnMouseClicked(controller.getClickAction());
         canvas.setOnMouseDragged(controller.getPanAction());
@@ -554,6 +564,10 @@ public class MapView {
     }
     public RadioButton getWalk() {
         return walk;
+    }
+    
+    public RadioButton getHelicopter() {
+        return helicopter;
     }
 
     public Affine getTransform() {

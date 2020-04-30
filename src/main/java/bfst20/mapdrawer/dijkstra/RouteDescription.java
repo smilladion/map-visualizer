@@ -107,6 +107,12 @@ public class RouteDescription {
                 }
             }
         }
+
+        if (view.getHelicopter().isSelected()) {
+            String s = "Flyv ligeud";
+            routeDescriptionList.add(s);
+        }
+        
         String destination = ("Ankommet til destination: " + System.lineSeparator() + view.getToSearchField().getCharacters());
         routeDescriptionList.add(destination);
 
@@ -149,6 +155,8 @@ public class RouteDescription {
                 timeInHours += distance / 16;
             } else if (view.getWalk().isSelected()) {
                 timeInHours += distance / 5;
+            } else if (view.getHelicopter().isSelected()) {
+                timeInHours += distance / 200;
             }
         }
 

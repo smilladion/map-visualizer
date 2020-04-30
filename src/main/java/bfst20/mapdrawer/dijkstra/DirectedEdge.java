@@ -40,6 +40,23 @@ public class DirectedEdge implements Serializable, Drawable {
         this.x2 = x2;
         this.y2 = y2;
     }
+    
+    // Only used for helicopter route
+    public DirectedEdge(double distance, float x1, float y1, float x2, float y2) {
+        this.from = -1;
+        this.to = -1;
+        this.speed = -1;
+        this.distance = distance;
+        this.bike = false;
+        this.walk = false;
+        this.car = false;
+        this.roundabout = false;
+        this.road = null;
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+    }
 
     public int from() {
         return from;

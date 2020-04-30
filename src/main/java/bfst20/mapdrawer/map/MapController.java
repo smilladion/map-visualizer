@@ -2,6 +2,7 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.dijkstra.*;
+import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.exceptions.NoAddressMatchException;
 import bfst20.mapdrawer.exceptions.NoPointChosenException;
@@ -150,6 +151,15 @@ public class MapController {
                 if (!routeEdges.isEmpty()) {
                     routeEdges.clear();
                 }
+
+                if (view.getHelicopter().isSelected()) {
+                    DirectedEdge route = new DirectedEdge(nodeFrom.distance(nodeTo), nodeFrom.getLon(), nodeFrom.getLat(), nodeTo.getLon(), nodeTo.getLat());
+                    routeEdges.add(route);
+                    view.paintRoute(routeEdges);
+                    view.openRouteDescription();
+                    return;
+                }
+                
                 Vehicle vehicle;
 
                 if (view.getCar().isSelected()) {
