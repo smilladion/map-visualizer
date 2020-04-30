@@ -54,17 +54,17 @@ public enum Type {
 
     // roads
     HIGHWAY("highway", "highway", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
-    MOTORWAY("highway", "motorway", Color.SALMON, Color.DARKGREY, false, 4, 450),
-    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, Color.DARKGREY, false, 4, 450),
-    PRIMARY("highway", "primary", Color.LIGHTPINK, Color.DARKGREY, false, 4, 450),
-    PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, Color.DARKGREY, false, 4, 450),
-    SECONDARY("highway", "secondary", Color.BISQUE, Color.DARKGREY, false, 4, 450),
-    SECONDAY_LINK("highway", "seconday", Color.BISQUE, Color.DARKGREY, false, 3, 450),
-    TERTIARY("highway", "tertiary", Color.GAINSBORO, Color.DARKGREY, false, 4, 6000),
+    MOTORWAY("highway", "motorway", Color.MOCCASIN, Color.DARKGREY, false, 4, 350),
+    MOTORWAY_LINK("highway", "motorway_link", Color.MOCCASIN, Color.DARKGREY, false, 4, 6000),
+    PRIMARY("highway", "primary", Color.MOCCASIN, Color.DARKGREY, false, 3, 350),
+    PRIMARY_LINK("highway", "primary_link", Color.MOCCASIN, Color.DARKGREY, false, 3, 6000),
+    SECONDARY("highway", "secondary", Color.NAVAJOWHITE, Color.DARKGREY, false, 2.7, 1000),
+    SECONDAY_LINK("highway", "seconday", Color.NAVAJOWHITE, Color.DARKGREY, false, 2.7, 1000),
+    TERTIARY("highway", "tertiary", Color.GAINSBORO, Color.DARKGREY, false, 3, 6000),
     TERTIARY_LINK("highway", "tertiary_link", Color.GAINSBORO, Color.DARKGREY, false, 3, 6000),
     UNCLASSIFIED("highway", "unclassified", Color.GAINSBORO, Color.DARKGREY, false, 3, 10000),
-    RESIDENTIAL_ROAD("highway", "residential", Color.GAINSBORO, Color.DARKGREY, false, 2, 18000),
-    LIVING_STREET("highway", "living_street", Color.GAINSBORO, Color.DARKGREY, false, 2, 30000),
+    RESIDENTIAL_ROAD("highway", "residential", Color.GAINSBORO, Color.DARKGREY, false, 3, 18000),
+    LIVING_STREET("highway", "living_street", Color.GAINSBORO, Color.DARKGREY, false, 3, 30000),
     SERVICE("highway", "service", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
     PEDESTRIAN("highway", "pedestrian", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
     TRACK("highway", "track", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
@@ -81,11 +81,11 @@ public enum Type {
     private final boolean fill;
     // For relations and types that should be filled lineWidth = 0
     // For ways that should be drawn with different widths a lineWidth can be specified. 1 is the narrowest.
-    private final int lineWidth;
+    private final double lineWidth;
     // zoomLevel 0 is the baseline and will always be drawn, larger numbers = larger (closer) zoomLevel
     private final int zoom;
 
-    Type(String key, String value, Paint color, Paint alternateColor, boolean fill, int lineWidth, int zoom) {
+    Type(String key, String value, Paint color, Paint alternateColor, boolean fill, double lineWidth, int zoom) {
         this.key = key;
         this.value = value;
         this.color = color;
@@ -135,7 +135,7 @@ public enum Type {
         return value;
     }
 
-    public int getLineWidth() {
+    public double getLineWidth() {
         return lineWidth;
     }
 
