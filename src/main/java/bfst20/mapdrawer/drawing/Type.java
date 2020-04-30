@@ -54,12 +54,12 @@ public enum Type {
 
     // roads
     HIGHWAY("highway", "highway", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
-    MOTORWAY("highway", "motorway", Color.SALMON, Color.DARKGREY, false, 4, 1000),
-    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, Color.DARKGREY, false, 4, 1000),
-    PRIMARY("highway", "primary", Color.LIGHTPINK, Color.DARKGREY, false, 4, 1000),
-    PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, Color.DARKGREY, false, 4, 1000),
-    SECONDARY("highway", "secondary", Color.BISQUE, Color.DARKGREY, false, 4, 1000),
-    SECONDAY_LINK("highway", "seconday", Color.BISQUE, Color.DARKGREY, false, 3, 1000),
+    MOTORWAY("highway", "motorway", Color.SALMON, Color.DARKGREY, false, 4, 450),
+    MOTORWAY_LINK("highway", "motorway_link", Color.SALMON, Color.DARKGREY, false, 4, 450),
+    PRIMARY("highway", "primary", Color.LIGHTPINK, Color.DARKGREY, false, 4, 450),
+    PRIMARY_LINK("highway", "primary_link", Color.LIGHTPINK, Color.DARKGREY, false, 4, 450),
+    SECONDARY("highway", "secondary", Color.BISQUE, Color.DARKGREY, false, 4, 450),
+    SECONDAY_LINK("highway", "seconday", Color.BISQUE, Color.DARKGREY, false, 3, 450),
     TERTIARY("highway", "tertiary", Color.GAINSBORO, Color.DARKGREY, false, 4, 6000),
     TERTIARY_LINK("highway", "tertiary_link", Color.GAINSBORO, Color.DARKGREY, false, 3, 6000),
     UNCLASSIFIED("highway", "unclassified", Color.GAINSBORO, Color.DARKGREY, false, 3, 10000),
