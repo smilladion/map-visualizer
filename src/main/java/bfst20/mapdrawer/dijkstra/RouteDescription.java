@@ -93,10 +93,10 @@ public class RouteDescription {
                             routeDescriptionList.add(continueForwardTwo);
                         }
                     } else if (angle < 20) {
-                        if (ccw < 0) {
+                        if (ccw > 0) {
                             String turnHardRight = ("Drej skarpt til højre ad " + nextRoad);
                             routeDescriptionList.add(turnHardRight);
-                        } else if (ccw > 0) {
+                        } else if (ccw < 0) {
                             String turnHardLeft = ("Drej skarpt til venstre ad " + nextRoad);
                             routeDescriptionList.add(turnHardLeft);
                         }
@@ -119,7 +119,7 @@ public class RouteDescription {
         return routeDescriptionList;
     }
 
-    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
+    public static double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
 
         double dot = vectorFrom.dotProduct(vectorTo);
         double lengthFrom = (Math.sqrt(((vectorFrom.getX()) * (vectorFrom.getX())) + ((vectorFrom.getY()) * (vectorFrom.getY()))));
