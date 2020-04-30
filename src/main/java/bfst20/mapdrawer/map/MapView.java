@@ -34,6 +34,7 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -358,8 +359,8 @@ public class MapView {
                 if (model.getTypeToTree().containsKey(type)) {
                     for (NodeProvider p : model.getTypeToTree().get(type).search(
                             new Rectangle((float) topLeft.getX(), (float) topLeft.getY(), (float) bottomRight.getX(), (float) bottomRight.getY()))) {
-                        if (type == Type.COASTLINE) {
-                            skipInvisibleCoastlines(p);
+                        if (p instanceof OSMWay) {
+                            skipInvisibleWays((OSMWay) p);
                         } else {
                             p.draw(context);
                         }
@@ -499,26 +500,26 @@ public class MapView {
     }
 
     /** 
-     * Draws a coastline - but skips drawing a line from it 
-     * if the line's length is less than the length of two pixels.
+     * Draws a way - but skips drawing a line from it if the line's 
+     * length is less than the length of a pixel.
      * */
-    private void skipInvisibleCoastlines(NodeProvider provider) {
-        if (provider instanceof OSMWay) {
-            OSMWay way = (OSMWay) provider;
-            OSMNode previousNode = way.getNodes().get(0);
+    private void skipInvisibleWays(OSMWay way) {
+        OSMNode previousNode = way.getNodes().get(0);
 
-            context.beginPath();
-            context.moveTo(previousNode.getLon(), previousNode.getLat());
+        context.beginPath();
+        context.moveTo(previousNode.getLon(), previousNode.getLat());
 
-            for (OSMNode node : way.getNodes().subList(1, way.getNodes().size())) {
-                if (node.distance(previousNode) > getLatPerPixel() * 2) {
-                    context.lineTo(node.getLon(), node.getLat());
+        for (OSMNode node : way.getNodes().subList(1, way.getNodes().size())) {
+            if (node.distance(previousNode) > getLatPerPixel()) {
+                context.lineTo(node.getLon(), node.getLat());
 
-                    previousNode = node;
-                }
+                previousNode = node;
             }
+        }
 
-            context.stroke();
+        context.stroke();
+        
+        if (way.getType().shouldBeFilled()) {
             context.fill();
         }
     }

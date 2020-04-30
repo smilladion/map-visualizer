@@ -5,6 +5,7 @@ import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.KdTree;
 import bfst20.mapdrawer.util.SortedList;
 import javafx.scene.control.Alert;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -271,18 +272,15 @@ public class OSMMap implements Serializable {
                             if (Type.containsType(value)) {
                                 type = Type.getType(value);
                             }
-
                         } else if (key.equals("maxspeed")) {
-                            if (!value.equals("DK:urban") && !value.equals("signals")) {
+                            try {
                                 speed = Integer.parseInt(value);
+                            } catch (Exception e) {
+                                continue;
                             }
                         } else if (key.equals("name") && "highway".equals(type.getKey())) {
                             road = value;
-
-                        } else if (key.equals("route")) {
-                            if (value.equals("ferry")) {
-                                speed = 80;
-                            }
+                            
                         } else if (key.equals("junction")) {
                             if (value.equals("roundabout")) {
                                 onewayBike = true;
@@ -298,7 +296,7 @@ public class OSMMap implements Serializable {
                                 onewayBike = true;
                                 onewayCar = true;
                             }
-                        } else if (Type.containsType(value)) {
+                        } else if (Type.containsType(value) && !key.equals("ferry") && !key.equals("disused:ferry")) {
                             type = Type.getType(value);
 
                             if (type == Type.COASTLINE) {
