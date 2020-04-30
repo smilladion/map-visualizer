@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.dijkstra;
 
+/** Routes of type walk. */
 public class Walk implements Vehicle {
 
     @Override
@@ -19,9 +20,6 @@ public class Walk implements Vehicle {
 
     @Override
     public boolean isSameVehicleAs(Vehicle vehicle) {
-        if (vehicle.isWalk()) {
-            return true;
-        }
-        return false;
+        return vehicle.isWalk();
     }
 }

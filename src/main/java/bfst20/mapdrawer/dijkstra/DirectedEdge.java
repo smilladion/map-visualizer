@@ -1,15 +1,19 @@
 package bfst20.mapdrawer.dijkstra;
 
-import java.io.Serializable;
-
 import bfst20.mapdrawer.drawing.Drawable;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import java.io.Serializable;
 
+/**
+ * A one-way line from one point to another on the map. Also contains different 
+ * information about this edge, corresponding to the OSMWay it was created from.
+ * Used for route finding.
+ */
 public class DirectedEdge implements Serializable, Drawable {
 
     private static final long serialVersionUID = 1L;
-    
+
     private final int from;
     private final int to;
     private final double speed;
@@ -23,7 +27,6 @@ public class DirectedEdge implements Serializable, Drawable {
     private final float y1;
     private final float x2;
     private final float y2;
-
 
     public DirectedEdge(int from, int to, double speed, double distance, boolean bike, boolean walk, boolean car, boolean roundabout, String road, float x1, float y1, float x2, float y2) {
         this.from = from;
@@ -40,8 +43,8 @@ public class DirectedEdge implements Serializable, Drawable {
         this.x2 = x2;
         this.y2 = y2;
     }
-    
-    // Only used for helicopter route
+
+    /** Only used for the helicopter route. */
     public DirectedEdge(double distance, float x1, float y1, float x2, float y2) {
         this.from = -1;
         this.to = -1;
@@ -89,7 +92,7 @@ public class DirectedEdge implements Serializable, Drawable {
     public float getX2() {
         return x2;
     }
-    
+
     public double getY2() {
         return y2;
     }
@@ -109,10 +112,6 @@ public class DirectedEdge implements Serializable, Drawable {
     public boolean isRoundabout() {
         return roundabout;
     }
-
-    public String toString() {
-        return String.format("from: " + from + ", to: " + to);
-   }
 
     @Override
     public void draw(GraphicsContext gc) {

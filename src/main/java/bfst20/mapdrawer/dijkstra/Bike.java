@@ -1,5 +1,6 @@
 package bfst20.mapdrawer.dijkstra;
 
+/** Routes of type bike. */
 public class Bike implements Vehicle {
 
     @Override
@@ -19,9 +20,6 @@ public class Bike implements Vehicle {
 
     @Override
     public boolean isSameVehicleAs(Vehicle vehicle) {
-        if (vehicle.isBike()) {
-            return true;
-        }
-        return false;
+        return vehicle.isBike();
     }
 }

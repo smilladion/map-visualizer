@@ -2,31 +2,21 @@ package bfst20.mapdrawer.drawing;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This enum class specifies all the different types of ways/relations that
+ * we are drawing on the map, and their attributes. The type is read from the OSM
+ * file and set to the specific way/relation in OSMMap.
+ */
 public enum Type {
 
     // First type (unknown) will be drawn first, bottom type will be last.
-
     UNKNOWN(null, null, Color.LIGHTBLUE, Color.LIGHTGREY, false, 0, Integer.MAX_VALUE),
     COASTLINE("natural", "coastline", Color.LIGHTYELLOW, Color.WHITE, true, 0, Integer.MIN_VALUE),
-    //COMMERCIAL("landuse", "commercial", Color.LIGHTPINK, true, 0, 4000),
-    //CONSTRUCTION("landuse", "construction", Color.LIGHTGREY, true, 0, 4000),
-    //INDUSTRIAL("landuse", "industrial", Color.LIGHTGREY, true, 0, 4000),
-
-    // TODO: "residential" duplicate value, atm we just draw roads
-    //RESIDENTIAL("landuse", "residential", Color.LIGHTPINK, true, 0, 4000),
-
-    //RETAIL("landuse", "retail", Color.LIGHTPINK, true, 0, 4000),
-    //MILITARY("landuse", "military", Color.TOMATO, true, 0, 4000),
     ALLOTMENTS("landuse", "allotments", Color.LIGHTGREEN, Color.LIGHTGREY, true, 0, 18000),
     WETLAND("natural", "wetland", Color.DARKSEAGREEN, Color.DARKGREY, true, 0, 18000),
-
-    // TODO: Scuffed grass relations
-    //GRASS("landuse", "grass", Color.LAWNGREEN, true, 0, 18000),
-    
     FARMLAND("landuse", "farmland", Color.LIGHTGOLDENRODYELLOW, Color.GAINSBORO, true, 0, 40000),
     BROWNFIELD("landuse", "brownfield", Color.DARKKHAKI, Color.GAINSBORO, true, 0, 18000),
     LANDFILL("landuse", "landfill", Color.DARKKHAKI, Color.DIMGRAY, true, 0, 18000),
@@ -52,7 +42,7 @@ public enum Type {
     STREAM("waterway", "stream", Color.LIGHTBLUE, Color.SILVER, false, 2, 6000),
     PIER("man_made", "pier", Color.LIGHTGREY, Color.LIGHTGREY, false, 2, 18000),
 
-    // roads
+    // Roads
     HIGHWAY("highway", "highway", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
     MOTORWAY("highway", "motorway", Color.MOCCASIN, Color.DARKGREY, false, 4, 350),
     MOTORWAY_LINK("highway", "motorway_link", Color.MOCCASIN, Color.DARKGREY, false, 4, 6000),
@@ -72,17 +62,30 @@ public enum Type {
     SEARCHRESULT("highway", "searchresult", Color.RED, Color.RED, false, 3, 1000),
     BUILDING("building", "building", Color.DARKGREY, Color.GREY, true, 0, 80000);
 
-    // key should be exactly what is read from the 'key' field in a tag in the osm file eg. "landuse" or "natural"
+    private static final Map<String, Type> map;
+
+    // Initialise static HashMap with mappings from the Type's value to the Type itself.
+    // Used for lookup in containsType() method.
+    static {
+        map = new HashMap<>();
+
+        // Add every type and their value to the map.
+        for (Type type : Type.values()) {
+            map.put(type.value, type);
+        }
+    }
+
+    // Key should be exactly what is read from the 'key' field in a tag in the OSM file, eg. "landuse" or "natural".
     private final String key;
-    // value should be exactly what is read from the 'value' field in a tag in the osm file eg. "farmland" or "scrub"
+    // Value should be exactly what is read from the 'value' field in a tag in the OSM file, eg. "farmland" or "scrub".
     private final String value;
     private final Paint color;
     private final Paint alternateColor;
     private final boolean fill;
-    // For relations and types that should be filled lineWidth = 0
-    // For ways that should be drawn with different widths a lineWidth can be specified. 1 is the narrowest.
+    // For relations and types that should be filled, lineWidth = 0.
+    // For ways that should be drawn with different widths, a lineWidth can be specified.
     private final double lineWidth;
-    // zoomLevel 0 is the baseline and will always be drawn, larger numbers = larger (closer) zoomLevel
+    // zoom level 0 is the baseline and will always be drawn, larger numbers = larger (closer) zoom level.
     private final int zoom;
 
     Type(String key, String value, Paint color, Paint alternateColor, boolean fill, double lineWidth, int zoom) {
@@ -95,26 +98,13 @@ public enum Type {
         this.zoom = zoom;
     }
 
-    private static final Map<String, Type> map;
-
-    // Initialise static HashMap with mappings from the Type's value to the Type itself.
-    // Used for lookup in containsType() method.
-    static {
-        map = new HashMap<String, Type>();
-
-        // Add every type and their value to the map
-        for (Type type : Type.values()) {
-            map.put(type.value, type);
-        }
-    }
-
-    // If map contains a mapping for the specified value return true
-    // Used to check if Type class contains the given type in a <tag> element from osm file
+    /** If the Type enum class contains a mapping for the specified value, return true.
+    Used to check if it contains the given type in a <tag> element from osm file. */
     public static boolean containsType(String value) {
         return map.containsKey(value);
     }
 
-    // Return the Type object corresponding to given value
+    /** Return the Type element corresponding to the given value. */
     public static Type getType(String value) {
         return map.get(value);
     }
@@ -143,7 +133,7 @@ public enum Type {
         return fill;
     }
 
-    // If the type's zoom < transform.getMxx() returns true, draw
+    /** If the type's zoom level is less or equal to the one given, draw. */
     public boolean shouldPaint(double mxx) {
         return zoom <= mxx;
     }

@@ -4,9 +4,9 @@ import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.application.Application;
 import javafx.stage.Stage;
-
 import java.io.File;
 
+/** Class to launch our program through JavaFX. */
 public class Launcher extends Application {
     private static Stage primaryStage;
 

@@ -3,10 +3,9 @@ package bfst20.mapdrawer.drawing;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-
 import java.io.Serializable;
 
-
+/** This class is used to draw a simple line on the screen (used for UI elements). */
 public class Line implements Drawable, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,6 +38,7 @@ public class Line implements Drawable, Serializable {
         gc.stroke();
     }
     
+    /** Draws the line on the map and sets its width. */
     public void drawAndSetWidth(GraphicsContext gc, double width) {
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(width);

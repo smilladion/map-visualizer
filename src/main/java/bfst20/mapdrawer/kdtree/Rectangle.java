@@ -1,14 +1,11 @@
 package bfst20.mapdrawer.kdtree;
 
-import java.io.Serializable;
-
-import bfst20.mapdrawer.drawing.Drawable;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
-import javafx.geometry.Point2D;
-import javafx.scene.canvas.GraphicsContext;
+import java.io.Serializable;
 
-public class Rectangle implements Drawable, Serializable {
+/** This class stores coordinates for a simple rectangle, and is used for bounding boxes (kd-tree). */
+public class Rectangle implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -17,6 +14,7 @@ public class Rectangle implements Drawable, Serializable {
     private final float xmax;
     private final float ymax;
 
+    /** Creates a bounding box from four coordinates. */
     public Rectangle(float xmin, float ymin, float xmax, float ymax) {
         this.xmin = xmin;
         this.ymin = ymin;
@@ -24,7 +22,7 @@ public class Rectangle implements Drawable, Serializable {
         this.ymax = ymax;
     }
 
-    // Creates a bounding box for a way
+    /** Creates a bounding box from a way. */
     public Rectangle(OSMWay way) {
         float xMin = Float.MAX_VALUE;
         float xMax = -Float.MAX_VALUE;
@@ -44,23 +42,9 @@ public class Rectangle implements Drawable, Serializable {
         this.ymax = yMax;
     }
 
-    // Returns true for normal intersections (including bounds) and if one is fully contained within the other
+    /** Returns true for normal intersections (including bounds) and if one is fully contained within the other. */
     public boolean intersects(Rectangle rect) {
         return xmax >= rect.xmin && ymax >= rect.ymin && rect.xmax >= xmin && rect.ymax >= ymin;
-    }
-
-    // Returns true if this point is within the rectangle bounds
-    public boolean containsPoint(Point2D p) {
-        return p.getX() >= xmin && p.getX() <= xmax && p.getY() >= ymin && p.getY() <= ymax;
-    }
-
-    public Point2D getCenterPoint() {
-        return new Point2D((xmin + xmax) / 2.0, (ymin + ymax) / 2.0);
-    }
-
-    @Override
-    public void draw(GraphicsContext gc) {
-        gc.strokeRect(xmin, ymin, xmax - xmin, ymax - ymin);
     }
 
     public float getXmin() {

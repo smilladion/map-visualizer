@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * This class is used to create a route description from the chosen route 
+ * - this is accomplished by using createRouteDescription(). It also has other
+ * methods used for calculating time and distance of a route.
+ */
 public class RouteDescription {
     private final OSMMap model;
     private final MapView view;
@@ -31,7 +36,6 @@ public class RouteDescription {
         int roundaboutExit = 0;
 
         for (int i = 0; i < edgeList.size() - 1; i++) {
-
             DirectedEdge current = edgeList.get(i);
             DirectedEdge next = edgeList.get(i + 1);
 
@@ -57,20 +61,19 @@ public class RouteDescription {
                     roundaboutExit++;
                 }
             } else if (!currentRoad.equals(nextRoad)) {
-
                 if (roundaboutExit > 0) {
-                    String roundAbout = ("Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel");
+                    String roundAbout = "Ved rundkørslen, tag den " + roundaboutExit + ". afkørsel";
+                    routeDescriptionList.add(roundAbout);
                     roundaboutExit = 0;
                 } else {
-
-                    //the 3 points for ccw
+                    // The 3 points for ccw.
                     Point2D a = new Point2D(current.getX1(), current.getY1());
                     Point2D b = new Point2D(current.getX2(), current.getY2());
                     Point2D c = new Point2D(next.getX2(), next.getY2());
 
                     int ccw = ccw(a, b, c);
 
-                    //making the two edges into direction vectors.
+                    // Making the two edges into direction vectors.
                     Point2D vectorFrom = new Point2D(current.getX2() - current.getX1(), -(current.getY2() - current.getY1()));
                     Point2D vectorTo = new Point2D(next.getX2() - current.getX2(), -(next.getY2() - current.getY2()));
 
@@ -118,9 +121,9 @@ public class RouteDescription {
 
         return routeDescriptionList;
     }
-
-    public static double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
-
+    
+    // Calculates the angle between two vectors.
+    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
         double dot = vectorFrom.dotProduct(vectorTo);
         double lengthFrom = (Math.sqrt(((vectorFrom.getX()) * (vectorFrom.getX())) + ((vectorFrom.getY()) * (vectorFrom.getY()))));
         double lengthTo = (Math.sqrt(((vectorTo.getX()) * (vectorTo.getX())) + ((vectorTo.getY()) * (vectorTo.getY()))));
@@ -135,14 +138,15 @@ public class RouteDescription {
         return realAngle;
     }
 
-    //From algs4 library
-    public static int ccw(Point2D a, Point2D b, Point2D c) {
+    // From algs4 library.
+    private int ccw(Point2D a, Point2D b, Point2D c) {
         double area2 = (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY()) * (c.getX() - a.getX());
         if (area2 < 0) return -1;
         else if (area2 > 0) return +1;
         else return 0;
     }
 
+    /** Returns the time it takes to drive/cycle/walk the currently selected route. */
     public String getRouteTime() {
         double timeInHours = 0;
 
@@ -175,6 +179,7 @@ public class RouteDescription {
         }
     }
 
+    /** Returns the distance of the currently selected route. */
     public String getRouteDistance() {
         double totalDistanceMeters = 0;
 
@@ -187,9 +192,5 @@ public class RouteDescription {
         } else {
             return "Distance: " + (int) totalDistanceMeters + " m";
         }
-    }
-
-    public List<String> getRouteDescriptionList() {
-        return routeDescriptionList;
     }
 }

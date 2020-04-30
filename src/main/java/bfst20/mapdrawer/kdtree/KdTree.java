@@ -4,20 +4,19 @@ import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
-The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
-This makes it possible to have both ways and relations in the KdTree.
-Comparisons are made not using splitting lines like normal, but bounding boxes around each element.
-Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
+ * This class is used to filter out all elements outside the bounds of the screen, to increase performance.
+ * The tree takes in a list of NodeProviders, meaning classes that contain a drawable and a bounding box.
+ * This makes it possible to have both ways and relations in the KdTree.
+ * Comparisons are made not using splitting lines like normal, but bounding boxes around each element.
+ * Each KdNode in the tree contains a bounding box encompassing all of its children's bounding boxes.
  */
-
-public class KdTree implements Serializable{
+public class KdTree implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -53,15 +52,15 @@ public class KdTree implements Serializable{
 
         return new KdNode(median, vLeft, vRight);
     }
-    
+
+    /** Searches the tree with the specified range, returns a list of the providers (ways/relations) in the range. */
     public ArrayList<NodeProvider> search(Rectangle range) {
         ArrayList<NodeProvider> results = new ArrayList<>();
         search(results, root, range);
-        
+
         return results;
     }
     
-    /** Searches the tree with the specified range, returns a set of provider IDs (ways/relations) in the range. */
     private void search(ArrayList<NodeProvider> results, KdNode node, Rectangle range) {
         results.add(node.provider);
 
@@ -78,12 +77,12 @@ public class KdTree implements Serializable{
     public OSMWay nearest(double x, double y) {
         return nearest(root, new Point2D(x, y), new OSMWay());
     }
-    
-    // Only returns/checks ways that contain a road name - will need another method if we want to include all nodeproviders
+
+    // Only returns/checks ways that contain a road name.
     private OSMWay nearest(KdNode node, Point2D point, OSMWay nearest) {
         if (node.provider instanceof OSMWay && ((OSMWay) node.provider).getRoad() != null) {
             OSMWay current = (OSMWay) node.provider;
-            
+
             if (distance(point, nearest) > distance(point, current)) {
                 nearest = current;
             }
@@ -100,17 +99,18 @@ public class KdTree implements Serializable{
         return nearest;
     }
 
+    // Calculates the distance from a point to a way, based on the way's nodes.
     private float distance(Point2D point, OSMWay way) {
         if (way == null) {
             return Float.MAX_VALUE; // Distance is so big anything it is compared to will be smaller
         }
-        
+
         // Keeps track of the current best distance
         float bestDistance = Float.MAX_VALUE;
-        
+
         for (OSMNode node : way.getNodes()) {
             float distance = node.distanceSq(point);
-            
+
             if (bestDistance > distance) {
                 bestDistance = distance;
             }
@@ -119,9 +119,9 @@ public class KdTree implements Serializable{
         return bestDistance;
     }
 
+    /** Returns the node in a way that is closest to the given point. */
     public OSMNode nodeDistance(Point2D point, OSMWay way) {
         if (way == null) {
-            System.out.println("way was null");
             return null;
         }
 
@@ -137,39 +137,37 @@ public class KdTree implements Serializable{
                 bestNode = node;
             }
         }
-        if (bestNode == null) {
-            System.out.println("node was null");
-        }
+        
         return bestNode;
     }
 
-    public KdNode getRoot() {
-        return root;
-    }
-
-    public static class KdNode implements Serializable{
+    // KdTree contains elements of this class, and does calculations based on its contents.
+    private static class KdNode implements Serializable {
 
         private static final long serialVersionUID = 1L;
-        
+
         private final NodeProvider provider;
         private final Rectangle boundingBox;
         private final KdNode left;
         private final KdNode right;
 
-        private KdNode(NodeProvider provider, KdNode left, KdNode right) { // This is a normal node
+        // This is a normal node
+        private KdNode(NodeProvider provider, KdNode left, KdNode right) {
             this.provider = provider;
             this.left = left;
             this.right = right;
             this.boundingBox = createBoxFromChildren(this);
         }
 
-        private KdNode(NodeProvider way) { // This is a leaf node with no children
+        // This is a leaf node with no children
+        private KdNode(NodeProvider way) {
             this.provider = way;
             this.left = null;
             this.right = null;
             this.boundingBox = provider.getBoundingBox();
         }
 
+        // Creates a new bounding box encompassing all the node's children.
         private Rectangle createBoxFromChildren(KdNode node) {
             Rectangle midBox = node.provider.getBoundingBox();
             Rectangle leftBox = node.left == null ? midBox : node.left.boundingBox; // If left is null, set to midBox, otherwise set to box of left node

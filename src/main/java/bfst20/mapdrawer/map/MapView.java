@@ -34,24 +34,24 @@ import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * This creates the program window itself - and draws everything,
+ * the whole map plus UI elements, within. Interactions with these elements
+ * are handled by the MapController, and the data drawn comes from OSMMap.
+ */
 public class MapView {
 
     private final Affine transform = new Affine();
     private final MapController controller;
-    private OSMMap model;
+    private final OSMMap model;
 
     private final Canvas canvas;
     private final GraphicsContext context;
     private final StackPane rootPane;
 
-    private final MenuBar menuBar = new MenuBar();
-    private final Menu fileMenu = new Menu("Fil");
-    private final Menu optionsMenu = new Menu("Indstillinger");
     private final CheckMenuItem showKdTree = new CheckMenuItem("Vis KD-Træ");
 
     private final TextField toSearchField = new TextField();
@@ -66,7 +66,7 @@ public class MapView {
     private final RadioButton walk = new RadioButton();
     private final RadioButton helicopter = new RadioButton();
 
-    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // from the ControlsFX library
+    private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch();
     private final ToggleSwitch nearestToggle = new ToggleSwitch();
 
@@ -75,15 +75,14 @@ public class MapView {
     private final List<Drawable> routeDrawables = new ArrayList<>(); // Calculated route between two points
     private final List<Drawable> savedPoints = new ArrayList<>(); // Search results that have been saved
 
-    private final VBox routeDescription = new VBox(); // Empty VBox gets filled with Labels from RouteDescription
+    private Point pointOfInterest = new Point();
+
+    private final VBox routeDescription = new VBox(); // Empty VBox gets filled with labels from RouteDescription object
     private final Button closeRouteButton = new Button("✕");
     private final ScrollPane scrollPane = new ScrollPane(routeDescription);
     private final VBox routeMenu = new VBox(closeRouteButton, scrollPane);
 
-    private Point pointOfInterest = new Point();
-
     public MapView(OSMMap model, Stage window) {
-
         this.model = model;
         controller = new MapController(model, this, window);
 
@@ -97,12 +96,15 @@ public class MapView {
         rootPane = new StackPane(canvas); // StackPane makes sure UI elements can go on top of the map itself
 
         // The top menu and its items.
+        MenuBar menuBar = new MenuBar();
         VBox menuBox = new VBox(menuBar);
-        menuBox.setPickOnBounds(false);
+        menuBox.setPickOnBounds(false); // Transparent areas of the box are ignored - zoom/pan now works in those areas
 
         MenuItem loadFile = new MenuItem("Åbn...      (.zip, .osm, .bin)");
         MenuItem saveFile = new MenuItem("Gem...                      (.bin)");
 
+        Menu fileMenu = new Menu("Fil");
+        Menu optionsMenu = new Menu("Indstillinger");
         fileMenu.getItems().add(loadFile);
         fileMenu.getItems().add(saveFile);
         optionsMenu.getItems().add(showKdTree);
@@ -175,7 +177,7 @@ public class MapView {
         // The search row and types of route put together vertically.
         VBox searchUI = new VBox(searchRow, routeType);
         searchUI.setPadding(new Insets(25.0));
-        searchUI.setPickOnBounds(false); // Transparent areas of the HBox are ignored - zoom/pan now works in those areas
+        searchUI.setPickOnBounds(false);
 
         rootPane.getChildren().add(searchUI);
 
@@ -204,7 +206,7 @@ public class MapView {
         rootPane.getChildren().add(routeMenu);
 
         // All of the events and listeners from the controller, attached to UI elements.
-        myPointsToggle.setOnMouseClicked(controller.getToggleAction());
+        myPointsToggle.setOnMouseClicked(controller.getSavedToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
         nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
 
@@ -215,8 +217,6 @@ public class MapView {
 
         loadFile.setOnAction(controller.getLoadFileAction());
         saveFile.setOnAction(controller.getSaveFileAction());
-
-        showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
 
         car.setOnAction(controller.getSearchDijkstraAction());
         bike.setOnAction(controller.getSearchDijkstraAction());
@@ -230,8 +230,11 @@ public class MapView {
 
         closeRouteButton.setOnAction(controller.getCloseRouteMenuAction());
 
+        showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
+
         Scene scene = new Scene(rootPane);
 
+        // Adds CSS styling to the program
         scene.getStylesheets().add("mapStyle.css");
 
         window.setScene(scene);
@@ -260,16 +263,18 @@ public class MapView {
             zoomDisplay.setText(String.format("%.0f", getMetersPerPixels(80)) + " m");
         }
         
-        // Remove focus from search field on startup
+        // Remove focus from all UI on startup
         canvas.requestFocus();
     }
 
-    void pan(double dx, double dy) {
+    /** Pans the map to the correct values. */
+    public void pan(double dx, double dy) {
         transform.prependTranslation(dx, dy);
         paintMap();
     }
 
-    void zoom(double factor, double x, double y) {
+    /** Scales the map to the correct values. */
+    public void zoom(double factor, double x, double y) {
         transform.prependScale(factor, factor, x, y);
         
         if (getMetersPerPixels(80) >= 1000) {
@@ -281,20 +286,20 @@ public class MapView {
         paintMap();
     }
 
+    /** Sets the camera to original pan/zoom values. */
     private void resetPanZoom() {
         pan(-model.getMinLon(), -model.getMinLat());
         zoom(canvas.getWidth() / (model.getMaxLat() - model.getMinLat()), 0, 0);
     }
 
-    // Updates and repaints the whole map
+    /** Updates and repaints the whole map and all its elements. */
     public void paintMap() {
         clearCanvas();
         lineExtras.clear();
         
-        // Using identity matrix (no transform)
         context.setTransform(new Affine());
 
-        // Paint background light blue
+        // Paint background
         if (colorToggle.isSelected()) {
             context.setFill(Color.LIGHTGREY);
         } else {
@@ -327,6 +332,7 @@ public class MapView {
                 lineExtras.add(new Line(topLeft.getX(), topLeft.getY(), bottomRight.getX(), topLeft.getY()));
                 lineExtras.add(new Line(topLeft.getX(), bottomRight.getY(), bottomRight.getX(), bottomRight.getY()));
             } else {
+                // Set the coords to the corners of the screen
                 topLeft = transform.inverseTransform(0.0f, 0.0f);
                 bottomRight = transform.inverseTransform(canvas.getWidth(), canvas.getHeight());
             }
@@ -334,6 +340,7 @@ public class MapView {
             e.printStackTrace();
         }
 
+        // Paint all map elements
         for (Type type : Type.values()) {
             if (type.shouldPaint(transform.getMxx())) {
                 // Change the linewidth
@@ -374,7 +381,7 @@ public class MapView {
         // Set line width back to normal
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
 
-        // Draws saved searches so they are updated on pan/zoom
+        // Draw saved points
         if (myPointsToggle.isSelected()) {
             for (Drawable drawable : savedPoints) {
                 drawable.draw(context);
@@ -404,6 +411,7 @@ public class MapView {
         pointOfInterest.draw(context);
     }
 
+    /** Draws the given nodes at the correct coords using pin point images.*/
     public void paintPoints(OSMNode nodeTo, OSMNode nodeFrom) throws NoAddressMatchException {
         context.setTransform(transform);
         context.setLineWidth(1.0 / Math.sqrt(Math.abs(transform.determinant())));
@@ -425,7 +433,8 @@ public class MapView {
         }
     }
 
-    public void paintSavedAddresses() throws NoSavedPointsException {
+    /** Draws the user's saved points on the map. */
+    public void paintSavedPoints() throws NoSavedPointsException {
         if (savedPoints.isEmpty()) {
             throw new NoSavedPointsException();
         } else {
@@ -435,6 +444,7 @@ public class MapView {
         }
     }
 
+    /** Draws the given route on the map. */
     public void paintRoute(List<DirectedEdge> edges) {
         context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
         
@@ -448,6 +458,7 @@ public class MapView {
         }
     }
 
+    /** Fills the route description box with labels based on the current route, and makes the box visible. */
     public void openRouteDescription() {
         routeDescription.getChildren().clear();
         routeMenu.setVisible(true);
@@ -470,21 +481,27 @@ public class MapView {
         }
     }
 
+    /** Clears the canvas. */
     private void clearCanvas() {
         context.setTransform(new Affine());
         context.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
     
+    /** Calculates the amount of meters per given amount of pixels. */
     private double getMetersPerPixels(int pixels) {
         double metersPerPixel = 111111 * getLatPerPixel(); // 111111 is roughly meters per 1 degree lat
         return pixels * metersPerPixel;
     }
 
+    /** Calculates latitude degrees per pixel. */
     private double getLatPerPixel() {
         return 1 / Math.sqrt(Math.abs(context.getTransform().determinant()));
     }
 
-    // Does not draw a coastline if its length is less than the length of two pixels.
+    /** 
+     * Draws a coastline - but skips drawing a line from it 
+     * if the line's length is less than the length of two pixels.
+     * */
     private void skipInvisibleCoastlines(NodeProvider provider) {
         if (provider instanceof OSMWay) {
             OSMWay way = (OSMWay) provider;
@@ -506,6 +523,7 @@ public class MapView {
         }
     }
 
+    /** Clears the search fields and removes focus. */
     public void resetSearchField() {
         toSearchField.clear();
         fromSearchField.clear();
@@ -543,10 +561,6 @@ public class MapView {
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
     }
-
-    public ToggleSwitch getColorToggle() {
-        return colorToggle;
-    }
     
     public ToggleSwitch getNearestToggle() {
         return nearestToggle;
@@ -576,14 +590,6 @@ public class MapView {
 
     public VBox getRouteMenu() {
         return routeMenu;
-    }
-
-    public VBox getRouteDescription() {
-        return routeDescription;
-    }
-
-    public OSMMap getModel() {
-        return model;
     }
 
     public List<Drawable> getRouteDrawables() {

@@ -2,7 +2,6 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.dijkstra.*;
-import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.exceptions.NoAddressMatchException;
 import bfst20.mapdrawer.exceptions.NoPointChosenException;
@@ -22,20 +21,21 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.*;
 import java.util.LinkedList;
 
+/**
+ * This class controls the user interface - it runs code when the user
+ * interacts with the program. Specifically, it contains all of the
+ * different action events.
+ */
 public class MapController {
 
-    private final OSMMap model;
-    private MapView view;
-    private final Stage stage;
-    
     private final EventHandler<ActionEvent> clearAction;
 
     private final EventHandler<ActionEvent> saveAddressAction;
-    private final EventHandler<MouseEvent> toggleAction;
+    
+    private final EventHandler<MouseEvent> savedToggleAction;
     private final EventHandler<MouseEvent> colorToggleAction;
     private final EventHandler<MouseEvent> nearestToggleAction;
 
@@ -49,19 +49,21 @@ public class MapController {
     private final EventHandler<ActionEvent> searchDijkstraAction;
     private final EventHandler<MouseEvent> roadFinderAction;
     private final EventHandler<ActionEvent> closeRouteMenuAction;
-
+    
+    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+    
     private String lastSearchFrom = "";
-    private Point2D lastMouse;
     private Dijkstra dijkstra;
     private Vehicle lastVehicle = null;
-
-    LinkedList<DirectedEdge> routeEdges = new LinkedList<>();
+    
+    private MapView view;
+    
+    private Point2D lastMouse;
 
     MapController(OSMMap model, MapView view, Stage stage) {
-        this.model = model;
         this.view = view;
-        this.stage = stage;
 
+        // Clears the canvas of routes and points.
         clearAction = e -> {
             view.getToSearchField().clear();
             view.getFromSearchField().clear();
@@ -74,15 +76,15 @@ public class MapController {
             view.paintMap();
         };
 
-        // Saves the current address to my list.
+        // Saves the current point to my list.
         saveAddressAction = e -> {
-            try{
-            if (!view.getPointOfInterest().isEmpty()) {
-                view.getSavedPoints().add(view.getPointOfInterest());
-            } else {
-                throw new NoPointChosenException();
-            }
-        } catch (NoPointChosenException e1) {
+            try {
+                if (!view.getPointOfInterest().isEmpty()) {
+                    view.getSavedPoints().add(view.getPointOfInterest());
+                } else {
+                    throw new NoPointChosenException();
+                }
+            } catch (NoPointChosenException e1) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Besked");
                 alert.setHeaderText(null);
@@ -91,27 +93,30 @@ public class MapController {
             }
         };
 
-        toggleAction = e -> {
+        // Displays saved points.
+        savedToggleAction = e -> {
             if (view.getMyPointsToggle().isSelected()) {
                 try {
-                    view.paintSavedAddresses();
+                    view.paintSavedPoints();
                 } catch (NoSavedPointsException e1) {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Besked");
-                        alert.setHeaderText(null);
-                        alert.setContentText(e1.getMessage());
-                        alert.showAndWait();
-                        view.getMyPointsToggle().setSelected(false);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Besked");
+                    alert.setHeaderText(null);
+                    alert.setContentText(e1.getMessage());
+                    alert.showAndWait();
+                    view.getMyPointsToggle().setSelected(false);
                 }
             } else {
                 view.paintMap();
             }
         };
-        
+
+        // Changes color scheme to black and white.
         colorToggleAction = e -> {
             view.paintMap();
         };
 
+        // Displays the shortest/quickest route between two addresses.
         searchDijkstraAction = e -> {
             view.getSearchedDrawables().clear();
             view.getRouteDrawables().clear();
@@ -121,7 +126,7 @@ public class MapController {
 
             OSMNode nodeTo = null;
             OSMNode nodeFrom = null;
-            
+
             if (!addressTo.isEmpty() || !addressFrom.isEmpty()) {
                 for (OSMNode node : model.getAddressNodes()) {
                     if (node.getAddress().equals(addressTo)) {
@@ -136,8 +141,8 @@ public class MapController {
             try {
                 view.paintPoints(nodeTo, nodeFrom);
             } catch (NoAddressMatchException ex) {
-                if ((!addressTo.isEmpty() && !addressFrom.isEmpty()) || 
-                        ((nodeFrom == null && nodeTo == null) && 
+                if ((!addressTo.isEmpty() && !addressFrom.isEmpty()) ||
+                        ((nodeFrom == null && nodeTo == null) &&
                                 (!addressTo.isEmpty() || !addressFrom.isEmpty()))) {
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Ingen adresse fundet");
@@ -159,7 +164,7 @@ public class MapController {
                     view.openRouteDescription();
                     return;
                 }
-                
+
                 Vehicle vehicle;
 
                 if (view.getCar().isSelected()) {
@@ -205,7 +210,8 @@ public class MapController {
                 lastVehicle = vehicle;
             }
         };
-
+        
+        // Controls clicks on the map.
         clickAction = e -> {
             // Resets the value of lastMouse before the next pan/drag occurs
             if (!e.isPrimaryButtonDown()) {
@@ -214,19 +220,20 @@ public class MapController {
 
             try {
                 Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                
+
                 // Sets point of interest on right click
                 if (e.getButton() == MouseButton.SECONDARY) {
                     Point p = new Point(mousePoint.getX(), mousePoint.getY(), view.getTransform());
                     view.setPointOfInterest(p);
                     view.paintMap();
                 }
-                
+
             } catch (NonInvertibleTransformException ex) {
                 ex.printStackTrace();
             }
         };
 
+        // Pans the map in the dragged direction.
         panAction = e -> {
             if (lastMouse != null) {
                 view.pan(e.getX() - lastMouse.getX(), e.getY() - lastMouse.getY());
@@ -235,11 +242,13 @@ public class MapController {
             lastMouse = new Point2D(e.getX(), e.getY());
         };
 
+        // Zooms in and out on the map.
         scrollAction = e -> {
             double factor = Math.pow(1.001, e.getDeltaY());
             view.zoom(factor, e.getX(), e.getY());
         };
 
+        // Loads whichever file the user chooses.
         loadFileAction = e -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
@@ -247,7 +256,7 @@ public class MapController {
             if (file != null) {
                 String fileName = file.getName();
                 String fileExt = fileName.substring(fileName.lastIndexOf("."));
-                
+
                 if (fileExt.equals(".osm") || fileExt.equals(".zip")) {
                     try {
                         if (OSMMap.fromFile(file) != null) {
@@ -272,34 +281,37 @@ public class MapController {
             }
         };
 
+        // Saves a binary file of the currently opened map.
         saveFileAction = e -> {
             FileChooser chooser = new FileChooser();
             FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BIN files (*.bin)", "*.bin");
             chooser.getExtensionFilters().add(extFilter);
             File file = chooser.showSaveDialog(stage);
-            
-            if (file != null) try {
-                long time = -System.nanoTime();
 
-                if (file.getName().endsWith(".bin")) {
-                    try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
-                        out.writeObject(model);
+            if (file != null) {
+                try {
+                    long time = -System.nanoTime();
+
+                    if (file.getName().endsWith(".bin")) {
+                        try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+                            out.writeObject(model);
+                        }
+                    } else {
+                        Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                        alert.setHeaderText(null);
+                        alert.showAndWait();
                     }
 
-                } else {
-                    Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
-                    alert.setHeaderText(null);
-                    alert.showAndWait();
+                    time += System.nanoTime();
+                    System.out.println(time);
+
+                } catch (IOException exception) {
+                    new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
                 }
-
-                time += System.nanoTime();
-                System.out.println(time);
-
-            } catch (IOException exception) {
-                new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
             }
         };
-        
+
+        // Displays the nearest road to the mouse.
         roadFinderAction = e -> {
             if (view.getNearestToggle().isSelected()) {
                 try {
@@ -314,10 +326,12 @@ public class MapController {
             }
         };
 
+        // Closes the route menu.
         closeRouteMenuAction = e -> {
             view.getRouteMenu().setVisible(false);
         };
 
+        // Turns the nearest road label on/off.
         nearestToggleAction = e -> {
             if (view.getNearestToggle().isSelected()) {
                 view.getClosestRoad().setVisible(true);
@@ -326,7 +340,7 @@ public class MapController {
             }
         };
     }
-    
+
     public EventHandler<MouseEvent> getPanAction() {
         return panAction;
     }
@@ -355,14 +369,14 @@ public class MapController {
         return saveAddressAction;
     }
 
-    public EventHandler<MouseEvent> getToggleAction() {
-        return toggleAction;
+    public EventHandler<MouseEvent> getSavedToggleAction() {
+        return savedToggleAction;
     }
-    
+
     public EventHandler<MouseEvent> getColorToggleAction() {
         return colorToggleAction;
     }
-    
+
     public EventHandler<ActionEvent> getSearchDijkstraAction() {
         return searchDijkstraAction;
     }
@@ -382,5 +396,4 @@ public class MapController {
     public EventHandler<MouseEvent> getNearestToggleAction() {
         return nearestToggleAction;
     }
-
 }

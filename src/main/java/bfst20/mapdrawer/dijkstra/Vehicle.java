@@ -1,12 +1,17 @@
 package bfst20.mapdrawer.dijkstra;
 
+/**
+ *Interface for the three different types of route you can take.
+ * The classes implementing it (car, bike, walk) sets the corresponding boolean method to true.
+*/
 public interface Vehicle {
 
-    public boolean isCar();
+    boolean isCar();
 
-    public boolean isBike();
+    boolean isBike();
 
-    public boolean isWalk();
+    boolean isWalk();
 
-    public boolean isSameVehicleAs(Vehicle vehicle);
+    boolean isSameVehicleAs(Vehicle vehicle);
+    
 }

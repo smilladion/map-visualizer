@@ -3,21 +3,24 @@ package bfst20.mapdrawer.osm;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.canvas.GraphicsContext;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.function.LongSupplier;
 
+/**
+ * This map element consists of a series of OSMWays, thereby defining a relation
+ * between different ways.
+ */
 public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     private final long id;
     private final List<OSMWay> ways;
 
     private final Type type;
 
-    OSMRelation(long id, List<OSMWay> ways, Type type) {
+    public OSMRelation(long id, List<OSMWay> ways, Type type) {
         this.id = id;
         this.ways = ways;
         this.type = type;
@@ -28,17 +31,13 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
         return id;
     }
 
-    public List<OSMWay> getWays() {
-        return ways;
-    }
-    
     @Override
     public void draw(GraphicsContext gc) {
         for (OSMWay way : ways) {
             if (way.getNodes().isEmpty()) {
                 continue;
             }
-            
+
             way.trace(gc);
         }
 
@@ -47,6 +46,7 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
         }
     }
 
+    /** Gets the bounding box (rectangle) encompassing this relation. */
     @Override
     public Rectangle getBoundingBox() {
         float xMin = Float.MAX_VALUE;
@@ -64,6 +64,10 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
         return new Rectangle(xMin, yMin, xMax, yMax);
     }
 
+    /**
+     * Gets the average x-coordinate of this relation, based on the average 
+     * x-coordinates of its ways.
+     */
     @Override
     public float getAvgX() {
         float sumX = 0.0f;
@@ -75,6 +79,10 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
         return sumX / ways.size();
     }
 
+    /**
+     * Gets the average y-coordinate of this relation, based on the average 
+     * y-coordinates of its ways.
+     */
     @Override
     public float getAvgY() {
         float sumY = 0.0f;
@@ -89,10 +97,5 @@ public class OSMRelation implements LongSupplier, NodeProvider, Serializable {
     @Override
     public Type getType() {
         return type;
-    }
-
-    @Override
-    public int compareTo(NodeProvider that) {
-        return type.ordinal() - that.getType().ordinal();
     }
 }

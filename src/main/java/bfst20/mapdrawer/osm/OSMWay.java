@@ -3,38 +3,41 @@ package bfst20.mapdrawer.osm;
 import bfst20.mapdrawer.drawing.Type;
 import bfst20.mapdrawer.kdtree.Rectangle;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.FillRule;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
+/**
+ * This class defines a series of lines between several nodes - you could
+ * also call it a path. It contains several attributes that defines what the
+ * path is supposed to represent.
+ */
 public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
     private static final long serialVersionUID = 1L;
     
-    // A dummy way is used to avoid error when a relation references an unknown way
-    // This allows files to be loaded which would normally fail under stricter parsing
-    public static final OSMWay DUMMY_WAY = new OSMWay();
     private static final long NO_ID = Long.MIN_VALUE;
 
     private final long id;
     private final List<OSMNode> nodes;
     private final Type type;
-    private final String road; // null if way is not a highway or there is no <name> tag
+    private final String road; // Null if way is not a highway or there is no <name> tag
 
     private double speed;
+
+    private boolean car;
     private boolean bike;
     private boolean walk;
-    private boolean car;
+    
     private boolean onewayCar;
     private boolean onewayBike;
     private boolean onewayWalk;
+    
     private boolean roundabout;
 
+    /** A normal way created from a list of nodes, with an id, type and road name. */
     public OSMWay(long id, List<OSMNode> nodes, Type type, String road) {
         this.id = id;
         this.nodes = nodes;
@@ -42,8 +45,11 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.road = road;
     }
 
-    // OSMWay to make into a directed edge - it will have a weight and info about vehicles.
-    public OSMWay(long id, List<OSMNode> nodes, Type type, double speed, boolean bike, boolean walk, boolean car, boolean onewayCar, boolean onewayBike, boolean onewayWalk, boolean roundabout, String road) {
+    /** A way to be made into a directed edge - it will have information about traffic rules used for route finding. */
+    public OSMWay(long id, List<OSMNode> nodes, Type type, String road, 
+                  double speed, boolean roundabout,
+                  boolean car, boolean bike, boolean walk, 
+                  boolean onewayCar, boolean onewayBike, boolean onewayWalk) {
         this.id = id;
         this.nodes = nodes;
         this.type = type;
@@ -57,7 +63,8 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         this.onewayWalk = onewayWalk;
         this.roundabout = roundabout;
     }
-
+    
+    /** Empty way used for initialization. */
     public OSMWay() {
         this.id = NO_ID;
         this.nodes = new ArrayList<>();
@@ -65,6 +72,10 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         road = null;
     }
 
+    /** 
+     * Used for coastlines: stitches two ways together (with one end-node in common), 
+     * returning a new way with them both a part of it. 
+     */
     public static OSMWay fromWays(OSMWay input, OSMWay output) {
         if (input == null) {
             return output;
@@ -74,9 +85,6 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
 
         // Create a "no-id" OSM way
         OSMWay way = new OSMWay(NO_ID, new ArrayList<>(), Type.COASTLINE, null);
-
-        // Where input is a path (collection of points)
-        // And output is another path (similarly)
 
         // If input and output start on same point
         if (input.first() == output.first()) {
@@ -175,6 +183,10 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         gc.stroke();
     }
 
+    /**
+     * Gets the average x-coordinate of this way, based on the average 
+     * x-coordinates of its nodes.
+     */
     @Override
     public float getAvgX() {
         float sumX = 0.0f;
@@ -186,6 +198,10 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         return sumX / nodes.size();
     }
 
+    /**
+     * Gets the average y-coordinate of this way, based on the average 
+     * y-coordinates of its nodes.
+     */
     @Override
     public float getAvgY() {
         float sumY = 0.0f;
@@ -213,6 +229,7 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
         return roundabout;
     }
 
+    /** Gets the bounding box (rectangle) encompassing this way. */
     @Override
     public Rectangle getBoundingBox() {
         return new Rectangle(this);
@@ -221,11 +238,5 @@ public class OSMWay implements LongSupplier, NodeProvider, Serializable {
     @Override
     public Type getType() {
         return type;
-    }
-
-    @Override
-    public int compareTo(NodeProvider that) {
-        // Ordinal returns a number representing the type's order/position in the enum class, from 0 and up
-        return type.ordinal() - that.getType().ordinal();
     }
 }
