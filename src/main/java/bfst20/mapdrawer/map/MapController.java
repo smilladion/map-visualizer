@@ -2,6 +2,7 @@ package bfst20.mapdrawer.map;
 
 import bfst20.mapdrawer.Launcher;
 import bfst20.mapdrawer.dijkstra.*;
+import bfst20.mapdrawer.drawing.Line;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.exceptions.NoAddressMatchException;
 import bfst20.mapdrawer.exceptions.NoPointChosenException;
@@ -70,15 +71,7 @@ public class MapController {
             view.getRouteDrawables().clear();
             view.setPointOfInterest(new Point());
             view.getRouteMenu().setVisible(false);
-            
-            try {
-                view.paintPoints(null, null, true);
-            } catch (NoAddressMatchException ex) {
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Ingen adresse fundet");
-                alert.setContentText(ex.getMessage());
-                alert.showAndWait();
-            }
+            view.paintMap();
         };
 
         // Saves the current address to my list.
@@ -111,11 +104,7 @@ public class MapController {
                         view.getMyPointsToggle().setSelected(false);
                 }
             } else {
-                try {
-                    view.paintPoints(null, null, true);
-                } catch (NoAddressMatchException ex) {
-                    ex.printStackTrace();
-                }
+                view.paintMap();
             }
         };
         
@@ -132,43 +121,45 @@ public class MapController {
 
             OSMNode nodeTo = null;
             OSMNode nodeFrom = null;
-
-            for (OSMNode node : model.getAddressNodes()) {
-                if (node.getAddress().equals(addressTo)) {
-                    nodeTo = node;
+            
+            if (!addressTo.isEmpty() || !addressFrom.isEmpty()) {
+                for (OSMNode node : model.getAddressNodes()) {
+                    if (node.getAddress().equals(addressTo)) {
+                        nodeTo = node;
+                    }
+                    if (node.getAddress().equals(addressFrom)) {
+                        nodeFrom = node;
+                    }
                 }
-                if (node.getAddress().equals(addressFrom)) {
-                    nodeFrom = node;
-                }
-            }
-
-            if (addressTo.equals("")) {
-                addressTo = null;
-            }
-            if (addressFrom.equals("")) {
-                addressFrom = null;
-            }
-            if (nodeTo == null) {
-                addressTo = null;
-            }
-            if (nodeFrom == null) {
-                addressFrom = null;
             }
 
             try {
-                view.paintPoints(addressTo, addressFrom, false);
+                view.paintPoints(nodeTo, nodeFrom);
             } catch (NoAddressMatchException ex) {
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Ingen adresse fundet");
-                alert.setHeaderText(null);
-                alert.setContentText(ex.getMessage());
-                alert.showAndWait();
+                if ((!addressTo.isEmpty() && !addressFrom.isEmpty()) || 
+                        ((nodeFrom == null && nodeTo == null) && 
+                                (!addressTo.isEmpty() || !addressFrom.isEmpty()))) {
+                    Alert alert = new Alert(AlertType.INFORMATION);
+                    alert.setTitle("Ingen adresse fundet");
+                    alert.setHeaderText(null);
+                    alert.setContentText(ex.getMessage());
+                    alert.showAndWait();
+                }
             }
 
-            if (addressFrom != null && addressTo != null) {
+            if (nodeFrom != null && nodeTo != null) {
                 if (!routeEdges.isEmpty()) {
                     routeEdges.clear();
                 }
+
+                if (view.getHelicopter().isSelected()) {
+                    DirectedEdge route = new DirectedEdge(nodeFrom.distance(nodeTo), nodeFrom.getLon(), nodeFrom.getLat(), nodeTo.getLon(), nodeTo.getLat());
+                    routeEdges.add(route);
+                    view.paintRoute(routeEdges);
+                    view.openRouteDescription();
+                    return;
+                }
+                
                 Vehicle vehicle;
 
                 if (view.getCar().isSelected()) {
@@ -201,7 +192,6 @@ public class MapController {
                     routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
 
                 } catch (NoRouteException ex) {
-
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Ingen rute fundet");
                     alert.setHeaderText(null);
