@@ -256,7 +256,14 @@ public class OSMMap implements Serializable {
                             }
                         } else if (key.equals("highway")) {
                             type = Type.HIGHWAY;
-
+                            
+                            if (value.equals("path")) {
+                                car = false;
+                            }
+                            if (value.equals("steps")) {
+                                bike = false;
+                                car = false;
+                            }
                             if (value.equals("residential")) {
                                 speed = 30;
                             }
@@ -293,8 +300,13 @@ public class OSMMap implements Serializable {
                             }
                         } else if (key.equals("oneway") && "highway".equals(type.getKey())) {
                             if (value.equals("yes")) {
-                                onewayBike = true;
                                 onewayCar = true;
+                            }
+                        } else if (key.equals("oneway:bicycle")) {
+                            if (value.equals("yes")) {
+                                onewayBike = true;
+                            } else if (value.equals("no")) {
+                                onewayBike = false;
                             }
                         } else if (Type.containsType(value) && !key.equals("ferry") && !key.equals("disused:ferry")) {
                             type = Type.getType(value);
