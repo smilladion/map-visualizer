@@ -17,6 +17,10 @@
     -fx-background-color: #4a5f7a, linear-gradient(#4a5f7a, #3e5468);
 }
 
+#swapAddress {
+    -fx-padding: 5;
+}
+
 .text-field {
     -fx-min-width: 200;
     -fx-padding: 5 5 5 5;

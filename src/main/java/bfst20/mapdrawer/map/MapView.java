@@ -131,6 +131,8 @@ public class MapView {
         // Our buttons.
         Button clearButton = new Button("Nulstil");
         Button savePointButton = new Button("Gem punkt");
+        Button swapAddressButton = new Button("<->");
+        swapAddressButton.setId("swapAddress");
 
         // The zoom scale in the bottom right corner.
         zoomDisplay.setId("zoomDisplay");
@@ -167,7 +169,7 @@ public class MapView {
         routeType.setPickOnBounds(false);
 
         // The upper row for address searching.
-        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, savePointButton);
+        HBox searchRow = new HBox(clearButton, fromSearchField, swapAddressButton, toSearchField, savePointButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(10.0));
@@ -209,6 +211,8 @@ public class MapView {
 
         toSearchField.setOnAction(controller.getSearchDijkstraAction());
         fromSearchField.setOnAction(controller.getSearchDijkstraAction());
+        swapAddressButton.setOnAction(controller.getSwapAddressAction());
+        
         savePointButton.setOnAction(controller.getSaveAddressAction());
         clearButton.setOnAction(controller.getClearAction());
 
@@ -226,7 +230,7 @@ public class MapView {
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
         closeRouteButton.setOnAction(controller.getCloseRouteMenuAction());
-
+        
         showKdTree.addEventHandler(EventType.ROOT, event -> paintMap());
 
         Scene scene = new Scene(rootPane);
@@ -456,7 +460,7 @@ public class MapView {
             drawable.draw(context);
         }
     }
-
+    
     /** Fills the route description box with labels based on the current route, and makes the box visible. */
     public void openRouteDescription() {
         routeDescription.getChildren().clear();
@@ -478,6 +482,13 @@ public class MapView {
             label.setText(i + ": " + routeDescriptionList.get(i - 1));
             routeDescription.getChildren().add(label);
         }
+    }
+    
+    /** Swaps the addresses in the two text fields. */
+    public void swapAddress() {
+        String temp = fromSearchField.getText();
+        fromSearchField.setText(toSearchField.getText());
+        toSearchField.setText(temp);
     }
 
     /** Clears the canvas. */
