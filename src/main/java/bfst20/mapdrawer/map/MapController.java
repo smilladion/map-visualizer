@@ -15,6 +15,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -89,6 +90,8 @@ public class MapController {
                 alert.setTitle("Besked");
                 alert.setHeaderText(null);
                 alert.setContentText(e1.getMessage());
+                Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                 alert.showAndWait();
             }
         };
@@ -103,6 +106,8 @@ public class MapController {
                     alert.setTitle("Besked");
                     alert.setHeaderText(null);
                     alert.setContentText(e1.getMessage());
+                    Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                     alert.showAndWait();
                     view.getMyPointsToggle().setSelected(false);
                 }
@@ -148,6 +153,8 @@ public class MapController {
                     alert.setTitle("Ingen adresse fundet");
                     alert.setHeaderText(null);
                     alert.setContentText(ex.getMessage());
+                    Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                     alert.showAndWait();
                     return;
                 }
@@ -203,6 +210,8 @@ public class MapController {
                     alert.setTitle("Ingen rute fundet");
                     alert.setHeaderText(null);
                     alert.setContentText(ex.getMessage());
+                    Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                     alert.showAndWait();
                     return;
                 }
@@ -279,6 +288,8 @@ public class MapController {
                     alert.setTitle("Fejlmeddelelse");
                     alert.setHeaderText(null);
                     alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
+                    Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                     alert.showAndWait();
                 }
             }
@@ -293,23 +304,29 @@ public class MapController {
 
             if (file != null) {
                 try {
-                    long time = -System.nanoTime();
-
                     if (file.getName().endsWith(".bin")) {
                         try (var out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
                             out.writeObject(model);
                         }
                     } else {
                         Alert alert = new Alert(AlertType.ERROR, "Filen skal gemmes i '.bin' format.");
+                        alert.setTitle("Fejlmeddelelse");
                         alert.setHeaderText(null);
+                        Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                        s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
                         alert.showAndWait();
+                        return;
                     }
-
-                    time += System.nanoTime();
-                    System.out.println(time);
+                    
+                    System.out.println("Succes - binær fil er blevet gemt.");
 
                 } catch (IOException exception) {
-                    new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
+                    Alert alert = new Alert(AlertType.ERROR, "Filen kan ikke gemmes.");
+                    alert.setTitle("Fejlmeddelelse");
+                    alert.setHeaderText(null);
+                    Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
+                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                    alert.showAndWait();
                 }
             }
         };
