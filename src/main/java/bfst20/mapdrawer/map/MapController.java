@@ -1,6 +1,6 @@
 package bfst20.mapdrawer.map;
 
-import bfst20.mapdrawer.Launcher;
+import bfst20.mapdrawer.LauncherFX;
 import bfst20.mapdrawer.dijkstra.*;
 import bfst20.mapdrawer.drawing.Point;
 import bfst20.mapdrawer.exceptions.NoAddressMatchException;
@@ -94,7 +94,7 @@ public class MapController {
                 alert.setHeaderText(null);
                 alert.setContentText(e1.getMessage());
                 Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
-                s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                s.getIcons().add(new Image("point_a_window.png"));
                 alert.showAndWait();
             }
         };
@@ -110,7 +110,7 @@ public class MapController {
                     alert.setHeaderText(null);
                     alert.setContentText(e1.getMessage());
                     Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
-                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                    s.getIcons().add(new Image("point_a_window.png"));
                     alert.showAndWait();
                     view.getMyPointsToggle().setSelected(false);
                 }
@@ -175,7 +175,7 @@ public class MapController {
         // Loads whichever file the user chooses.
         loadFileAction = e -> {
             FileChooser fileChooser = new FileChooser();
-            File file = fileChooser.showOpenDialog(Launcher.getPrimaryStage());
+            File file = fileChooser.showOpenDialog(LauncherFX.getPrimaryStage());
 
             if (file != null) {
                 String fileName = file.getName();
@@ -201,7 +201,7 @@ public class MapController {
                     alert.setHeaderText(null);
                     alert.setContentText("Forkert filtype! \n\n Programmet understøtter OSM, ZIP og BIN.");
                     Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
-                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                    s.getIcons().add(new Image("point_a_window.png"));
                     alert.showAndWait();
                 }
             }
@@ -225,7 +225,7 @@ public class MapController {
                         alert.setTitle("Fejlmeddelelse");
                         alert.setHeaderText(null);
                         Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
-                        s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                        s.getIcons().add(new Image("point_a_window.png"));
                         alert.showAndWait();
                         return;
                     }
@@ -237,7 +237,7 @@ public class MapController {
                     alert.setTitle("Fejlmeddelelse");
                     alert.setHeaderText(null);
                     Stage s = (Stage) alert.getDialogPane().getScene().getWindow();
-                    s.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+                    s.getIcons().add(new Image("point_a_window.png"));
                     alert.showAndWait();
                 }
             }

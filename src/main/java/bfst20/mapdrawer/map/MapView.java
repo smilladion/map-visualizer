@@ -88,7 +88,7 @@ public class MapView {
 
         // Application options.
         window.setTitle("Google Map'nt");
-        window.getIcons().add(new Image("file:src/main/resources/point_a_window.png"));
+        window.getIcons().add(new Image("point_a_window.png"));
 
         // Creating the JavaFX basics.
         canvas = new Canvas(1280, 720);
@@ -158,10 +158,10 @@ public class MapView {
         helicopter.setToggleGroup(radioGroup);
         car.setSelected(true);
         
-        bike.setGraphic(new ImageView(new Image("file:src/main/resources/bike.png")));
-        car.setGraphic(new ImageView(new Image("file:src/main/resources/car.png")));
-        walk.setGraphic(new ImageView(new Image("file:src/main/resources/walk.png")));
-        helicopter.setGraphic(new ImageView(new Image("file:src/main/resources/helicopter.png")));
+        bike.setGraphic(new ImageView(new Image("bike.png")));
+        car.setGraphic(new ImageView(new Image("car.png")));
+        walk.setGraphic(new ImageView(new Image("walk.png")));
+        helicopter.setGraphic(new ImageView(new Image("helicopter.png")));
 
         HBox routeType = new HBox(car, bike, walk, helicopter);
         routeType.setAlignment(Pos.TOP_CENTER);

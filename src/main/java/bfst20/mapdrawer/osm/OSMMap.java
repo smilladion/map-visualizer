@@ -486,6 +486,22 @@ public class OSMMap implements Serializable {
         return map;
     }
 
+    public static OSMMap loadBinary(InputStream in) {
+        if (in == null) {
+            System.err.println("Unable to find resource!");
+        } else {
+            try (var ois = new ObjectInputStream(new BufferedInputStream(in))) {
+                return (OSMMap) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        System.exit(0);
+        
+        return null;
+    }
+
     public float getMinLat() {
         return minLat;
     }

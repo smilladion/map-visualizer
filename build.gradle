@@ -1,9 +1,11 @@
 plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 javafx {
+    version = '12'
     modules = ['javafx.controls', 'javafx.fxml']
 }
 
@@ -12,8 +14,6 @@ repositories {
 }
 
 dependencies {
-    // implementation file('libs/xyx.jar')
-
     implementation 'org.controlsfx:controlsfx:11.0.1'
     implementation 'edu.princeton.cs:algs4:1.0.3'
 
@@ -26,15 +26,13 @@ dependencies {
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.5.1'
 }
 
-application {
-    mainClassName = 'bfst20.mapdrawer.Launcher'
-}
-
 compileJava.options.encoding = 'UTF-8'
 
 test {
     useJUnitPlatform()
 }
+
+mainClassName = 'bfst20.mapdrawer.LauncherFX'
 
 run {
     // Add module exports to fix ControlsFX Java 11+ bug
@@ -43,7 +41,7 @@ run {
 
 jar {
     manifest {
-        attributes 'Main-Class': application.mainClassName
+        attributes 'Main-Class': 'bfst20.mapdrawer.Launcher'
     }
 
     from {
