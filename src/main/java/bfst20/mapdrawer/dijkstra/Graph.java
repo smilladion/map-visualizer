@@ -53,11 +53,11 @@ public class Graph implements Serializable {
                     addEdge(to, from, speed, distance, bike, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && !onewayWalk) {
                     addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(from, to, speed, distance,false, walk, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
+                    addEdge(from, to, speed, distance,false, true, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 } else if (onewayCar && onewayBike && onewayWalk) {
                     addEdge(from, to, speed, distance, bike, walk, car, roundabout, road, node.getLon(), node.getLat(), node1.getLon(), node1.getLat());
-                    addEdge(to, from, speed, distance, false, false, false, roundabout, road, node1.getLon(), node1.getLat(), node.getLon(), node.getLat());
                 }
+
             }
         }
     }
