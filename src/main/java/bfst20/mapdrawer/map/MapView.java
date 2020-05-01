@@ -79,6 +79,7 @@ public class MapView {
     private final Button closeRouteButton = new Button("✕");
     private final ScrollPane scrollPane = new ScrollPane(routeDescription);
     private final VBox routeMenu = new VBox(closeRouteButton, scrollPane);
+    private final Button swapAddressButton = new Button("<->");
 
     private Point pointOfInterest = new Point();
 
@@ -166,7 +167,7 @@ public class MapView {
         routeType.setPickOnBounds(false);
 
         // The upper row for address searching.
-        HBox searchRow = new HBox(clearButton, fromSearchField, toSearchField, savePointButton);
+        HBox searchRow = new HBox(clearButton, fromSearchField, swapAddressButton, toSearchField, savePointButton);
         searchRow.setSpacing(20.0);
         searchRow.setAlignment(Pos.TOP_CENTER);
         searchRow.setPadding(new Insets(10.0));
@@ -229,6 +230,8 @@ public class MapView {
         canvas.setOnMouseMoved(controller.getRoadFinderAction());
 
         closeRouteButton.setOnAction(controller.getCloseRouteMenuAction());
+
+        swapAddressButton.setOnAction(controller.getSwapAddressAction());
 
         Scene scene = new Scene(rootPane);
 
@@ -446,6 +449,12 @@ public class MapView {
         for (Drawable drawable : searchedDrawables) {
             drawable.draw(context);
         }
+    }
+
+    public void swapAddress() {
+        String temp = fromSearchField.getText();
+        fromSearchField.setText(toSearchField.getText());
+        toSearchField.setText(temp);
     }
 
     public void openRouteDescription() {
