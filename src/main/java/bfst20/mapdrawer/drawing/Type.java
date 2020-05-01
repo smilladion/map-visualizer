@@ -59,9 +59,10 @@ public enum Type {
     PEDESTRIAN("highway", "pedestrian", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
     TRACK("highway", "track", Color.GAINSBORO, Color.DARKGREY, false, 1, 80000),
 
-    SEARCHRESULT("highway", "searchresult", Color.RED, Color.RED, false, 3, 1000),
-    BUILDING("building", "building", Color.DARKGREY, Color.GREY, true, 0, 80000);
-
+    BUILDING("building", "building", Color.DARKGREY, Color.GREY, true, 0, 80000),
+    
+    SEARCHRESULT("highway", "searchresult", Color.BLACK, Color.BLACK, false, 3, 1000);
+    
     private static final Map<String, Type> map;
 
     // Initialise static HashMap with mappings from the Type's value to the Type itself.

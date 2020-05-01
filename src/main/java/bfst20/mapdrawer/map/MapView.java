@@ -69,7 +69,6 @@ public class MapView {
 
     private final ToggleSwitch myPointsToggle = new ToggleSwitch(); // From the ControlsFX library
     private final ToggleSwitch colorToggle = new ToggleSwitch();
-    private final ToggleSwitch nearestToggle = new ToggleSwitch();
 
     private final List<Line> lineExtras = new ArrayList<>(); // Extra UI elements
     private final List<Drawable> searchedDrawables = new ArrayList<>(); // User search results currently visible
@@ -146,7 +145,6 @@ public class MapView {
         roadBox.setPadding(new Insets(0, 0, 13, 15));
         roadBox.setAlignment(Pos.BOTTOM_LEFT);
         roadBox.setPickOnBounds(false);
-        closestRoad.setVisible(false);
         rootPane.getChildren().add(roadBox);
 
         // The different types of routes.
@@ -185,9 +183,8 @@ public class MapView {
         // The toggles on the right side of the screen.
         myPointsToggle.setText("Vis gemte punkter");
         colorToggle.setText("Sort/hvid tema");
-        nearestToggle.setText("Nærmeste vej til mus");
 
-        VBox toggles = new VBox(myPointsToggle, colorToggle, nearestToggle);
+        VBox toggles = new VBox(myPointsToggle, colorToggle);
         toggles.setId("toggleBox");
         toggles.setAlignment(Pos.TOP_RIGHT);
         toggles.setPickOnBounds(false);
@@ -209,7 +206,6 @@ public class MapView {
         // All of the events and listeners from the controller, attached to UI elements.
         myPointsToggle.setOnMouseClicked(controller.getSavedToggleAction());
         colorToggle.setOnMouseClicked(controller.getColorToggleAction());
-        nearestToggle.setOnMouseClicked(controller.getNearestToggleAction());
 
         toSearchField.setOnAction(controller.getSearchDijkstraAction());
         fromSearchField.setOnAction(controller.getSearchDijkstraAction());
@@ -368,6 +364,8 @@ public class MapView {
                 }
             }
         }
+
+        context.setLineWidth(3.0 / Math.sqrt(Math.abs(transform.determinant())));
         
         // Draw route
         for (Drawable drawable : routeDrawables) {
@@ -447,7 +445,7 @@ public class MapView {
 
     /** Draws the given route on the map. */
     public void paintRoute(List<DirectedEdge> edges) {
-        context.setLineWidth(2.5 / Math.sqrt(Math.abs(transform.determinant())));
+        context.setLineWidth(3.0 / Math.sqrt(Math.abs(transform.determinant())));
         
         for (DirectedEdge edge : edges) {
             routeDrawables.add(edge);
@@ -561,10 +559,6 @@ public class MapView {
 
     public ToggleSwitch getMyPointsToggle() {
         return myPointsToggle;
-    }
-    
-    public ToggleSwitch getNearestToggle() {
-        return nearestToggle;
     }
     
     public Label getClosestRoad() {

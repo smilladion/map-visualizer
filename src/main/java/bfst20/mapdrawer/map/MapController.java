@@ -21,6 +21,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import java.io.*;
 import java.util.LinkedList;
 
@@ -37,7 +38,6 @@ public class MapController {
     
     private final EventHandler<MouseEvent> savedToggleAction;
     private final EventHandler<MouseEvent> colorToggleAction;
-    private final EventHandler<MouseEvent> nearestToggleAction;
 
     private final EventHandler<ActionEvent> loadFileAction;
     private final EventHandler<ActionEvent> saveFileAction;
@@ -149,6 +149,7 @@ public class MapController {
                     alert.setHeaderText(null);
                     alert.setContentText(ex.getMessage());
                     alert.showAndWait();
+                    return;
                 }
             }
 
@@ -175,8 +176,8 @@ public class MapController {
                     vehicle = new Walk();
                 }
 
-                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat());
-                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat());
+                OSMWay nearestTo = model.getHighwayTree().nearest(nodeTo.getLon(), nodeTo.getLat(), true, view.getTransform());
+                OSMWay nearestFrom = model.getHighwayTree().nearest(nodeFrom.getLon(), nodeFrom.getLat(), true, view.getTransform());
 
                 Point2D pointTo = new Point2D(nodeTo.getLon(), nodeTo.getLat());
                 OSMNode nearestToNode = model.getHighwayTree().nodeDistance(pointTo, nearestTo);
@@ -197,11 +198,13 @@ public class MapController {
                     routeEdges = dijkstra.pathTo(nearestToNode.getNumberForGraph(), vehicle);
 
                 } catch (NoRouteException ex) {
+                    view.getRouteMenu().setVisible(false);
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Ingen rute fundet");
                     alert.setHeaderText(null);
                     alert.setContentText(ex.getMessage());
                     alert.showAndWait();
+                    return;
                 }
 
                 view.paintRoute(routeEdges);
@@ -311,33 +314,25 @@ public class MapController {
             }
         };
 
-        // Displays the nearest road to the mouse.
+        // Displays the nearest visible road to the mouse.
         roadFinderAction = e -> {
-            if (view.getNearestToggle().isSelected()) {
-                try {
-                    Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
-                    OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY());
-                    if (result.getRoad() != null) {
-                        view.setClosestRoad(result.getRoad());
-                    }
-                } catch (NonInvertibleTransformException ex) {
-                    ex.printStackTrace();
+            try {
+                Point2D mousePoint = view.getTransform().inverseTransform(e.getX(), e.getY());
+                OSMWay result = model.getHighwayTree().nearest(mousePoint.getX(), mousePoint.getY(), false, view.getTransform());
+                if (result.getRoad() != null) {
+                    view.getClosestRoad().setVisible(true);
+                    view.setClosestRoad(result.getRoad());
+                } else {
+                    view.getClosestRoad().setVisible(false);
                 }
+            } catch (NonInvertibleTransformException ex) {
+                ex.printStackTrace();
             }
         };
 
         // Closes the route menu.
         closeRouteMenuAction = e -> {
             view.getRouteMenu().setVisible(false);
-        };
-
-        // Turns the nearest road label on/off.
-        nearestToggleAction = e -> {
-            if (view.getNearestToggle().isSelected()) {
-                view.getClosestRoad().setVisible(true);
-            } else {
-                view.getClosestRoad().setVisible(false);
-            }
         };
     }
 
@@ -391,9 +386,5 @@ public class MapController {
 
     public EventHandler<ActionEvent> getCloseRouteMenuAction() {
         return closeRouteMenuAction;
-    }
-
-    public EventHandler<MouseEvent> getNearestToggleAction() {
-        return nearestToggleAction;
     }
 }

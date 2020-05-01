@@ -4,6 +4,8 @@ import bfst20.mapdrawer.osm.NodeProvider;
 import bfst20.mapdrawer.osm.OSMNode;
 import bfst20.mapdrawer.osm.OSMWay;
 import javafx.geometry.Point2D;
+import javafx.scene.transform.Affine;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,27 +75,41 @@ public class KdTree implements Serializable {
         }
     }
 
-    /** Finds the nearest road to a specific point. */
-    public OSMWay nearest(double x, double y) {
-        return nearest(root, new Point2D(x, y), new OSMWay());
+    /** 
+     * Finds the nearest road to a specific point. Option to include or ignore 
+     * the current zoom level, to filter out invisible ways. 
+     */
+    public OSMWay nearest(double x, double y, boolean ignoreCurrentZoom, Affine transform) {
+        return nearest(root, new Point2D(x, y), new OSMWay(), ignoreCurrentZoom, transform);
     }
 
     // Only returns/checks ways that contain a road name.
-    private OSMWay nearest(KdNode node, Point2D point, OSMWay nearest) {
+    private OSMWay nearest(KdNode node, Point2D point, OSMWay nearest, boolean ignoreCurrentZoom, Affine transform) {
         if (node.provider instanceof OSMWay && ((OSMWay) node.provider).getRoad() != null) {
-            OSMWay current = (OSMWay) node.provider;
+            
+            if (!ignoreCurrentZoom) {
+                if (node.provider.getType().shouldPaint(transform.getMxx())) {
+                    OSMWay current = (OSMWay) node.provider;
 
-            if (distance(point, nearest) > distance(point, current)) {
-                nearest = current;
+                    if (distance(point, nearest) > distance(point, current)) {
+                        nearest = current;
+                    }
+                }
+            } else {
+                OSMWay current = (OSMWay) node.provider;
+
+                if (distance(point, nearest) > distance(point, current)) {
+                    nearest = current;
+                }
             }
         }
 
         if (node.left != null) {
-            nearest = nearest(node.left, point, nearest);
+            nearest = nearest(node.left, point, nearest, ignoreCurrentZoom, transform);
         }
 
         if (node.right != null) {
-            nearest = nearest(node.right, point, nearest);
+            nearest = nearest(node.right, point, nearest, ignoreCurrentZoom, transform);
         }
 
         return nearest;
