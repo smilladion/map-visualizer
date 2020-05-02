@@ -486,6 +486,7 @@ public class OSMMap implements Serializable {
         return map;
     }
 
+    /** Loads the given binary file, returning the OSMMap within (used to embed bin file into .jar). */
     public static OSMMap loadBinary(InputStream in) {
         if (in == null) {
             System.err.println("Unable to find resource!");

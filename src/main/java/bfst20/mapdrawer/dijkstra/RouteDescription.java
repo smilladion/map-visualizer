@@ -123,7 +123,7 @@ public class RouteDescription {
     }
     
     // Calculates the angle between two vectors.
-    private double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
+    public static double calculateAngle(Point2D vectorFrom, Point2D vectorTo) {
         double dot = vectorFrom.dotProduct(vectorTo);
         double lengthFrom = (Math.sqrt(((vectorFrom.getX()) * (vectorFrom.getX())) + ((vectorFrom.getY()) * (vectorFrom.getY()))));
         double lengthTo = (Math.sqrt(((vectorTo.getX()) * (vectorTo.getX())) + ((vectorTo.getY()) * (vectorTo.getY()))));
@@ -139,7 +139,7 @@ public class RouteDescription {
     }
 
     // From algs4 library.
-    private int ccw(Point2D a, Point2D b, Point2D c) {
+    public static int ccw(Point2D a, Point2D b, Point2D c) {
         double area2 = (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY()) * (c.getX() - a.getX());
         if (area2 < 0) return -1;
         else if (area2 > 0) return +1;
