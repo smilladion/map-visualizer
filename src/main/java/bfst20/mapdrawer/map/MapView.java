@@ -471,7 +471,7 @@ public class MapView {
         List<String> routeDescriptionList = description.createRouteDescription();
 
         Label timeLabel = new Label(description.getRouteTime());
-        Label distanceLabel = new Label(description.getRouteDistance());
+        Label distanceLabel = new Label(description.routeDistanceToString(description.getRouteDistance(controller.getRouteEdges())));
         routeDescription.getChildren().add(timeLabel);
         routeDescription.getChildren().add(distanceLabel);
         timeLabel.setId("timeLabel");

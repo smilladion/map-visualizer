@@ -180,17 +180,21 @@ public class RouteDescription {
     }
 
     /** Returns the distance of the currently selected route. */
-    public String getRouteDistance() {
+    public static String routeDistanceToString(double distance) {
+        if (distance >= 1000) {
+            return "Distance: " + String.format("%.1f", distance / 1000) + " km";
+        } else {
+            return "Distance: " + (int) distance + " m";
+        }
+    }
+
+    public double getRouteDistance(LinkedList<DirectedEdge> edgeList) {
         double totalDistanceMeters = 0;
 
-        for (DirectedEdge edge : controller.getRouteEdges()) {
+        for (DirectedEdge edge : edgeList) {
             totalDistanceMeters += 111111 * edge.getDistance(); // 111111 is roughly meters per 1 degree lat
         }
 
-        if (totalDistanceMeters >= 1000) {
-            return "Distance: " + String.format("%.1f", totalDistanceMeters / 1000) + " km";
-        } else {
-            return "Distance: " + (int) totalDistanceMeters + " m";
-        }
+        return totalDistanceMeters;
     }
 }
