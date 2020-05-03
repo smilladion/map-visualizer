@@ -5,8 +5,6 @@ import bfst20.mapdrawer.osm.OSMMap;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import java.io.File;
-
 /**
  * Class to launch our program through JavaFX.
  */
@@ -23,15 +21,14 @@ public class LauncherFX extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         long start = System.currentTimeMillis();
         System.out.println("Loading map...");
 
-        File file = new File("src/main/resources/samsoe.osm");
-
-        if (OSMMap.fromFile(file) != null) {
-            new MapView(OSMMap.fromFile(file), primaryStage);
-        }
+        new MapView(
+                OSMMap.loadBinary(LauncherFX.class.getResourceAsStream("/denmark.bin")),
+                primaryStage
+        );
 
         System.out.println("Map loaded in " + (System.currentTimeMillis() - start) / 1000 + "s");
     }

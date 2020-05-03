@@ -4,23 +4,12 @@ import bfst20.mapdrawer.dijkstra.DirectedEdge;
 import bfst20.mapdrawer.dijkstra.RouteDescription;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
-
 import java.util.LinkedList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 public class RouteDescriptionTest {
-
-    @Test
-    void createRouteDescriptionTest() {
-        assertEquals(true, true);
-    }
-
-    @Test
-    void getRouteTimeTest() {
-        // Need to implement mocking framework to test method dependent on radiobuttons
-        // ... or refactor code
-        assertEquals(true, true);
-    }
 
     @Test
     void routeDistanceToStringTest() {
@@ -38,14 +27,14 @@ public class RouteDescriptionTest {
 
     @Test
     void getRouteDistanceTest() {
-        // Initialize edge of length 1 (111111 meter)
+        // Initialize edge of length 1 (111111 meters)
         DirectedEdge edge = new DirectedEdge(0, 0, 0, 1, false, false, false, false, null, 0, 0, 0, 0);
         LinkedList<DirectedEdge> edges = new LinkedList<>();
 
         edges.add(edge);
         var route = new RouteDescription(edges, null, null, null);
 
-        // the edge should be distance 111111 meter
+        // The edge should be distance 111111 meters
         var length = 111111;
         assertEquals(length, route.getRouteDistance(edges), 0.00001);
 
@@ -54,6 +43,6 @@ public class RouteDescriptionTest {
         route = new RouteDescription(edges, null, null, null);
 
         // Check if doubled
-        assertEquals(length*2, route.getRouteDistance(edges), 0.00001);
+        assertEquals(length * 2, route.getRouteDistance(edges), 0.00001);
     }
 }

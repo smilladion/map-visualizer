@@ -4,6 +4,7 @@ import bfst20.mapdrawer.map.MapController;
 import bfst20.mapdrawer.map.MapView;
 import bfst20.mapdrawer.osm.OSMMap;
 import javafx.geometry.Point2D;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -179,7 +180,7 @@ public class RouteDescription {
         }
     }
 
-    /** Returns the distance of the currently selected route. */
+    /** Returns the given distance (in meters) as a string. */
     public static String routeDistanceToString(double distance) {
         if (distance >= 1000) {
             return "Distance: " + String.format("%.1f", distance / 1000) + " km";
@@ -188,6 +189,7 @@ public class RouteDescription {
         }
     }
 
+    /** Returns the distance of the currently selected route in meters. */
     public double getRouteDistance(LinkedList<DirectedEdge> edgeList) {
         double totalDistanceMeters = 0;
 
